@@ -2,23 +2,30 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Product } from 'src/product/entities/product.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Entity()
-export class Category {
+export class Rating {
   @PrimaryGeneratedColumn('uuid')
   @Column({ primary: true, type: 'uuid' })
   id: string;
 
-  @Column()
-  name: string;
+  @Column({ nullable: true })
+  comment: string;
 
-  @OneToMany(() => Product, (product) => product.category, { cascade: true })
-  products: Product[];
+  @Column()
+  rating_number: number;
+
+  @ManyToOne(() => Product, (product) => product.rating)
+  product: Product;
+
+  @ManyToOne(() => User, (user) => user.id)
+  ratedBy: User;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

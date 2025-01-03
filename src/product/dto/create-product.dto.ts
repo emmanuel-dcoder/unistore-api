@@ -42,4 +42,8 @@ export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
   product_description: string;
+
+  @ApiProperty()
+  @IsString()
+  avg_rating: number;
 }

@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SchoolModule } from './school/school.module';
 import { ProductModule } from './product/product.module';
 import { CategoryModule } from './category/category.module';
+import { RatingModule } from './rating/rating.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CategoryModule } from './category/category.module';
     SchoolModule,
     ProductModule,
     CategoryModule,
+    RatingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

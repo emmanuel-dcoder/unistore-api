@@ -1,11 +1,13 @@
 import { Role } from 'src/core/enums/role.enum';
 import { Product } from 'src/product/entities/product.entity';
+import { Rating } from 'src/rating/entities/rating.entity';
 import { School } from 'src/school/entities/school.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -60,6 +62,9 @@ export class User {
 
   @OneToMany(() => Product, (product) => product.user)
   products: Product[];
+
+  @OneToMany(() => Rating, (rating) => rating.ratedBy)
+  ratings: Rating[];
 
   @Column({ nullable: true })
   reset_token: string;

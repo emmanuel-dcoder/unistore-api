@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
 import { Product } from './entities/product.entity';
@@ -17,7 +21,7 @@ export class ProductService {
   ) {}
 
   async create(
-    createProductDto,
+    createProductDto: Partial<CreateProductDto>,
     files: Array<Express.Multer.File>,
     user: string,
     school: string,
@@ -102,6 +106,21 @@ export class ProductService {
     return updatedProduct;
   }
 
+  async updateWithoutImage(
+    productId: string,
+    updateData: Partial<CreateProductDto>,
+  ): Promise<Product> {
+    const product = await this.productRepo.findOne({
+      where: { id: productId },
+    });
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${productId} not found`);
+    }
+
+    Object.assign(product, updateData); // Merge the update data into the existing product
+    return this.productRepo.save(product); // Save the updated product
+  }
+
   private async uploadProductImages(
     files: Array<Express.Multer.File> | undefined,
   ): Promise<string[]> {
@@ -117,22 +136,30 @@ export class ProductService {
   }
 
   async findByUser(userId: string): Promise<Product[]> {
-    try {
-      const products = await this.productRepo.find({
-        where: { user: { id: userId } },
-        relations: ['user', 'school'], // Include related entities if needed
-      });
+    const products = await this.productRepo.find({
+      where: { user: { id: userId } },
+      relations: ['user', 'school'], // Include related entities if needed
+    });
 
-      if (!products.length) {
-        throw new BadRequestException('No products found for this user');
-      }
-
-      return products;
-    } catch (error) {
-      throw new BadRequestException(error.message || 'Error fetching products');
+    if (!products.length) {
+      throw new BadRequestException('No products found for this user');
     }
+
+    return products;
   }
 
+  async findById(productId: string) {
+    const product = await this.productRepo.findOne({
+      where: { id: productId },
+      relations: ['user', 'school'], // Include related entities if needed
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    return product;
+  }
   async findAll(productName?: string): Promise<Product[]> {
     const queryBuilder = this.productRepo.createQueryBuilder('product');
 

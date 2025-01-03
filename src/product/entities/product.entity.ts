@@ -1,4 +1,5 @@
 import { Category } from 'src/category/entities/category.entity';
+import { Rating } from 'src/rating/entities/rating.entity';
 import { School } from 'src/school/entities/school.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
@@ -7,6 +8,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -42,13 +44,20 @@ export class Product {
   @Column({ type: 'decimal', nullable: true })
   price: number;
 
+  @Column({ type: 'decimal', nullable: true })
+  avg_rating: number;
+
   @ManyToOne(() => User, (user) => user.id, { nullable: true })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
   @ManyToOne(() => School, (school) => school.product, { nullable: true })
-  @JoinColumn({ name: 'school_id' }) 
+  @JoinColumn({ name: 'school_id' })
   school: School;
+
+  @OneToMany(() => Rating, (rating) => rating.id, { nullable: true })
+  @JoinColumn({ name: 'rating_id' })
+  rating: Rating[];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
