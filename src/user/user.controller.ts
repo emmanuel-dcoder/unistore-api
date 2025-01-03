@@ -143,7 +143,7 @@ export class UserController {
   }
 
   @Put(':id/role')
-  @ApiOperation({ summary: 'Update user roles e.g MERCHANT, BUYER' })
+  @ApiOperation({ summary: 'Update user roles e.g merchant, user' })
   @ApiBody({ type: UpdateUserRoleDto })
   @ApiResponse({ status: 200, description: 'Role updated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })

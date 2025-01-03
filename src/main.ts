@@ -20,6 +20,15 @@ async function bootstrap() {
       'A platform that connects buyers and merchants in a unique way',
     )
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'apiKey',
+        name: 'x-access-token',
+        in: 'header',
+        description: 'Enter JWT token as x-access-token in the header',
+      },
+      'x-access-token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
