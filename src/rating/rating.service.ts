@@ -50,4 +50,25 @@ export class RatingService {
 
     return result;
   }
+
+  async getRatingsByProduct(productId: string) {
+    const ratings = await this.ratingRepo.find({
+      where: { product: { id: productId } },
+      relations: ['ratedBy'], // Populating the ratedBy field
+      select: {
+        ratedBy: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          profile_picture: true,
+        },
+      },
+    });
+
+    if (!ratings || ratings.length === 0) {
+      throw new BadRequestException('No ratings found for this product');
+    }
+
+    return ratings;
+  }
 }

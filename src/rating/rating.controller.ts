@@ -5,6 +5,8 @@ import {
   HttpStatus,
   Logger,
   Req,
+  Get,
+  Param,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
@@ -36,6 +38,30 @@ export class RatingController {
       });
     } catch (error) {
       this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @Get('product/:id')
+  @ApiOperation({
+    summary: 'Get ratings for a specific product',
+  })
+  @ApiResponse({ status: 200, description: 'Ratings fetched successfully' })
+  @ApiResponse({
+    status: 404,
+    description: 'No ratings found for this product',
+  })
+  async getProductRating(@Param('id') productId: string) {
+    try {
+      const ratings = await this.ratingService.getRatingsByProduct(productId);
+      return successResponse({
+        message: 'Ratings fetched successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: ratings,
+      });
+    } catch (error) {
+      this.logger.error('Error fetching ratings:', error.message);
       throw error;
     }
   }
