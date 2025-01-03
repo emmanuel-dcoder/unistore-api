@@ -122,6 +122,7 @@ export class ProductController {
     summary: 'Get products that belong to the logged-in merchant',
   })
   @ApiResponse({ status: 200, description: 'Products retrieved successfully' })
+  @UseGuards(MerchantGuard)
   async getUserProducts(@Req() req: any) {
     try {
       const userId = req.user.id;
