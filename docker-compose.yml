@@ -1,0 +1,9 @@
+services:
+  app:
+    build: ./ # Path to your Dockerfile
+    container_name: bhustore_api
+    env_file:
+      - .env # This will load environment variables from your .env file
+    ports:
+      - '3000:3000' # Map the container port to the host
+    restart: always # Ensure the container restarts if it crashes
