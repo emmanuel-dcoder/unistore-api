@@ -20,7 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
 
-@Controller('school')
+@Controller('api/v1/school')
 @ApiTags('University/School')
 export class SchoolController {
   private readonly logger = new Logger(SchoolController.name);

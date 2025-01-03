@@ -4,7 +4,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
 
-@Controller('category')
+@Controller('api/v1/category')
 @ApiTags('Category')
 export class CategoryController {
   private readonly logger = new Logger(CategoryController.name);

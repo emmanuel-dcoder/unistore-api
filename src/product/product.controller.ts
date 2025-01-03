@@ -28,7 +28,7 @@ import {
 import { successResponse } from 'src/core/common';
 import { MerchantGuard } from 'src/core/guards/merchant.guard.ts';
 
-@Controller('product')
+@Controller('api/v1/product')
 @ApiTags('Product')
 export class ProductController {
   private readonly logger = new Logger(ProductController.name);

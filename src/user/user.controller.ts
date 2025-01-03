@@ -33,7 +33,7 @@ import { successResponse } from 'src/core/common';
 import { ResendOtpDto, VerifyOtpDto } from './dto/verify-otp.dto.';
 import { SchoolService } from 'src/school/school.service';
 
-@Controller('user')
+@Controller('api/v1/user')
 @ApiTags('User')
 export class UserController {
   private readonly logger = new Logger(UserController.name);

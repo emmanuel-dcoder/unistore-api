@@ -12,8 +12,6 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-  app.setGlobalPrefix('api/v1');
-
   app.useGlobalFilters(new AllExceptionsFilter());
 
   const config = new DocumentBuilder()
