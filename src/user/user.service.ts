@@ -26,8 +26,6 @@ import { CreateNewPasswordDto } from './dto/create-new-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResendOtpDto } from './dto/verify-otp.dto.';
 import { MailService } from 'src/core/mail/email';
-import { SchoolService } from 'src/school/school.service';
-import { UpdateSchoolDto } from 'src/school/dto/update-school.dto';
 
 @Injectable()
 export class UserService {
@@ -91,7 +89,7 @@ export class UserService {
         'email',
         'identification',
         'user_status',
-        "password"
+        'password',
       ],
     });
 
@@ -445,17 +443,6 @@ export class UserService {
     return user;
   }
 
-  private async uploadUserImage(file: Express.Multer.File | undefined) {
-    if (!file) {
-      return null;
-    }
-    const uploadedFile = await this.cloudinaryService.uploadFile(
-      file,
-      'profile_pictures',
-    );
-    return uploadedFile.url;
-  }
-
   async find() {
     const user = await this.userRepo.find({
       select: [
@@ -477,5 +464,16 @@ export class UserService {
     }
 
     return user;
+  }
+
+  private async uploadUserImage(file: Express.Multer.File | undefined) {
+    if (!file) {
+      return null;
+    }
+    const uploadedFile = await this.cloudinaryService.uploadFile(
+      file,
+      'profile_pictures',
+    );
+    return uploadedFile.url;
   }
 }

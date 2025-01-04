@@ -9,21 +9,22 @@ import {
 } from 'typeorm';
 import { Chat } from './chat.entity';
 import { User } from 'src/user/entities/user.entity';
-
 @Entity()
 export class Message {
   @PrimaryGeneratedColumn('uuid')
-  @Column({ primary: true, type: 'uuid' })
   id: string;
 
-  @ManyToOne(() => Chat)
+  @ManyToOne(() => Chat, { eager: true })
   @JoinColumn({ name: 'chat_id' })
   chat: Chat;
 
   @Column('text', { nullable: true })
   message: string;
 
-  @ManyToOne(() => User)
+  @Column('text', { nullable: true })
+  attachment: string;
+
+  @ManyToOne(() => User, { eager: true })
   @JoinColumn({ name: 'sender_id' })
   sender: User;
 

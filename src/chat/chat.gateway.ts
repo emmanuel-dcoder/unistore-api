@@ -4,13 +4,15 @@ import {
   SubscribeMessage,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Chat } from './entities/chat.entity';
-
+import { GetMessagesDto, SendMessageDto } from './dto/create-chat.dto';
+import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
@@ -20,6 +22,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @InjectRepository(Chat)
     private readonly chatRepo: Repository<Chat>,
     private readonly chatService: ChatService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   handleConnection(client: Socket) {
@@ -41,16 +44,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('sendMessage')
-  async handleMessage(
-    client: Socket,
-    payload: {
-      sender: string;
-      receiver: string;
-      message: string;
-      user_type: string;
-    },
-  ) {
-    const { sender, receiver, message, user_type } = payload;
+  async handleMessage(client: Socket, @MessageBody() payload: SendMessageDto) {
+    const { sender, receiver, message, user_type, attachment } = payload;
     let user;
     let merchant;
     if (user_type === 'merchant') {
@@ -68,7 +63,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
 
     let chat;
-    if (existingChat) {
+    if (!existingChat) {
       //check and create chat id
       chat =
         user_type === 'merchant'
@@ -84,15 +79,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             });
     }
 
+    const image = await this.uploadAttachment(attachment);
+    const imageString = image.url as string;
+
     // Save message to the database
     const savedMessage = await this.chatService.saveMessage(
       chat.id as string,
       sender,
       receiver,
       message,
+      imageString,
     );
 
-    // Emit message to the receiver if online
     const receiverSocketId = this.connectedUsers.get(receiver);
     if (receiverSocketId) {
       this.server.to(receiverSocketId).emit('receiveMessage', savedMessage);
@@ -100,14 +98,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('getMessages')
-  async handleGetMessages(
-    client: Socket,
-    payload: { userId1: string; userId2: string },
-  ) {
+  async handleGetMessages(client: Socket, payload: GetMessagesDto) {
     const messages = await this.chatService.getMessages(
-      payload.userId1,
-      payload.userId2,
+      payload.user,
+      payload.merchant,
     );
     client.emit('messageHistory', messages);
+  }
+
+  @SubscribeMessage('getChats')
+  async handleGetChats(client: Socket, participantId: string) {
+    try {
+      const chats = await this.chatService.getChatsByParticipant(participantId);
+      client.emit('chatList', chats);
+    } catch (error) {
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  private async uploadAttachment(file: Express.Multer.File | undefined) {
+    if (!file) {
+      return null;
+    }
+    const uploadedFile = await this.cloudinaryService.uploadFile(
+      file,
+      'profile_pictures',
+    );
+    return uploadedFile.url;
   }
 }

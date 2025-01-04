@@ -9,22 +9,20 @@ import {
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
-
 @Entity()
 @Unique(['user', 'merchant'])
 export class Chat {
   @PrimaryGeneratedColumn('uuid')
-  @Column({ primary: true, type: 'uuid' })
   id: string;
 
   @Column({ nullable: true })
   last_message: string;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, { eager: true })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, { eager: true })
   @JoinColumn({ name: 'merchant_id' })
   merchant: User;
 
