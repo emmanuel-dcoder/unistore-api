@@ -15,6 +15,7 @@ import {
   ConflictErrorException,
   generateAccessToken,
   hashPassword,
+  NotFoundErrorException,
   RandomFourDigits,
 } from 'src/core/common';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
@@ -314,6 +315,13 @@ export class UserService {
     await this.userRepo.save(user);
 
     return { message: 'Password successfully updated' };
+  }
+
+  async getCurrentUser(userId: string): Promise<User | undefined> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundErrorException('User not found');
+
+    return user;
   }
 
   private async uploadUserImage(file: Express.Multer.File | undefined) {

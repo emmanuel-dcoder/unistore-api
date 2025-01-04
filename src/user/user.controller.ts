@@ -9,6 +9,7 @@ import {
   UploadedFile,
   HttpStatus,
   Get,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -29,9 +30,10 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { CreateNewPasswordDto } from './dto/create-new-password.dto';
 import { LoginDto } from './dto/login.dto';
-import { successResponse } from 'src/core/common';
+import { successResponse, SuccessResponseType } from 'src/core/common';
 import { ResendOtpDto, VerifyOtpDto } from './dto/verify-otp.dto.';
 import { SchoolService } from 'src/school/school.service';
+import { User } from './entities/user.entity';
 
 @Controller('api/v1/user')
 @ApiTags('User')
@@ -74,6 +76,31 @@ export class UserController {
   async login(@Body() loginDto: LoginDto) {
     try {
       const data = await this.userService.login(loginDto);
+      return successResponse({
+        message: 'Login successful',
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @Get('logged-in')
+  @ApiOperation({
+    summary: 'Get current logged in user, send jwt token to get user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Logged in user fetched',
+  })
+  @ApiResponse({ status: 401, description: 'Unable to fetch user' })
+  async getCurrentUser(@Req() req: any): Promise<SuccessResponseType> {
+    try {
+      const userId = req.user.id; // req.user is populated by the JWT Auth Guard
+      const data = await this.userService.getCurrentUser(userId);
       return successResponse({
         message: 'Login successful',
         code: HttpStatus.OK,
