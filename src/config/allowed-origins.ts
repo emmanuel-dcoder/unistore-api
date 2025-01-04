@@ -5,4 +5,5 @@ export const origins = [
   'https://bhustore-frontend.vercel.app/',
   'https://bhustore.ng',
   'https://www.bhustore.ng',
+  'http://localhost:8081',
 ];

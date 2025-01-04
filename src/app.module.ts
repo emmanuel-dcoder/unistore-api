@@ -10,8 +10,7 @@ import { SchoolModule } from './school/school.module';
 import { ProductModule } from './product/product.module';
 import { CategoryModule } from './category/category.module';
 import { RatingModule } from './rating/rating.module';
-// import { ChatModule } from './chat/chat.module';
-// import { MessageModule } from './message/message.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -23,8 +22,7 @@ import { RatingModule } from './rating/rating.module';
     ProductModule,
     CategoryModule,
     RatingModule,
-    // ChatModule,
-    // MessageModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
