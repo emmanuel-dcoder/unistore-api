@@ -30,7 +30,11 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { CreateNewPasswordDto } from './dto/create-new-password.dto';
 import { LoginDto } from './dto/login.dto';
-import { successResponse, SuccessResponseType } from 'src/core/common';
+import {
+  BadRequestErrorException,
+  successResponse,
+  SuccessResponseType,
+} from 'src/core/common';
 import { ResendOtpDto, VerifyOtpDto } from './dto/verify-otp.dto.';
 import { SchoolService } from 'src/school/school.service';
 import { User } from './entities/user.entity';
@@ -99,7 +103,9 @@ export class UserController {
   @ApiResponse({ status: 401, description: 'Unable to fetch user' })
   async getCurrentUser(@Req() req: any): Promise<SuccessResponseType> {
     try {
-      const userId = req.user.id; // req.user is populated by the JWT Auth Guard
+      if (!req.user.id)
+        throw new BadRequestErrorException('this route is authenticated');
+      const userId = req.user.id;
       const data = await this.userService.getCurrentUser(userId);
       return successResponse({
         message: 'Login successful',
