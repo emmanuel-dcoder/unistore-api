@@ -40,6 +40,18 @@ export class UserService {
   async create(payload: CreateUserDto) {
     const userRecord = await this.userRepo.findOne({
       where: { email: payload.email },
+      select: [
+        'first_name',
+        'last_name',
+        'phone',
+        'id',
+        'profile_picture',
+        'is_active',
+        'is_merchant_verified',
+        'email',
+        'identification',
+        'user_status',
+      ],
     });
 
     if (userRecord) {
@@ -68,6 +80,18 @@ export class UserService {
     const user = await this.userRepo.findOne({
       where: { email },
       relations: ['school'], // Ensure the school relation is fetched
+      select: [
+        'first_name',
+        'last_name',
+        'phone',
+        'id',
+        'profile_picture',
+        'is_active',
+        'is_merchant_verified',
+        'email',
+        'identification',
+        'user_status',
+      ],
     });
 
     if (!user) {
@@ -109,7 +133,21 @@ export class UserService {
 
   async verifyOtp(payload: { email: string; otp: string }) {
     const { email, otp } = payload;
-    const user = await this.userRepo.findOne({ where: { email } });
+    const user = await this.userRepo.findOne({
+      where: { email },
+      select: [
+        'first_name',
+        'last_name',
+        'phone',
+        'id',
+        'profile_picture',
+        'is_active',
+        'is_merchant_verified',
+        'email',
+        'identification',
+        'user_status',
+      ],
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -136,7 +174,21 @@ export class UserService {
 
   async resendOtp(resendOtpDto: ResendOtpDto) {
     const { email } = resendOtpDto;
-    const user = await this.userRepo.findOne({ where: { email } });
+    const user = await this.userRepo.findOne({
+      where: { email },
+      select: [
+        'first_name',
+        'last_name',
+        'phone',
+        'id',
+        'profile_picture',
+        'is_active',
+        'is_merchant_verified',
+        'email',
+        'identification',
+        'user_status',
+      ],
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -161,7 +213,21 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: Partial<UpdateUserDto>) {
-    const user = await this.userRepo.findOne({ where: { id } });
+    const user = await this.userRepo.findOne({
+      where: { id },
+      select: [
+        'first_name',
+        'last_name',
+        'phone',
+        'id',
+        'profile_picture',
+        'is_active',
+        'is_merchant_verified',
+        'email',
+        'identification',
+        'user_status',
+      ],
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -177,6 +243,18 @@ export class UserService {
   async updateSchool(id: string, updateUserSchoolDto: UpdateUserSchoolDto) {
     const user = await this.userRepo.findOne({
       where: { id },
+      select: [
+        'first_name',
+        'last_name',
+        'phone',
+        'id',
+        'profile_picture',
+        'is_active',
+        'is_merchant_verified',
+        'email',
+        'identification',
+        'user_status',
+      ],
       relations: ['school'],
     });
 
@@ -192,7 +270,21 @@ export class UserService {
   }
 
   async uploadProfilePicture(userId: string, file: Express.Multer.File) {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      select: [
+        'first_name',
+        'last_name',
+        'phone',
+        'id',
+        'profile_picture',
+        'is_active',
+        'is_merchant_verified',
+        'email',
+        'identification',
+        'user_status',
+      ],
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -210,7 +302,21 @@ export class UserService {
   }
 
   async photoIdentification(userId: string, file: Express.Multer.File) {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      select: [
+        'first_name',
+        'last_name',
+        'phone',
+        'id',
+        'profile_picture',
+        'is_active',
+        'is_merchant_verified',
+        'email',
+        'identification',
+        'user_status',
+      ],
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -318,7 +424,21 @@ export class UserService {
   }
 
   async getCurrentUser(userId: string): Promise<User | undefined> {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      select: [
+        'first_name',
+        'last_name',
+        'phone',
+        'id',
+        'profile_picture',
+        'is_active',
+        'is_merchant_verified',
+        'email',
+        'identification',
+        'user_status',
+      ],
+    });
     if (!user) throw new NotFoundErrorException('User not found');
 
     return user;
@@ -336,7 +456,20 @@ export class UserService {
   }
 
   async find() {
-    const user = await this.userRepo.find();
+    const user = await this.userRepo.find({
+      select: [
+        'first_name',
+        'last_name',
+        'phone',
+        'id',
+        'profile_picture',
+        'is_active',
+        'is_merchant_verified',
+        'email',
+        'identification',
+        'user_status',
+      ],
+    });
 
     if (!user) {
       throw new NotFoundException('Unable to find user');

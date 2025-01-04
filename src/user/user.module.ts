@@ -35,6 +35,10 @@ export class UserModule implements NestModule {
         path: 'api/v1/user/:id/profile-picture',
         method: RequestMethod.PUT,
       },
+      {
+        path: 'api/v1/user/logged-in',
+        method: RequestMethod.GET,
+      },
     );
   }
 }
