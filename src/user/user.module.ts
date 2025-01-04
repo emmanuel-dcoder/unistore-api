@@ -20,6 +20,7 @@ import { VerifyTokenMiddleware } from 'src/core/common/middlewares';
   controllers: [UserController],
   providers: [UserService, CloudinaryService, MailService, SchoolService],
 })
+
 export class UserModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(VerifyTokenMiddleware).forRoutes(

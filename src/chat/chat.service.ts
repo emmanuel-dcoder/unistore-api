@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,6 +15,19 @@ export class ChatService {
     private readonly messageRepo: Repository<Message>,
   ) {}
 
+  async findOne(payload: { user: string; merchant: string }): Promise<Chat> {
+    const { user, merchant } = payload;
+
+    const existingChat = await this.chatRepo.findOne({
+      where: { user: { id: user }, merchant: { id: merchant } },
+    });
+
+    if (!existingChat) {
+      throw new NotFoundException('Chat not found');
+    }
+    return existingChat;
+  }
+
   async createChatId(payload: {
     user: string;
     merchant: string;
@@ -22,13 +35,19 @@ export class ChatService {
   }): Promise<Chat> {
     const { user, merchant, last_message } = payload;
 
-    const chat = await this.chatRepo.save({
+    const existingChat = await this.chatRepo.findOne({
+      where: { user: { id: user }, merchant: { id: merchant } },
+    });
+
+    if (existingChat) {
+      return existingChat;
+    }
+
+    return this.chatRepo.save({
       user: { id: user } as any,
       merchant: { id: merchant } as any,
       last_message,
     });
-
-    return chat;
   }
 
   async getChat(id: string): Promise<Chat[]> {
@@ -53,15 +72,16 @@ export class ChatService {
   async getMessages(userId1: string, userId2: string): Promise<Message[]> {
     return this.messageRepo
       .createQueryBuilder('message')
-      .where('(message.sender = :userId1 AND chat.receiver = :userId2)', {
+      .leftJoinAndSelect('message.chat', 'chat')
+      .where('(message.sender.id = :userId1 AND chat.merchant.id = :userId2)', {
         userId1,
         userId2,
       })
-      .orWhere('(chat.sender = :userId2 AND chat.receiver = :userId1)', {
+      .orWhere('(chat.user.id = :userId1 AND message.sender.id = :userId2)', {
         userId1,
         userId2,
       })
-      .orderBy('chat.timestamp', 'ASC')
+      .orderBy('message.created_at', 'ASC')
       .getMany();
   }
 }

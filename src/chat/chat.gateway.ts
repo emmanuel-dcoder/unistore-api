@@ -7,13 +7,21 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
+import { UserService } from 'src/user/user.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Chat } from './entities/chat.entity';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private connectedUsers = new Map<string, string>(); // Map userId to socketId
 
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    @InjectRepository(Chat)
+    private readonly chatRepo: Repository<Chat>,
+    private readonly chatService: ChatService,
+  ) {}
 
   handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
@@ -44,20 +52,38 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     },
   ) {
     const { sender, receiver, message, user_type } = payload;
+    let user;
+    let merchant;
+    if (user_type === 'merchant') {
+      user = receiver;
+      merchant = sender;
+    }
 
-    //check and create chat id
-    const chat =
-      user_type === 'merchant'
-        ? await this.chatService.createChatId({
-            merchant: sender,
-            user: receiver,
-            last_message: message,
-          })
-        : await this.chatService.createChatId({
-            merchant: receiver,
-            user: sender,
-            last_message: message,
-          });
+    if (user_type === 'user') {
+      user = sender;
+      merchant = receiver;
+    }
+
+    const existingChat = await this.chatRepo.findOne({
+      where: { user: { id: user }, merchant: { id: merchant } },
+    });
+
+    let chat;
+    if (existingChat) {
+      //check and create chat id
+      chat =
+        user_type === 'merchant'
+          ? await this.chatService.createChatId({
+              merchant: sender,
+              user: receiver,
+              last_message: message,
+            })
+          : await this.chatService.createChatId({
+              merchant: receiver,
+              user: sender,
+              last_message: message,
+            });
+    }
 
     // Save message to the database
     const savedMessage = await this.chatService.saveMessage(
