@@ -59,8 +59,8 @@ export class ProductService {
   async update(
     productId: string,
     updateProductDto: Partial<CreateProductDto> & {
-      school: string;
-      user: string;
+      school?: string;
+      user?: string;
     }, // Assuming this DTO has all the fields needed for update
     files: Array<Express.Multer.File> | undefined,
   ) {
@@ -135,11 +135,28 @@ export class ProductService {
     return uploadedFiles.map((uploadResult) => uploadResult.url);
   }
 
-  async findByUser(userId: string): Promise<Product[]> {
-    const products = await this.productRepo.find({
-      where: { user: { id: userId } },
-      relations: ['user', 'school'], // Include related entities if needed
-    });
+  async findByUser(userId: string, search?: string): Promise<Product[]> {
+    const queryBuilder = this.productRepo.createQueryBuilder('product');
+
+    queryBuilder
+      .where('product.userId = :userId', { userId })
+      .leftJoinAndSelect('product.user', 'user')
+      .addSelect([
+        'user.id',
+        'sender.first_name',
+        'sender.last_name',
+        'sender.profile_picture',
+      ])
+      .leftJoinAndSelect('product.school', 'school');
+
+    if (search) {
+      queryBuilder.andWhere(
+        '(product.product_name ILIKE :search OR product.product_description ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    const products = await queryBuilder.getMany();
 
     if (!products.length) {
       throw new BadRequestException('No products found for this user');
@@ -160,18 +177,26 @@ export class ProductService {
 
     return product;
   }
+
   async findAll(productName?: string): Promise<Product[]> {
     const queryBuilder = this.productRepo.createQueryBuilder('product');
 
-    // Include the optional search filter if product_name is provided
+    // Add search filter if productName is provided
     if (productName) {
-      queryBuilder.where('product.name ILIKE :search', {
-        productName: `%${productName}%`,
+      queryBuilder.where('product.product_name ILIKE :search', {
+        search: `%${productName}%`,
       });
     }
 
-    queryBuilder.leftJoinAndSelect('product.user', 'user');
-    queryBuilder.leftJoinAndSelect('product.school', 'school');
+    queryBuilder
+      .leftJoinAndSelect('product.user', 'user') // Join the user relationship
+      .addSelect([
+        'user.id', // Include the specific fields from the user
+        'user.first_name',
+        'user.last_name',
+        'user.profile_picture',
+      ])
+      .leftJoinAndSelect('product.school', 'school'); // Join the school relationship
 
     const products = await queryBuilder.getMany();
     return products;

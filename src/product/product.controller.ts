@@ -94,8 +94,8 @@ export class ProductController {
     @Param('id') id: string,
     @Body()
     updateProductDto: Partial<CreateProductDto> & {
-      school: string;
-      user: string;
+      school?: string;
+      user?: string;
     },
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
@@ -116,17 +116,22 @@ export class ProductController {
       throw error;
     }
   }
-
   @Get('merchant-products')
   @ApiOperation({
-    summary: 'Get products that belong to the logged-in merchant',
+    summary:
+      'Get products that belong to the logged-in merchant, with optional search',
   })
   @ApiResponse({ status: 200, description: 'Products retrieved successfully' })
   @UseGuards(MerchantGuard)
-  async getUserProducts(@Req() req: any) {
+  async getUserProducts(@Req() req: any, @Query('search') search?: string) {
     try {
-      const userId = req.user.id;
-      const products = await this.productService.findByUser(userId);
+      // Extract userId and validate
+      const userId = req.user?.id;
+
+      // Fetch products with optional search
+      const products = await this.productService.findByUser(userId, search);
+
+      // Return success response
       return successResponse({
         message: 'Products retrieved successfully',
         code: HttpStatus.OK,
@@ -134,7 +139,13 @@ export class ProductController {
         data: products,
       });
     } catch (error) {
-      this.logger.error('Error', error.message);
+      this.logger.error('Error fetching products for user', {
+        error: error.message,
+        userId: req.user?.id,
+        search,
+      });
+
+      // Transform error into user-friendly response if necessary
       throw error;
     }
   }
