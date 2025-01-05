@@ -202,7 +202,6 @@ export class ProductService {
   }
 
   async findByCategoryAndPrice(
-    schoolId: string,
     categoryName: string,
     filters: {
       minPrice?: number;
@@ -210,12 +209,13 @@ export class ProductService {
       minRating?: number;
       maxRating?: number;
     },
+    schoolId?: string,
   ) {
     const { minPrice, maxPrice, minRating, maxRating } = filters;
 
     const query: any = {
-      school: schoolId,
       categoryName,
+      school: schoolId ? schoolId : null,
     };
 
     // Add price range filters if provided

@@ -26,7 +26,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
-
 import { UserGuard } from 'src/core/guards/user.guard';
 import { MerchantGuard } from 'src/core/guards/merchant.guard';
 
@@ -236,7 +235,6 @@ export class ProductController {
       const schoolId = req.user?.school?.id;
 
       const data = await this.productService.findByCategoryAndPrice(
-        schoolId,
         categoryName,
         {
           minPrice,
@@ -244,6 +242,7 @@ export class ProductController {
           minRating,
           maxRating,
         },
+        schoolId,
       );
 
       return successResponse({
