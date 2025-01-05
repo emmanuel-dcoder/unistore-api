@@ -27,6 +27,7 @@ import {
 } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
 import { MerchantGuard } from 'src/core/guards/merchant.guard.ts';
+import { UserGuard } from 'src/core/guards/user.guard';
 
 @Controller('api/v1/product')
 @ApiTags('Product')
@@ -90,6 +91,7 @@ export class ProductController {
   })
   @ApiBody({ type: CreateProductDto }) // Can reuse CreateProductDto or define a specific update DTO
   @UseInterceptors(FilesInterceptor('files', 5))
+  @UseGuards(MerchantGuard)
   async update(
     @Param('id') id: string,
     @Body()
@@ -117,7 +119,6 @@ export class ProductController {
     }
   }
 
-  
   @Get('merchant-products')
   @ApiOperation({
     summary:
@@ -162,6 +163,7 @@ export class ProductController {
     description: 'Search term for filtering products',
   })
   @ApiResponse({ status: 200, description: 'Products retrieved successfully' })
+  @UseGuards(UserGuard)
   async getProducts(
     @Query('search') search?: string, // Optional query parameter
   ) {
@@ -202,6 +204,7 @@ export class ProductController {
     description: 'List of products that match the category name and price',
   })
   @ApiResponse({ status: 404, description: 'Category not found' })
+  @UseGuards(UserGuard)
   async getByCategoryAndPrice(
     @Query('categoryName') categoryName: string,
     @Query('price') price: number,
@@ -228,6 +231,7 @@ export class ProductController {
     status: 404,
     description: 'Product not found',
   })
+  @UseGuards(MerchantGuard)
   async delete(@Param('id') id: string) {
     try {
       await this.productService.delete(id);
@@ -254,6 +258,7 @@ export class ProductController {
     status: 400,
     description: 'Unable to delete products.',
   })
+  @UseGuards(MerchantGuard)
   async deleteAll() {
     try {
       const response = await this.productService.deleteAll();
