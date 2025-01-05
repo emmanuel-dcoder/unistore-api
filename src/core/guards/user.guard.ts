@@ -11,11 +11,11 @@ export class UserGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
 
     // Check if user_type is 'user'
-    if (request.user.user_type === 'user') {
+    if (request.user.user_type === 'user' && request.user.user_type.is_active) {
       return true;
     }
     throw new UnauthorizedException(
-      'Access denied. this route is for user and not merchant.',
+      'Access denied. this route is for user(must be active) and not merchant.',
     );
   }
 }

@@ -26,8 +26,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
-import { MerchantGuard } from 'src/core/guards/merchant.guard.ts';
+
 import { UserGuard } from 'src/core/guards/user.guard';
+import { MerchantGuard } from 'src/core/guards/merchant.guard';
 
 @Controller('api/v1/product')
 @ApiTags('Product')

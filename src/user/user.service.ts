@@ -97,6 +97,12 @@ export class UserService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    if (!user.is_active) {
+      throw new UnauthorizedException(
+        'User not currently active, kindly verify your account',
+      );
+    }
+
     // Compare the provided password with the stored hashed password
     const isPasswordValid = await compare(password, user.password);
     if (!isPasswordValid) {
@@ -113,7 +119,9 @@ export class UserService {
       {
         id: user.id,
         user_type: user.user_type,
-        school: schoolPayload, // Include only necessary fields
+        is_active: user.is_active,
+        is_merchant_verified: user.is_merchant_verified,
+        school: schoolPayload,
       },
       'user_access_key',
     );

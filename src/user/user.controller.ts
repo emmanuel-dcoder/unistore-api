@@ -37,7 +37,6 @@ import {
 } from 'src/core/common';
 import { ResendOtpDto, VerifyOtpDto } from './dto/verify-otp.dto.';
 import { SchoolService } from 'src/school/school.service';
-import { User } from './entities/user.entity';
 
 @Controller('api/v1/user')
 @ApiTags('User')

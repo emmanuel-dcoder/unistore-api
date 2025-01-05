@@ -31,6 +31,8 @@ export const generateAccessToken = (
   payload: {
     id: string;
     user_type: string;
+    is_active: boolean;
+    is_merchant_verified?: boolean;
     school?: any;
   },
   domain: TokenKey = 'user_access_key',
