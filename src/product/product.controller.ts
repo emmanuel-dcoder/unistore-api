@@ -128,11 +128,16 @@ export class ProductController {
   @UseGuards(MerchantGuard)
   async getUserProducts(@Req() req: any, @Query('search') search?: string) {
     try {
-      // Extract userId and validate
+      // Extract userId and schoolId from the request
       const userId = req.user?.id;
+      const schoolId = req.user?.school?.id;
 
-      // Fetch products with optional search
-      const products = await this.productService.findByUser(userId, search);
+      // Fetch products with optional search and schoolId
+      const products = await this.productService.findByUser(
+        userId,
+        search,
+        schoolId,
+      );
 
       // Return success response
       return successResponse({
@@ -148,7 +153,6 @@ export class ProductController {
         search,
       });
 
-      // Transform error into user-friendly response if necessary
       throw error;
     }
   }
@@ -165,10 +169,12 @@ export class ProductController {
   @ApiResponse({ status: 200, description: 'Products retrieved successfully' })
   @UseGuards(UserGuard)
   async getProducts(
+    @Req() req: any,
     @Query('search') search?: string, // Optional query parameter
   ) {
     try {
-      const products = await this.productService.findAll(search);
+      const schoolId = req.user.school.id;
+      const products = await this.productService.findAll(schoolId, search);
       return successResponse({
         message: 'Products retrieved successfully',
         code: HttpStatus.OK,

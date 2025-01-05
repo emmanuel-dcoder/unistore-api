@@ -17,6 +17,9 @@ export class Category {
   @Column()
   name: string;
 
+  @Column({ nullable: true })
+  description: string;
+
   @OneToMany(() => Product, (product) => product.category, { cascade: true })
   products: Product[];
 

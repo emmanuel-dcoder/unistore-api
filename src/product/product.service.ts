@@ -134,11 +134,12 @@ export class ProductService {
     return uploadedFiles.map((uploadResult) => uploadResult.url);
   }
 
-  async findByUser(userId: string, search?: string): Promise<Product[]> {
+  async findByUser(userId: string, search: string, schoolId: string) {
     const queryBuilder = this.productRepo.createQueryBuilder('product');
 
     queryBuilder
       .where('product.user = :userId', { userId })
+      .andWhere('product.school = :schoolId', { schoolId })
       .leftJoinAndSelect('product.user', 'user')
       .addSelect([
         'user.id',
@@ -176,8 +177,7 @@ export class ProductService {
 
     return product;
   }
-
-  async findAll(productName?: string): Promise<Product[]> {
+  async findAll(schoolId: string, productName?: string): Promise<Product[]> {
     const queryBuilder = this.productRepo.createQueryBuilder('product');
 
     // Add search filter if productName is provided
@@ -188,6 +188,7 @@ export class ProductService {
     }
 
     queryBuilder
+      .where('product.school = :schoolId', { schoolId })
       .leftJoinAndSelect('product.user', 'user') // Join the user relationship
       .addSelect([
         'user.id', // Include the specific fields from the user

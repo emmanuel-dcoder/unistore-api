@@ -17,6 +17,7 @@ import {
   hashPassword,
   NotFoundErrorException,
   RandomFourDigits,
+  UnauthorizedErrorException,
 } from 'src/core/common';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -94,11 +95,11 @@ export class UserService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedErrorException('Invalid email or password');
     }
 
     if (!user.is_active) {
-      throw new UnauthorizedException(
+      throw new UnauthorizedErrorException(
         'User not currently active, kindly verify your account',
       );
     }
