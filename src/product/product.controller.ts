@@ -116,6 +116,8 @@ export class ProductController {
       throw error;
     }
   }
+
+  
   @Get('merchant-products')
   @ApiOperation({
     summary:

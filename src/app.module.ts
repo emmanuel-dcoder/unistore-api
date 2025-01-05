@@ -11,6 +11,7 @@ import { ProductModule } from './product/product.module';
 import { CategoryModule } from './category/category.module';
 import { RatingModule } from './rating/rating.module';
 import { ChatModule } from './chat/chat.module';
+import { InvoiceModule } from './invoice/invoice.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ChatModule } from './chat/chat.module';
     CategoryModule,
     RatingModule,
     ChatModule,
+    InvoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

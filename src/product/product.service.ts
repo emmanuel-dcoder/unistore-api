@@ -86,7 +86,6 @@ export class ProductService {
       product.user = { id: user } as any;
     }
 
-    // If new files (images) are provided, upload them and add to the existing product_image array
     if (files && files.length > 0) {
       const imageUrls = await this.uploadProductImages(files);
       // Add new images to existing product_image array
@@ -139,13 +138,13 @@ export class ProductService {
     const queryBuilder = this.productRepo.createQueryBuilder('product');
 
     queryBuilder
-      .where('product.userId = :userId', { userId })
+      .where('product.user = :userId', { userId })
       .leftJoinAndSelect('product.user', 'user')
       .addSelect([
         'user.id',
-        'sender.first_name',
-        'sender.last_name',
-        'sender.profile_picture',
+        'user.first_name',
+        'user.last_name',
+        'user.profile_picture',
       ])
       .leftJoinAndSelect('product.school', 'school');
 
