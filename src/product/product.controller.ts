@@ -184,9 +184,9 @@ export class ProductController {
 
   @Get('by-category-and-price')
   @ApiOperation({
-    summary: 'Find products by category and price',
+    summary: 'Find products by category, price, and rating ranges',
     description:
-      'Fetches products that belong to a specific category and have a specific price.',
+      'Fetches products that belong to a specific category and fall within specified price and rating ranges.',
   })
   @ApiQuery({
     name: 'categoryName',
@@ -195,32 +195,75 @@ export class ProductController {
     description: 'Name of the category to filter products by',
   })
   @ApiQuery({
-    name: 'price',
+    name: 'minPrice',
     type: Number,
-    required: true,
-    description: 'Price of the products to filter by',
+    required: false,
+    description: 'Minimum price of the products to filter by',
+  })
+  @ApiQuery({
+    name: 'maxPrice',
+    type: Number,
+    required: false,
+    description: 'Maximum price of the products to filter by',
+  })
+  @ApiQuery({
+    name: 'minRating',
+    type: Number,
+    required: false,
+    description: 'Minimum average rating of the products to filter by',
+  })
+  @ApiQuery({
+    name: 'maxRating',
+    type: Number,
+    required: false,
+    description: 'Maximum average rating of the products to filter by',
   })
   @ApiResponse({
     status: 200,
-    description: 'List of products that match the category name and price',
+    description: 'List of products that match the conditions',
   })
-  @ApiResponse({ status: 404, description: 'Category not found' })
+  @ApiResponse({ status: 404, description: 'No products found' })
   @UseGuards(UserGuard)
   async getByCategoryAndPrice(
+    @Req() req: any,
     @Query('categoryName') categoryName: string,
-    @Query('price') price: number,
+    @Query('minPrice') minPrice?: number,
+    @Query('maxPrice') maxPrice?: number,
+    @Query('minRating') minRating?: number,
+    @Query('maxRating') maxRating?: number,
   ) {
-    const data = await this.productService.findByCategoryAndPrice(
-      categoryName,
-      price,
-    );
+    try {
+      const schoolId = req.user?.school?.id;
 
-    return successResponse({
-      message: 'List of products that match the category name and price',
-      code: HttpStatus.OK,
-      status: 'success',
-      data,
-    });
+      const data = await this.productService.findByCategoryAndPrice(
+        schoolId,
+        categoryName,
+        {
+          minPrice,
+          maxPrice,
+          minRating,
+          maxRating,
+        },
+      );
+
+      return successResponse({
+        message: 'Products retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error fetching products by category and price', {
+        error: error.message,
+        categoryName,
+        minPrice,
+        maxPrice,
+        minRating,
+        maxRating,
+      });
+
+      throw error;
+    }
   }
 
   @Delete(':id')

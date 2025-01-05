@@ -202,21 +202,52 @@ export class ProductService {
   }
 
   async findByCategoryAndPrice(
+    schoolId: string,
     categoryName: string,
-    price: number,
-  ): Promise<Product[]> {
-    const category = await this.categoryService.findOneByName(categoryName);
+    filters: {
+      minPrice?: number;
+      maxPrice?: number;
+      minRating?: number;
+      maxRating?: number;
+    },
+  ) {
+    const { minPrice, maxPrice, minRating, maxRating } = filters;
 
-    if (!category) {
-      throw new NotFoundErrorException('Category not found');
+    const query: any = {
+      school: schoolId,
+      categoryName,
+    };
+
+    // Add price range filters if provided
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      query.price = {};
+      if (minPrice !== undefined) {
+        query.price.$gte = minPrice;
+      }
+      if (maxPrice !== undefined) {
+        query.price.$lte = maxPrice;
+      }
     }
 
-    return this.productRepo.find({
-      where: {
-        category: { id: category.id },
-        price,
-      },
-    });
+    // Add rating range filters if provided
+    if (minRating !== undefined || maxRating !== undefined) {
+      query.avgRating = {};
+      if (minRating !== undefined) {
+        query.avgRating.$gte = minRating;
+      }
+      if (maxRating !== undefined) {
+        query.avgRating.$lte = maxRating;
+      }
+    }
+
+    // Fetch products based on the query
+    const products = await this.productRepo.find(query);
+
+    if (!products || products.length === 0) {
+      throw new NotFoundException('No products found matching the criteria');
+    }
+
+    return products;
   }
 
   async delete(productId: string): Promise<void> {

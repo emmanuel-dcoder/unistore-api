@@ -13,7 +13,6 @@ import { MailService } from 'src/core/mail/email';
 import { SchoolService } from 'src/school/school.service';
 import { School } from 'src/school/entities/school.entity';
 import { VerifyTokenMiddleware } from 'src/core/common/middlewares';
-// import { MailService } from 'src/core/mail/email';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, School])],
