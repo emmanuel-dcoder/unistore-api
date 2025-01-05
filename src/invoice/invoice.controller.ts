@@ -4,78 +4,40 @@ import {
   Body,
   Logger,
   HttpStatus,
-  Get,
-  Param,
   Req,
 } from '@nestjs/common';
-import { InvoiceService } from './invoice.service';
-import { CreateInvoiceDto } from './dto/create-invoice.dto';
+import { CreateOrderDto } from './dto/create-invoice.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
+import { OrderService } from './service/order.service';
+import { InvoiceService } from './service/invoice.service';
 
 @ApiTags('Invoice/Order')
-@Controller('api/v1/invoice')
-export class InvoiceController {
-  private readonly logger = new Logger(InvoiceController.name);
-  constructor(private readonly invoiceService: InvoiceService) {}
+@Controller('api/v1/orders-invoices')
+export class OrderInvoiceController {
+  private readonly logger = new Logger(OrderInvoiceController.name);
+  constructor(
+    private readonly invoiceService: InvoiceService,
+    private readonly orderService: OrderService,
+  ) {}
 
   @Post()
   @ApiOperation({
-    summary: 'Create Invoice for order while generating payment intent',
+    summary:
+      'NOTE: the invoice payload is an array of objects in this:  { productId: string; quantity: number } Create Invoice for order while generating payment intent',
   })
-  @ApiBody({ type: CreateInvoiceDto })
+  @ApiBody({ type: CreateOrderDto }) // Ensure CreateInvoiceDto matches the expected structure
   @ApiResponse({ status: 200, description: `Invoice Generated successfully` })
   @ApiResponse({ status: 401, description: 'Unable to create invoice.' })
-  async create(@Req() req: any, @Body() createCategoryDto: CreateInvoiceDto) {
+  async create(@Body() createOrderDto: CreateOrderDto) {
     try {
-      const user = req.user.id;
-      const data = await this.invoiceService.createInvoice(
-        createCategoryDto,
-        user,
-      );
-      return successResponse({
-        message: `Category created successfully`,
-        code: HttpStatus.OK,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw error;
-    }
-  }
+      // const user = req.user.id;
+      const { invoices, createOrder } = createOrderDto;
 
-  @Get(':id')
-  @ApiOperation({
-    summary: 'Get a single invoice by ID',
-  })
-  @ApiResponse({ status: 200, description: 'Invoice found successfully' })
-  @ApiResponse({ status: 404, description: 'Invoice not found' })
-  async getInvoice(@Param('id') id: string) {
-    try {
-      const data = await this.invoiceService.findInvoiceById(id);
-      return successResponse({
-        message: `Invoice found successfully`,
-        code: HttpStatus.OK,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw error;
-    }
-  }
+      const data = await this.orderService.create(invoices, createOrder);
 
-  @Get()
-  @ApiOperation({
-    summary: 'Get all invoices',
-  })
-  @ApiResponse({ status: 200, description: 'Invoices fetched successfully' })
-  async getAllInvoices() {
-    try {
-      const data = await this.invoiceService.findAllInvoices();
       return successResponse({
-        message: `Invoices fetched successfully`,
+        message: `Invoice created successfully`,
         code: HttpStatus.OK,
         status: 'success',
         data,
