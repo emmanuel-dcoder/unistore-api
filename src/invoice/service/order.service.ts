@@ -23,7 +23,7 @@ export class OrderService {
   async create(
     invoicePayloadDto: InvoicePayloadDto[],
     orderPayload: OrderPayloadDto,
-    // productOwner: string,
+    productOwner: string,
   ) {
     // Validate user
     const validateUser = await this.userRepo.findOne({
@@ -35,7 +35,7 @@ export class OrderService {
     }
 
     const order = this.orderRepo.create({
-      // product_owner: { id: productOwner } as any,
+      product_owner: { id: productOwner } as any,
       user: { id: orderPayload.user } as any,
       zip_code: orderPayload.zip_code,
       billing_address: orderPayload.billing_address,
@@ -87,6 +87,19 @@ export class OrderService {
     await this.orderRepo.save(savedOrder);
 
     return savedOrder;
+  }
+
+  async getAllOrdersByUser(userId: string): Promise<Order[]> {
+    return this.orderRepo.find({ where: { user: { id: userId } } });
+  }
+
+  async getOrderByIdAndUser(
+    orderId: string,
+    userId: string,
+  ): Promise<Order | null> {
+    return this.orderRepo.findOne({
+      where: { id: orderId, user: { id: userId } },
+    });
   }
 
   private async createVirtualAccount(

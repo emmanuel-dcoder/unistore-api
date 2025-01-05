@@ -33,4 +33,12 @@ export class InvoiceService {
 
     return await this.invoiceRepo.save(invoice);
   }
+
+  async getAllInvoices(): Promise<Invoice[]> {
+    return this.invoiceRepo.find();
+  }
+
+  async getInvoiceById(id: string): Promise<Invoice | null> {
+    return this.invoiceRepo.findOne({ where: { id } });
+  }
 }
