@@ -1,4 +1,4 @@
-import { Controller, Get, Query, HttpStatus, Logger } from '@nestjs/common';
+import { Controller, Get, Query, HttpStatus, Logger, UseGuards } from '@nestjs/common';
 import {
   ApiBody,
   ApiConsumes,
@@ -8,9 +8,11 @@ import {
 } from '@nestjs/swagger';
 import { successResponse, SuccessResponseType } from 'src/core/common';
 import { AdminInvoiceService } from '../services/admin-invoice.service';
+import { AdminGuard } from 'src/core/guards/admin.guard';
 
 @ApiTags('Admin Invoice/Order')
 @Controller('api/v1/admin-invoice')
+@UseGuards(AdminGuard)
 export class AdminInvoiceController {
   private readonly logger = new Logger(AdminInvoiceController.name);
   constructor(private readonly adminInvoiceService: AdminInvoiceService) {}

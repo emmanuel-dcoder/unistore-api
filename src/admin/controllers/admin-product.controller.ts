@@ -7,12 +7,12 @@ import {
   UseInterceptors,
   Post,
   Body,
-  UploadedFile,
   Param,
   UploadedFiles,
   Put,
   Delete,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -31,9 +31,11 @@ import {
 } from 'src/product/dto/create-product.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Product } from 'src/product/entities/product.entity';
+import { AdminGuard } from 'src/core/guards/admin.guard';
 
 @ApiTags('Admin Products')
 @Controller('api/v1/admin-product')
+@UseGuards(AdminGuard)
 export class AdminProductController {
   private readonly logger = new Logger(AdminProductController.name);
   constructor(private readonly adminProductService: AdminProductService) {}
