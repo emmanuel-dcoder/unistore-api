@@ -121,3 +121,9 @@ export class AdminProductDto {
 }
 
 
+export enum ProductStatus {
+  VERIFIED = 'verified',
+  NOT_VERIFIED = 'not-verified',
+}
+
+

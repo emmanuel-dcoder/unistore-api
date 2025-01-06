@@ -3,7 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
-import { AdminProductDto } from 'src/product/dto/create-product.dto';
+import {
+  AdminProductDto,
+  ProductStatus,
+} from 'src/product/dto/create-product.dto';
 import { CategoryService } from 'src/category/category.service';
 
 @Injectable()
@@ -33,7 +36,6 @@ export class AdminProductService {
     }
     const imageUrls = await this.uploadProductImages(files);
 
-    // Create the product with user and school
     const product = this.productRepo.create({
       ...rest,
       product_name,
@@ -49,6 +51,73 @@ export class AdminProductService {
     }
 
     return saveProduct;
+  }
+
+  async update(
+    productId: string,
+    adminProductDto: Partial<AdminProductDto>,
+    files: Array<Express.Multer.File> | undefined,
+  ) {
+    const { category, schoolId, merchantId, ...rest } = adminProductDto;
+
+    // Fetch the product to update
+    const product = await this.productRepo.findOne({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      throw new BadRequestException('Product not found');
+    }
+
+    // Update category if provided
+    if (category) {
+      product.category = { id: category } as any;
+    }
+    if (schoolId) {
+      product.school = { id: schoolId } as any;
+    }
+    if (merchantId) {
+      product.user = { id: merchantId } as any;
+    }
+
+    if (files && files.length > 0) {
+      const imageUrls = await this.uploadProductImages(files);
+
+      product.product_image = [...product.product_image, ...imageUrls];
+    }
+
+    Object.assign(product, rest);
+
+    const updatedProduct = await this.productRepo.save(product);
+
+    if (!updatedProduct) {
+      throw new BadRequestException('Unable to update product');
+    }
+
+    return updatedProduct;
+  }
+
+  async updateStatus(
+    productId: string,
+    status: ProductStatus,
+  ): Promise<Product> {
+    const product = await this.productRepo.findOne({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      throw new BadRequestException('Product not found');
+    }
+
+    product.status = status;
+
+    const updatedProduct = await this.productRepo.save(product);
+
+    if (!updatedProduct) {
+      throw new BadRequestException('Unable to update product status');
+    }
+
+    return updatedProduct;
   }
 
   private async uploadProductImages(

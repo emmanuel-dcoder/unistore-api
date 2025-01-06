@@ -88,14 +88,12 @@ export class ProductService {
 
     if (files && files.length > 0) {
       const imageUrls = await this.uploadProductImages(files);
-      // Add new images to existing product_image array
+
       product.product_image = [...product.product_image, ...imageUrls];
     }
 
-    // Merge rest of the data (e.g. product_name, product_description, etc.)
     Object.assign(product, rest);
 
-    // Save the updated product
     const updatedProduct = await this.productRepo.save(product);
 
     if (!updatedProduct) {

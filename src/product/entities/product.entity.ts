@@ -12,6 +12,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { ProductStatus } from '../dto/create-product.dto';
 
 @Entity()
 export class Product {
@@ -46,8 +47,13 @@ export class Product {
   @Column({ type: 'decimal', nullable: true })
   avg_rating: number;
 
-  @Column({ default: 'not-verified', nullable: true })
-  status: string;
+  @Column({
+    type: 'enum',
+    enum: ProductStatus,
+    default: ProductStatus.NOT_VERIFIED,
+    nullable: true,
+  })
+  status: ProductStatus;
 
   @ManyToOne(() => User, (user) => user.id, { nullable: true })
   @JoinColumn({ name: 'user_id' })
