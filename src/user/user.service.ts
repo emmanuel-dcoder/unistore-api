@@ -390,10 +390,10 @@ export class UserService {
       (new Date().getTime() - new Date(user.reset_token_created_at).getTime()) /
       1000;
 
-    // Check if token expired (1 minute)
-    if (tokenAge > 60) {
-      throw new ConflictException('Reset token expired');
-    }
+    // // Check if token expired (1 minute)
+    // if (tokenAge > 60) {
+    //   throw new ConflictException('Reset token expired');
+    // }
 
     // Hash the new password and save
     const hashedPassword = await hashPassword(new_password);
