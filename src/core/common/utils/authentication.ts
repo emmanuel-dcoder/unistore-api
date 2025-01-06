@@ -115,3 +115,18 @@ export const RandomFourDigits = (): string => {
 
   return result;
 };
+
+export const RandomSevenDigits = (): string => {
+  let result = '';
+  for (let i = 0; i < 7; i++) {
+    const randomNum = Math.floor(Math.random() * 10); // Generate a random integer between 0 and 9
+    result += randomNum;
+  }
+
+  if (result[0] === '0') {
+    // Check if the first digit is zero
+    result = '1' + result.slice(1); // Replace the first digit with 1
+  }
+
+  return result;
+};

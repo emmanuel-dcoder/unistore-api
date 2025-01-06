@@ -16,6 +16,9 @@ export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ nullable: true })
+  order_id: string;
+
   @OneToMany(() => Invoice, (invoice) => invoice.order)
   invoices: Invoice[];
 

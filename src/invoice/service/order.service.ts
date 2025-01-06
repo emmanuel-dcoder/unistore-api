@@ -8,6 +8,7 @@ import { Invoice } from '../entities/invoice.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
 import axios from 'axios';
+import { RandomSevenDigits } from 'src/core/common';
 
 @Injectable()
 export class OrderService {
@@ -81,11 +82,21 @@ export class OrderService {
       throw new BadRequestException('Failed to create virtual account');
     }
 
+    let orderId = RandomSevenDigits();
+    const validateOrder = await this.orderRepo.findOne({
+      where: { order_id: orderId },
+    });
+
+    do {
+      orderId = RandomSevenDigits();
+    } while (validateOrder);
+
     // Update order with virtual account details
     savedOrder.status = 'awaiting_payment';
     savedOrder.updated_at = new Date();
     savedOrder.reference = virtualAccountResponse.data.order_ref;
     savedOrder.virtualAccountDetails = virtualAccountResponse.data;
+    savedOrder.order_id = orderId;
 
     await this.orderRepo.save(savedOrder);
 
