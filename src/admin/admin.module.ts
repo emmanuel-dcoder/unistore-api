@@ -10,11 +10,14 @@ import { VerifyTokenMiddleware } from 'src/core/common/middlewares';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
 import { Admin } from './entities/admin.entity';
+import { AdminInvoiceController } from './controllers/admin-invoice.controller';
+import { AdminInvoiceService } from './services/admin-invoice.service';
+import { Order } from 'src/invoice/entities/order.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Admin])],
-  controllers: [AdminController],
-  providers: [AdminService, CloudinaryService],
+  imports: [TypeOrmModule.forFeature([Admin, Order])],
+  controllers: [AdminController, AdminInvoiceController],
+  providers: [AdminService, CloudinaryService, AdminInvoiceService],
 })
 export class AdminModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

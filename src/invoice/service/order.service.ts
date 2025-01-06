@@ -120,14 +120,14 @@ export class OrderService {
   }
 
   async getAllOrdersByUser(userId: string): Promise<Order[]> {
-    return this.orderRepo.find({ where: { user: { id: userId } } });
+    return await this.orderRepo.find({ where: { user: { id: userId } } });
   }
 
   async getOrderByIdAndUser(
     orderId: string,
     userId: string,
   ): Promise<Order | null> {
-    return this.orderRepo.findOne({
+    return await this.orderRepo.findOne({
       where: { id: orderId, user: { id: userId } },
     });
   }
