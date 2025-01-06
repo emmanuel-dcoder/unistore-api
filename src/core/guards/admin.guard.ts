@@ -10,7 +10,6 @@ export class AdminGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
 
-    // Check if user_type is 'user'
     if (request.user.user_type === 'admin') {
       return true;
     }

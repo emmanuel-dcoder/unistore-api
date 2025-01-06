@@ -1,4 +1,11 @@
-import { Controller, Get, Query, HttpStatus, Logger, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  HttpStatus,
+  Logger,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBody,
   ApiConsumes,
@@ -16,7 +23,7 @@ import { AdminGuard } from 'src/core/guards/admin.guard';
 export class AdminInvoiceController {
   private readonly logger = new Logger(AdminInvoiceController.name);
   constructor(private readonly adminInvoiceService: AdminInvoiceService) {}
-  
+
   @Get('invoice')
   @ApiOperation({
     summary:
@@ -24,10 +31,10 @@ export class AdminInvoiceController {
   })
   @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
   async getAllOrders(
-    @Query('search') searchQuery: string = '', // Optional search query
-    @Query('status') status: string = '', // Optional status filter (either "paid" or "pending")
-    @Query('page') page: number = 1, // Optional pagination page
-    @Query('limit') limit: number = 10, // Optional pagination limit
+    @Query('search') searchQuery: string = '',
+    @Query('status') status: string = '',
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
   ) {
     try {
       const orders = await this.adminInvoiceService.getAllOrdersByUser(

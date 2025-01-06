@@ -11,7 +11,7 @@ export class AdminInvoiceService {
 
   async getAllOrdersByUser(
     searchQuery: string = '',
-    status: string = '', // Optional status filter ('paid' or 'pending')
+    status: string = '',
     page: number = 1,
     limit: number = 10,
   ): Promise<Order[]> {
@@ -38,12 +38,10 @@ export class AdminInvoiceService {
         });
     }
 
-    // Apply status filter if provided
     if (status) {
       queryBuilder.andWhere('order.status = :status', { status });
     }
 
-    // Select only required fields for `user` and `product_owner`
     queryBuilder.addSelect([
       'user.id',
       'user.first_name',

@@ -70,7 +70,6 @@ export class AdminProductService {
   ) {
     const { category, schoolId, merchantId, ...rest } = adminProductDto;
 
-    // Fetch the product to update
     const product = await this.productRepo.findOne({
       where: { id: productId },
     });
@@ -79,7 +78,6 @@ export class AdminProductService {
       throw new BadRequestException('Product not found');
     }
 
-    // Update category if provided
     if (category) {
       product.category = { id: category } as any;
     }
@@ -138,17 +136,14 @@ export class AdminProductService {
   }) {
     const queryBuilder = this.productRepo.createQueryBuilder('product');
 
-    // Join with the category table
     queryBuilder.leftJoinAndSelect('product.category', 'category');
 
-    // Filter by status if provided
     if (filters.status) {
       queryBuilder.andWhere('product.status = :status', {
         status: filters.status,
       });
     }
 
-    // Handle the search query
     if (filters.search) {
       queryBuilder.andWhere(
         new Brackets((qb) => {
@@ -168,7 +163,6 @@ export class AdminProductService {
       );
     }
 
-    // Order the results by creation date (descending)
     queryBuilder.orderBy('product.created_at', 'DESC');
 
     if (filters.limit) {

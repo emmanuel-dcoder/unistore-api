@@ -64,7 +64,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     let chat;
     if (!existingChat) {
-      //check and create chat id
       chat =
         user_type === 'merchant'
           ? await this.chatService.createChatId({
@@ -82,7 +81,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const image = await this.uploadAttachment(attachment);
     const imageString = image.url as string;
 
-    // Save message to the database
     const savedMessage = await this.chatService.saveMessage(
       chat.id as string,
       sender,

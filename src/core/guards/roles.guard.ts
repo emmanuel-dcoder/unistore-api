@@ -3,8 +3,6 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-// import { ROLES_KEY } from '../decorators/roles.decorator';
-// import { UserType } from '../enums/user-type.enum';
 import { CustomRequest, ForbiddenErrorException } from '../common';
 import { User } from 'src/user/entities/user.entity';
 import { UserType } from '../types/types';

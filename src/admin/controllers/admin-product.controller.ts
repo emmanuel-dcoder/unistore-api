@@ -86,7 +86,7 @@ export class AdminProductController {
     status: 400,
     description: 'Invalid payload or product not found',
   })
-  @ApiBody({ type: AdminProductDto }) // Can reuse CreateProductDto or define a specific update DTO
+  @ApiBody({ type: AdminProductDto })
   @UseInterceptors(FilesInterceptor('files'))
   async update(
     @Param('id') id: string,

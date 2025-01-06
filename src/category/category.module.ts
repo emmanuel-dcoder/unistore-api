@@ -6,9 +6,7 @@ import { Category } from './entities/category.entity';
 import { VerifyTokenMiddleware } from 'src/core/common/middlewares';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Category]), // Register the Product entity
-  ],
+  imports: [TypeOrmModule.forFeature([Category])],
   controllers: [CategoryController],
   providers: [CategoryService],
 })

@@ -10,7 +10,6 @@ export class MerchantGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
 
-    // Check if user_type is 'merchant'
     if (
       request.user.user_type === 'merchant' &&
       request.user.user_type.is_active

@@ -147,7 +147,7 @@ export class AdminController {
     @Req() req: any,
   ) {
     try {
-      const adminId = req.user.id; // Ensure the route is protected by middleware to get the logged-in admin
+      const adminId = req.user.id;
       await this.adminService.changePassword(adminId, changePasswordDto);
       return successResponse({
         message: 'Password updated successfully',
@@ -196,7 +196,7 @@ export class AdminController {
   })
   async updateAdmin(
     @Param('id') id: string,
-    @Body() updateAdminDto: UpdateAdminDto, // Replace with a DTO class if defined
+    @Body() updateAdminDto: UpdateAdminDto,
   ): Promise<SuccessResponseType> {
     try {
       const updatedAdmin = await this.adminService.updateAdmin(
