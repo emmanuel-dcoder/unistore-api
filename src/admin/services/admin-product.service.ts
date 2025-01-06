@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { Product } from 'src/product/entities/product.entity';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
 import {
@@ -132,47 +132,79 @@ export class AdminProductService {
 
   async findProducts(filters: {
     status?: ProductStatus;
-    product_id?: string;
-    product_name?: string;
-    category?: string;
-    price?: number;
+    search?: string;
+    limit?: number;
+    page?: number;
   }) {
     const queryBuilder = this.productRepo.createQueryBuilder('product');
 
+    // Join with the category table
+    queryBuilder.leftJoinAndSelect('product.category', 'category');
+
+    // Filter by status if provided
     if (filters.status) {
       queryBuilder.andWhere('product.status = :status', {
         status: filters.status,
       });
     }
 
-    if (filters.product_id) {
-      queryBuilder.andWhere('product.product_id LIKE :product_id', {
-        product_id: `%${filters.product_id}%`,
-      });
+    // Handle the search query
+    if (filters.search) {
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('product.product_id LIKE :search', {
+            search: `%${filters.search}%`,
+          })
+            .orWhere('product.product_name LIKE :search', {
+              search: `%${filters.search}%`,
+            })
+            .orWhere('category.name LIKE :search', {
+              search: `%${filters.search}%`,
+            })
+            .orWhere('product.price LIKE :search', {
+              search: `%${filters.search}%`,
+            });
+        }),
+      );
     }
 
-    if (filters.product_name) {
-      queryBuilder.andWhere('product.product_name LIKE :product_name', {
-        product_name: `%${filters.product_name}%`,
-      });
+    // Order the results by creation date (descending)
+    queryBuilder.orderBy('product.created_at', 'DESC');
+
+    // Apply pagination
+    if (filters.limit) {
+      queryBuilder.take(filters.limit);
     }
 
-    if (filters.category) {
-      queryBuilder.andWhere('product.category.name LIKE :category', {
-        category: `%${filters.category}%`,
-      });
+    if (filters.page && filters.limit) {
+      queryBuilder.skip((filters.page - 1) * filters.limit);
     }
 
-    if (filters.price) {
-      queryBuilder.andWhere('product.price <= :price', {
-        price: filters.price,
-      });
-    }
-
-    queryBuilder.orderBy('product.created_at', 'DESC'); // Order by creation date in descending order
-
+    // Fetch the products along with their categories
     const products = await queryBuilder.getMany();
-    return products;
+
+    // Count the total number of matching records for pagination metadata
+    const total = await queryBuilder.getCount();
+
+    return { products, total };
+  }
+
+  async deleteProduct(id: string) {
+    const product = await this.productRepo.findOne({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new BadRequestException('Product not found');
+    }
+
+    const result = await this.productRepo.remove(product);
+
+    if (!result) {
+      throw new BadRequestException('Unable to delete product');
+    }
+
+    return { message: 'Product deleted successfully' };
   }
 
   private async uploadProductImages(

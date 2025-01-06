@@ -11,11 +11,15 @@ import {
   Param,
   UploadedFiles,
   Put,
+  Delete,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiBody,
   ApiConsumes,
   ApiOperation,
+  ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -23,10 +27,9 @@ import { successResponse, SuccessResponseType } from 'src/core/common';
 import { AdminProductService } from '../services/admin-product.service';
 import {
   AdminProductDto,
-  CreateProductDto,
   ProductStatus,
 } from 'src/product/dto/create-product.dto';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { Product } from 'src/product/entities/product.entity';
 
 @ApiTags('Admin Products')
@@ -66,7 +69,7 @@ export class AdminProductController {
       });
     } catch (error) {
       this.logger.error('Error', error.message);
-      throw error;
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -106,7 +109,7 @@ export class AdminProductController {
       });
     } catch (error) {
       this.logger.error('Error', error.message);
-      throw error;
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -140,12 +143,54 @@ export class AdminProductController {
       });
     } catch (error) {
       this.logger.error('Error', error.message);
-      throw error;
+      throw new BadRequestException(error.message);
     }
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get products with filters' })
+  @ApiOperation({
+    summary:
+      'Get products with optional filters including search functionality and pagination.',
+    description:
+      'Fetch products with optional filters for status, product_id, product_name, category, and price. A search query is available to search across multiple fields. Pagination is supported with limit and page parameters.',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    type: String,
+    description: 'Filter products by status',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description:
+      'Search products by product_id, product_name, category, or price',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of products per page (for pagination)',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (for pagination)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of products per page (for pagination)',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (for pagination)',
+  })
   @ApiResponse({
     status: 200,
     description: 'List of products matching the filters.',
@@ -153,17 +198,71 @@ export class AdminProductController {
   })
   async getProducts(
     @Query('status') status?: ProductStatus,
-    @Query('product_id') product_id?: string,
-    @Query('product_name') product_name?: string,
-    @Query('category') category?: string,
-    @Query('price') price?: string,
+    @Query('search') search?: string,
+    @Query('limit') limit?: number,
+    @Query('page') page?: number,
   ) {
-    return this.adminProductService.findProducts({
-      status,
-      product_id,
-      product_name,
-      category,
-      price: price ? parseFloat(price) : undefined, // Convert price to number if provided
-    });
+    try {
+      const { products, total } = await this.adminProductService.findProducts({
+        status,
+        search,
+        limit,
+        page,
+      });
+
+      return successResponse({
+        message: 'Products fetched successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: { products, total, page, limit },
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw new BadRequestException(error.message);
+    }
+  }
+  @Delete(':id')
+  @ApiOperation({
+    summary: 'Delete a product by ID',
+    description: 'This endpoint deletes a product from the database by its ID.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'The ID of the product to be deleted',
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Product deleted successfully',
+    schema: {
+      example: {
+        message: 'Product deleted successfully',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Product not found or unable to delete',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Product not found',
+        error: 'Bad Request',
+      },
+    },
+  })
+  async deleteProduct(@Param('id') id: string) {
+    try {
+      try {
+        await this.adminProductService.deleteProduct(id);
+        return successResponse({
+          message: 'Product deleted successfully',
+          code: HttpStatus.OK,
+          status: 'success',
+        });
+      } catch (error) {}
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }
