@@ -120,20 +120,6 @@ export class ProductService {
     return this.productRepo.save(product); // Save the updated product
   }
 
-  private async uploadProductImages(
-    files: Array<Express.Multer.File> | undefined,
-  ): Promise<string[]> {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('No files were provided for upload.');
-    }
-
-    const uploadedFiles = await Promise.all(
-      files.map((file) => this.cloudinaryService.uploadFile(file, 'products')),
-    );
-
-    return uploadedFiles.map((uploadResult) => uploadResult.url);
-  }
-
   async findByUser(userId: string, search: string, schoolId: string) {
     const queryBuilder = this.productRepo.createQueryBuilder('product');
 
@@ -276,5 +262,19 @@ export class ProductService {
         error.message,
       );
     }
+  }
+
+  private async uploadProductImages(
+    files: Array<Express.Multer.File> | undefined,
+  ): Promise<string[]> {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files were provided for upload.');
+    }
+
+    const uploadedFiles = await Promise.all(
+      files.map((file) => this.cloudinaryService.uploadFile(file, 'products')),
+    );
+
+    return uploadedFiles.map((uploadResult) => uploadResult.url);
   }
 }

@@ -1,5 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsUUID,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 export class CreateProductDto {
   @ApiProperty()
@@ -7,6 +15,7 @@ export class CreateProductDto {
   @IsNotEmpty()
   product_name: string;
 
+  @IsUUID()
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -18,11 +27,13 @@ export class CreateProductDto {
   files: string[];
 
   @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
   @IsNotEmpty()
   unit_sold: number;
 
   @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
   @IsNotEmpty()
   stock_quantity: number;
@@ -44,6 +55,69 @@ export class CreateProductDto {
   product_description: string;
 
   @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
   avg_rating: number;
 }
+
+export class AdminProductDto {
+  @IsUUID()
+  @ApiProperty()
+  @IsString()
+  merchantId: string;
+
+  @IsUUID()
+  @ApiProperty()
+  @IsString()
+  schoolId: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  product_name: string;
+
+  @IsUUID()
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  category: string;
+
+  @ApiProperty({ isArray: true, type: String })
+  @IsArray()
+  @IsNotEmpty()
+  files: string[];
+
+  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsString()
+  @IsNotEmpty()
+  unit_sold: number;
+
+  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsString()
+  @IsNotEmpty()
+  stock_quantity: number;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  condition: string;
+
+  @ApiProperty()
+  @IsNumber()
+  @Min(0)
+  @IsNotEmpty()
+  price: number;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  product_description: string;
+
+  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsString()
+  avg_rating: number;
+}
+
+

@@ -46,6 +46,9 @@ export class Product {
   @Column({ type: 'decimal', nullable: true })
   avg_rating: number;
 
+  @Column({ default: 'not-verified', nullable: true })
+  status: string;
+
   @ManyToOne(() => User, (user) => user.id, { nullable: true })
   @JoinColumn({ name: 'user_id' })
   user: User;
