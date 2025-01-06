@@ -45,6 +45,8 @@ export class AdminModule implements NestModule {
         path: 'api/v1/admin/change-password',
         method: RequestMethod.PUT,
       },
+      AdminInvoiceController,
+      AdminProductController,
     );
   }
 }
