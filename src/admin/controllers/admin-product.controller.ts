@@ -27,6 +27,7 @@ import {
   ProductStatus,
 } from 'src/product/dto/create-product.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { Product } from 'src/product/entities/product.entity';
 
 @ApiTags('Admin Products')
 @Controller('api/v1/admin-product')
@@ -141,5 +142,28 @@ export class AdminProductController {
       this.logger.error('Error', error.message);
       throw error;
     }
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get products with filters' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of products matching the filters.',
+    type: [Product],
+  })
+  async getProducts(
+    @Query('status') status?: ProductStatus,
+    @Query('product_id') product_id?: string,
+    @Query('product_name') product_name?: string,
+    @Query('category') category?: string,
+    @Query('price') price?: string,
+  ) {
+    return this.adminProductService.findProducts({
+      status,
+      product_id,
+      product_name,
+      category,
+      price: price ? parseFloat(price) : undefined, // Convert price to number if provided
+    });
   }
 }

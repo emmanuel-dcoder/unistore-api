@@ -9,7 +9,7 @@ import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoryService } from 'src/category/category.service';
-import { NotFoundErrorException } from 'src/core/common';
+import { NotFoundErrorException, RandomSevenDigits } from 'src/core/common';
 
 @Injectable()
 export class ProductService {
@@ -38,6 +38,15 @@ export class ProductService {
     }
     const imageUrls = await this.uploadProductImages(files);
 
+    let productId = RandomSevenDigits();
+    const validateOrder = await this.productRepo.findOne({
+      where: { product_id: productId },
+    });
+
+    do {
+      productId = RandomSevenDigits();
+    } while (validateOrder);
+
     // Create the product with user and school
     const product = this.productRepo.create({
       ...rest,
@@ -46,6 +55,7 @@ export class ProductService {
       product_image: imageUrls,
       user: { id: user } as any,
       school: { id: school } as any,
+      product_id: productId,
     });
 
     const saveProduct = await this.productRepo.save(product);

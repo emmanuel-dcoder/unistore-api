@@ -8,6 +8,7 @@ import {
   ProductStatus,
 } from 'src/product/dto/create-product.dto';
 import { CategoryService } from 'src/category/category.service';
+import { RandomSevenDigits } from 'src/core/common';
 
 @Injectable()
 export class AdminProductService {
@@ -35,6 +36,14 @@ export class AdminProductService {
       );
     }
     const imageUrls = await this.uploadProductImages(files);
+    let productId = RandomSevenDigits();
+    const validateOrder = await this.productRepo.findOne({
+      where: { product_id: productId },
+    });
+
+    do {
+      productId = RandomSevenDigits();
+    } while (validateOrder);
 
     const product = this.productRepo.create({
       ...rest,
@@ -43,6 +52,7 @@ export class AdminProductService {
       product_image: imageUrls,
       user: { id: merchantId } as any,
       school: { id: schoolId } as any,
+      product_id: productId,
     });
 
     const saveProduct = await this.productRepo.save(product);
@@ -118,6 +128,51 @@ export class AdminProductService {
     }
 
     return updatedProduct;
+  }
+
+  async findProducts(filters: {
+    status?: ProductStatus;
+    product_id?: string;
+    product_name?: string;
+    category?: string;
+    price?: number;
+  }) {
+    const queryBuilder = this.productRepo.createQueryBuilder('product');
+
+    if (filters.status) {
+      queryBuilder.andWhere('product.status = :status', {
+        status: filters.status,
+      });
+    }
+
+    if (filters.product_id) {
+      queryBuilder.andWhere('product.product_id LIKE :product_id', {
+        product_id: `%${filters.product_id}%`,
+      });
+    }
+
+    if (filters.product_name) {
+      queryBuilder.andWhere('product.product_name LIKE :product_name', {
+        product_name: `%${filters.product_name}%`,
+      });
+    }
+
+    if (filters.category) {
+      queryBuilder.andWhere('product.category.name LIKE :category', {
+        category: `%${filters.category}%`,
+      });
+    }
+
+    if (filters.price) {
+      queryBuilder.andWhere('product.price <= :price', {
+        price: filters.price,
+      });
+    }
+
+    queryBuilder.orderBy('product.created_at', 'DESC'); // Order by creation date in descending order
+
+    const products = await queryBuilder.getMany();
+    return products;
   }
 
   private async uploadProductImages(
