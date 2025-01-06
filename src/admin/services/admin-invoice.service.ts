@@ -21,7 +21,7 @@ export class AdminInvoiceService {
     const queryBuilder = this.orderRepo
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.user', 'user')
-      .leftJoinAndSelect('order.product_owner', 'productOwner');
+      .leftJoinAndSelect('order.product_owner', 'productOwner')
 
     // Apply search functionality if provided
     if (searchQuery) {
@@ -37,7 +37,7 @@ export class AdminInvoiceService {
         })
         .orWhere('order.status LIKE :searchQuery', {
           searchQuery: `%${searchQuery}%`,
-        });
+        })
     }
 
     // Apply status filter if provided
@@ -45,12 +45,20 @@ export class AdminInvoiceService {
       queryBuilder.andWhere('order.status = :status', { status });
     }
 
-    // Select only required user fields (id, first_name, last_name, profile_picture)
+    // Select only required fields for `user` and `product_owner`
     queryBuilder.addSelect([
       'user.id',
       'user.first_name',
       'user.last_name',
       'user.profile_picture',
+      'user.email',
+      'user.phone',
+      'productOwner.id',
+      'productOwner.first_name',
+      'productOwner.last_name',
+      'productOwner.profile_picture',
+      'productOwner.email',
+      'productOwner.phone',
     ]);
 
     // Pagination logic (skip, take, and sorting by created_at)
