@@ -29,11 +29,16 @@ export const comparePassword = async (password: string, hash: string) => {
 
 export const generateAccessToken = (
   payload: {
-    id: string;
+    id: any;
+    first_name: string;
+    last_name: string;
     user_type: string;
     is_active: boolean;
     is_merchant_verified?: boolean;
     school?: any;
+    profile_picture?: string;
+    identification?: string;
+    user_status?: string;
   },
   domain: TokenKey = 'user_access_key',
 ) => {

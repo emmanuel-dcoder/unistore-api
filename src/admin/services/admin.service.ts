@@ -60,6 +60,8 @@ export class AdminService {
     const access_token = generateAccessToken(
       {
         id: admin.id,
+        first_name: admin.first_name,
+        last_name: admin.last_name,
         user_type: admin.user_type,
         is_active: admin.is_active,
       },

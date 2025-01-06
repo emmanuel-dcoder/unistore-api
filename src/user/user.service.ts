@@ -119,10 +119,15 @@ export class UserService {
     const access_token = generateAccessToken(
       {
         id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
         user_type: user.user_type,
         is_active: user.is_active,
         is_merchant_verified: user.is_merchant_verified,
         school: schoolPayload,
+        profile_picture: user.profile_picture,
+        identification: user.identification,
+        user_status: user.user_status,
       },
       'user_access_key',
     );
