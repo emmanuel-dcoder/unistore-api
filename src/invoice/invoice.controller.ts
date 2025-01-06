@@ -9,12 +9,15 @@ import {
   Param,
   NotFoundException,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-invoice.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
 import { OrderService } from './service/order.service';
 import { InvoiceService } from './service/invoice.service';
+import { MerchantGuard } from 'src/core/guards/merchant.guard';
+import { UserGuard } from 'src/core/guards/user.guard';
 
 @ApiTags('Invoice/Order')
 @Controller('api/v1/invoice')
@@ -33,6 +36,7 @@ export class OrderInvoiceController {
   @ApiBody({ type: CreateOrderDto }) // Ensure CreateInvoiceDto matches the expected structure
   @ApiResponse({ status: 200, description: `Invoice Generated successfully` })
   @ApiResponse({ status: 401, description: 'Unable to create invoice.' })
+  @UseGuards(MerchantGuard)
   async create(@Req() req: any, @Body() createOrderDto: CreateOrderDto) {
     try {
       const user = req.user.id;
@@ -59,6 +63,7 @@ export class OrderInvoiceController {
   })
   @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
   @ApiResponse({ status: 400, description: 'Invalid request' })
+  @UseGuards(UserGuard)
   async getOrdersByUserAndStatus(
     @Req() req: any,
     @Query('status') status?: 'pending' | 'paid',
@@ -84,13 +89,14 @@ export class OrderInvoiceController {
     }
   }
 
-  @Get('merchant-orders')
+  @Get('merchant-recent-orders')
   @ApiOperation({
     summary:
       'Get orders/invoice by user with optional status filter ("pending" or "paid")',
   })
   @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
   @ApiResponse({ status: 400, description: 'Invalid request' })
+  @UseGuards(MerchantGuard)
   async getMerchantOrdersAndStatus(
     @Req() req: any,
     @Query('status') status?: 'pending' | 'paid',
@@ -159,6 +165,7 @@ export class OrderInvoiceController {
   @Get('orders')
   @ApiOperation({ summary: 'Get all orders for the user' })
   @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
+  @UseGuards(UserGuard)
   async getAllOrders(@Req() req: any) {
     try {
       const userId = req.user.id;
@@ -179,6 +186,7 @@ export class OrderInvoiceController {
   @ApiOperation({ summary: 'Get order by ID for the user' })
   @ApiResponse({ status: 200, description: 'Order retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Order not found' })
+  @UseGuards(UserGuard)
   async getOrderById(@Req() req: any, @Param('id') id: string) {
     try {
       const userId = req.user.id;
