@@ -8,6 +8,7 @@ import {
   Get,
   Param,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-invoice.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -51,6 +52,38 @@ export class OrderInvoiceController {
     }
   }
 
+  @Get('user-orders')
+  @ApiOperation({
+    summary:
+      'Get orders/invoice by user with optional status filter ("pending" or "paid")',
+  })
+  @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid request' })
+  async getOrdersByUserAndStatus(
+    @Req() req: any,
+    @Query('status') status?: 'pending' | 'paid',
+  ) {
+    try {
+      const userId = req.user.id;
+      const orders = await this.orderService.getOrdersByUserAndStatus(
+        userId,
+        status,
+      );
+      return successResponse({
+        message: 'Orders retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: orders,
+      });
+    } catch (error) {
+      this.logger.error(
+        'Error retrieving orders by user and status',
+        error.message,
+      );
+      throw error;
+    }
+  }
+
   // Endpoint to get all invoices
   @Get()
   @ApiOperation({ summary: 'Get all invoices' })
@@ -71,7 +104,7 @@ export class OrderInvoiceController {
   }
 
   // Endpoint to get invoice by ID
-  @Get('invoice/:id')
+  @Get('/:id')
   @ApiOperation({ summary: 'Get invoice by ID' })
   @ApiResponse({ status: 200, description: 'Invoice retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Invoice not found' })

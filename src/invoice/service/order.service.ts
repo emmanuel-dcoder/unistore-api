@@ -25,7 +25,6 @@ export class OrderService {
     orderPayload: OrderPayloadDto,
     productOwner: string,
   ) {
-    
     // Validate user
     const validateUser = await this.userRepo.findOne({
       where: { id: orderPayload.user },
@@ -91,6 +90,22 @@ export class OrderService {
     await this.orderRepo.save(savedOrder);
 
     return savedOrder;
+  }
+
+  async getOrdersByUserAndStatus(
+    userId: string,
+    status?: string,
+  ): Promise<Order[]> {
+    const query = this.orderRepo
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.user', 'user')
+      .where('user.id = :userId', { userId });
+
+    if (status) {
+      query.andWhere('order.status = :status', { status });
+    }
+
+    return query.getMany();
   }
 
   async getAllOrdersByUser(userId: string): Promise<Order[]> {
