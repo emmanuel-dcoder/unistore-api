@@ -171,7 +171,6 @@ export class AdminProductService {
     // Order the results by creation date (descending)
     queryBuilder.orderBy('product.created_at', 'DESC');
 
-    // Apply pagination
     if (filters.limit) {
       queryBuilder.take(filters.limit);
     }
@@ -180,10 +179,8 @@ export class AdminProductService {
       queryBuilder.skip((filters.page - 1) * filters.limit);
     }
 
-    // Fetch the products along with their categories
     const products = await queryBuilder.getMany();
 
-    // Count the total number of matching records for pagination metadata
     const total = await queryBuilder.getCount();
 
     return { products, total };

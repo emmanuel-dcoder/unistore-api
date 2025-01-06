@@ -17,13 +17,11 @@ export class AdminInvoiceService {
   ): Promise<Order[]> {
     const skip = (page - 1) * limit;
 
-    // Start building query with pagination
     const queryBuilder = this.orderRepo
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.user', 'user')
-      .leftJoinAndSelect('order.product_owner', 'productOwner')
+      .leftJoinAndSelect('order.product_owner', 'productOwner');
 
-    // Apply search functionality if provided
     if (searchQuery) {
       queryBuilder
         .where('order.order_id LIKE :searchQuery', {
@@ -37,7 +35,7 @@ export class AdminInvoiceService {
         })
         .orWhere('order.status LIKE :searchQuery', {
           searchQuery: `%${searchQuery}%`,
-        })
+        });
     }
 
     // Apply status filter if provided
@@ -61,7 +59,6 @@ export class AdminInvoiceService {
       'productOwner.phone',
     ]);
 
-    // Pagination logic (skip, take, and sorting by created_at)
     queryBuilder.skip(skip).take(limit).orderBy('order.created_at', 'DESC');
 
     const orders = await queryBuilder.getMany();
