@@ -25,6 +25,7 @@ export class OrderService {
     orderPayload: OrderPayloadDto,
     productOwner: string,
   ) {
+    
     // Validate user
     const validateUser = await this.userRepo.findOne({
       where: { id: orderPayload.user },
@@ -57,7 +58,10 @@ export class OrderService {
       // Calculate total price
       const productTotal = validateProduct.price * createInvoice.quantity;
       totalAmount += productTotal;
-      const invoice = await this.invoiceService.createInvoice(createInvoice);
+      const invoice = await this.invoiceService.createInvoice(
+        createInvoice,
+        validateUser.id,
+      );
       invoices.push(invoice);
     }
 

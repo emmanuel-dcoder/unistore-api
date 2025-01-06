@@ -52,7 +52,7 @@ export class OrderInvoiceController {
   }
 
   // Endpoint to get all invoices
-  @Get('invoices')
+  @Get()
   @ApiOperation({ summary: 'Get all invoices' })
   @ApiResponse({ status: 200, description: 'Invoices retrieved successfully' })
   async getAllInvoices() {

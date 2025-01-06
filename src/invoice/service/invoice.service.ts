@@ -16,7 +16,10 @@ export class InvoiceService {
   ) {}
 
   // Create an invoice
-  async createInvoice(invoicePayloadDto: InvoicePayloadDto): Promise<Invoice> {
+  async createInvoice(
+    invoicePayloadDto: InvoicePayloadDto,
+    user: string,
+  ): Promise<Invoice> {
     const { productId, quantity } = invoicePayloadDto;
 
     const product = await this.productRepo.findOne({
@@ -29,13 +32,24 @@ export class InvoiceService {
     const invoice = this.invoiceRepo.create({
       product,
       quantity,
+      user: { id: user } as any,
     });
 
     return await this.invoiceRepo.save(invoice);
   }
 
   async getAllInvoices(): Promise<Invoice[]> {
-    return this.invoiceRepo.find();
+    return this.invoiceRepo.find({
+      relations: ['user'],
+      select: {
+        user: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          profile_picture: true,
+        },
+      },
+    });
   }
 
   async getInvoiceById(id: string): Promise<Invoice | null> {

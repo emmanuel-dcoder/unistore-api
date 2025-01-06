@@ -7,8 +7,10 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Order } from './order.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Entity()
 export class Invoice {
@@ -22,6 +24,10 @@ export class Invoice {
   @ManyToOne(() => Order, (order) => order.invoices)
   @JoinColumn({ name: 'order_id' })
   order: Order;
+
+  @ManyToOne(() => User, (user) => user.id)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @Column({ default: 1 })
   quantity: number;
