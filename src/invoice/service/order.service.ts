@@ -119,6 +119,56 @@ export class OrderService {
     return query.getMany();
   }
 
+  async getOrdersByProductOwnerAndStatus(
+    userId: string,
+    status?: string,
+  ): Promise<Order[]> {
+    const conditions: any = { product_owner: { id: userId } };
+    if (status) {
+      conditions['status'] = status;
+    }
+
+    return this.orderRepo.find({
+      where: conditions,
+      relations: ['product_owner', 'user'],
+      select: {
+        product_owner: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          profile_picture: true,
+          email: true,
+        },
+        user: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          profile_picture: true,
+          email: true,
+        },
+      },
+      order: {
+        created_at: 'DESC',
+      },
+    });
+  }
+
+  async getOrdersByAndStatus(
+    userId: string,
+    status?: string,
+  ): Promise<Order[]> {
+    const query = this.orderRepo
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.user', 'user')
+      .where('user.id = :userId', { userId });
+
+    if (status) {
+      query.andWhere('order.status = :status', { status });
+    }
+
+    return query.getMany();
+  }
+
   async getAllOrdersByUser(userId: string): Promise<Order[]> {
     return await this.orderRepo.find({ where: { user: { id: userId } } });
   }

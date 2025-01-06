@@ -84,7 +84,38 @@ export class OrderInvoiceController {
     }
   }
 
-  // Endpoint to get all invoices
+  @Get('merchant-orders')
+  @ApiOperation({
+    summary:
+      'Get orders/invoice by user with optional status filter ("pending" or "paid")',
+  })
+  @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid request' })
+  async getMerchantOrdersAndStatus(
+    @Req() req: any,
+    @Query('status') status?: 'pending' | 'paid',
+  ) {
+    try {
+      const userId = req.user.id;
+      const orders = await this.orderService.getOrdersByProductOwnerAndStatus(
+        userId,
+        status,
+      );
+      return successResponse({
+        message: 'Orders retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: orders,
+      });
+    } catch (error) {
+      this.logger.error(
+        'Error retrieving orders by user and status',
+        error.message,
+      );
+      throw error;
+    }
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all invoices' })
   @ApiResponse({ status: 200, description: 'Invoices retrieved successfully' })
@@ -103,7 +134,6 @@ export class OrderInvoiceController {
     }
   }
 
-  // Endpoint to get invoice by ID
   @Get('/:id')
   @ApiOperation({ summary: 'Get invoice by ID' })
   @ApiResponse({ status: 200, description: 'Invoice retrieved successfully' })
@@ -126,13 +156,12 @@ export class OrderInvoiceController {
     }
   }
 
-  // Endpoint to get all orders based on user from @Req
   @Get('orders')
   @ApiOperation({ summary: 'Get all orders for the user' })
   @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
   async getAllOrders(@Req() req: any) {
     try {
-      const userId = req.user.id; // Assumes the user ID is in req.user.id
+      const userId = req.user.id;
       const orders = await this.orderService.getAllOrdersByUser(userId);
       return successResponse({
         message: 'Orders retrieved successfully',
@@ -146,14 +175,13 @@ export class OrderInvoiceController {
     }
   }
 
-  // Endpoint to get a single order by ID based on user
   @Get('order/:id')
   @ApiOperation({ summary: 'Get order by ID for the user' })
   @ApiResponse({ status: 200, description: 'Order retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Order not found' })
   async getOrderById(@Req() req: any, @Param('id') id: string) {
     try {
-      const userId = req.user.id; // Assumes the user ID is in req.user.id
+      const userId = req.user.id;
       const order = await this.orderService.getOrderByIdAndUser(id, userId);
       if (!order) {
         throw new NotFoundException('Order not found');
