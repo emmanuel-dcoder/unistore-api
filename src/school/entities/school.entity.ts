@@ -19,6 +19,9 @@ export class School {
   @Column()
   name: string;
 
+  @Column({ nullable: true })
+  image: string;
+
   @OneToMany(() => Product, (product) => product.school)
   product: Product[];
 

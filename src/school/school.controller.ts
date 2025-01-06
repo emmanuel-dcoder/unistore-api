@@ -7,11 +7,15 @@ import {
   Get,
   Query,
   Param,
+  UseInterceptors,
+  UploadedFile,
+  Put,
 } from '@nestjs/common';
 import { SchoolService } from './school.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import {
   ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -19,6 +23,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateSchoolDto } from './dto/update-school.dto';
 
 @Controller('api/v1/school')
 @ApiTags('University/School')
@@ -27,21 +33,57 @@ export class SchoolController {
   constructor(private readonly schoolService: SchoolService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Reset password with the token provided' })
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({
+    summary: 'Create a new school with an file image, the keyword is "file"',
+  })
   @ApiBody({ type: CreateSchoolDto })
-  @ApiResponse({ status: 200, description: 'School created successful' })
-  @ApiResponse({ status: 401, description: 'Unable to create school.' })
-  async create(@Body() createSchoolDto: CreateSchoolDto) {
+  @ApiConsumes('multipart/form-data')
+  @ApiResponse({ status: 200, description: 'School created successfully' })
+  @ApiResponse({ status: 401, description: 'Unable to create school' })
+  async create(
+    @Body() createSchoolDto: CreateSchoolDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     try {
-      const data = await this.schoolService.create(createSchoolDto);
+      const data = await this.schoolService.create(createSchoolDto, file);
       return successResponse({
-        message: 'School created successful',
+        message: 'School created successfully',
         code: HttpStatus.OK,
         status: 'success',
         data,
       });
     } catch (error) {
       this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @Put(':id')
+  @UseInterceptors(FileInterceptor('file')) // Image field in the form
+  @ApiOperation({
+    summary: 'Update a school with an image, the keyword is "file"',
+  })
+  @ApiBody({ type: UpdateSchoolDto })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'id', description: 'ID of the school to update' })
+  @ApiResponse({ status: 200, description: 'School updated successfully' })
+  @ApiResponse({ status: 404, description: 'School not found' })
+  async update(
+    @Param('id') id: string,
+    @Body() updateSchoolDto: CreateSchoolDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    try {
+      const data = await this.schoolService.update(id, updateSchoolDto, file);
+      return successResponse({
+        message: 'School updated successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error(`Error updating school with ID ${id}`, error.message);
       throw error;
     }
   }
