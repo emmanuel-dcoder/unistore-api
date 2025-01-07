@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsUUID, Length } from 'class-validator';
+import { IsEmpty, IsNotEmpty, IsString, IsUUID, Length } from 'class-validator';
 import { Any } from 'typeorm';
 
 export class SendMessageDto {
@@ -17,6 +17,7 @@ export class SendMessageDto {
   user_type: string;
 
   @IsString()
+  @IsEmpty()
   attachment: any;
 }
 

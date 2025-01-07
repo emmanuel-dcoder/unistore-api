@@ -13,6 +13,8 @@ import { Repository } from 'typeorm';
 import { Chat } from './entities/chat.entity';
 import { GetMessagesDto, SendMessageDto } from './dto/create-chat.dto';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
+import { BadRequestException } from '@nestjs/common';
+
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
@@ -46,6 +48,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('sendMessage')
   async handleMessage(client: Socket, @MessageBody() payload: SendMessageDto) {
     const { sender, receiver, message, user_type, attachment } = payload;
+
+    const receiverSocketId = this.connectedUsers.get(receiver);
+
+    if (!sender || !receiver || message || user_type) {
+      return await this.server
+        .to(receiverSocketId)
+        .emit(
+          'receiveMessage',
+          'Sender, receiver, message and user_type are required',
+        );
+    }
+
     let user;
     let merchant;
     if (user_type === 'merchant') {
@@ -58,12 +72,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       merchant = receiver;
     }
 
-    const existingChat = await this.chatRepo.findOne({
+    let chat;
+    chat = await this.chatRepo.findOne({
       where: { user: { id: user }, merchant: { id: merchant } },
     });
 
-    let chat;
-    if (!existingChat) {
+    if (!chat) {
       chat =
         user_type === 'merchant'
           ? await this.chatService.createChatId({
@@ -78,8 +92,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             });
     }
 
-    const image = await this.uploadAttachment(attachment);
-    const imageString = image.url as string;
+    let imageString;
+    if (attachment) {
+      const image = await this.uploadAttachment(attachment);
+      imageString = image.url as string;
+    }
 
     const savedMessage = await this.chatService.saveMessage(
       chat.id as string,
@@ -89,9 +106,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       imageString,
     );
 
-    const receiverSocketId = this.connectedUsers.get(receiver);
     if (receiverSocketId) {
-      this.server.to(receiverSocketId).emit('receiveMessage', savedMessage);
+      return await this.server
+        .to(receiverSocketId)
+        .emit('receiveMessage', savedMessage);
     }
   }
 
