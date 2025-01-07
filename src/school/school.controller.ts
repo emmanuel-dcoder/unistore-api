@@ -39,6 +39,17 @@ export class SchoolController {
   })
   @ApiBody({ type: CreateSchoolDto })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @ApiResponse({ status: 200, description: 'School created successfully' })
   @ApiResponse({ status: 401, description: 'Unable to create school' })
   async create(
