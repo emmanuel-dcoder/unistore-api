@@ -21,7 +21,10 @@ import {
 } from 'src/core/common';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
+import {
+  ResetPasswordDto,
+  VerifyPasswordOtpDto,
+} from './dto/reset-password.dto';
 import { compare } from 'bcrypt';
 import { CreateNewPasswordDto } from './dto/create-new-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -72,6 +75,7 @@ export class UserService {
     delete result.password;
     return result;
   }
+
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
@@ -159,6 +163,8 @@ export class UserService {
         'email',
         'identification',
         'user_status',
+        'verification_otp',
+        'created_at',
       ],
     });
 
@@ -245,7 +251,6 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    console.log('updateUserDto', updateUserDto);
     // Merge existing user data with the new data
     const updatedUser = { ...user, ...updateUserDto };
 
@@ -373,13 +378,12 @@ export class UserService {
     return { message: 'Password reset link sent to email' };
   }
 
-  // Reset password: Check token validity and update password
-  async resetPassword(resetPasswordDto: ResetPasswordDto) {
-    const { reset_token, new_password } = resetPasswordDto;
+  async verifyPasswordOtp(resetPasswordDto: VerifyPasswordOtpDto) {
+    const { reset_token, email } = resetPasswordDto;
 
     // Find user by reset token
     const user = await this.userRepo.findOne({
-      where: { reset_token },
+      where: { reset_token, email },
     });
 
     if (!user) {
@@ -390,22 +394,40 @@ export class UserService {
       (new Date().getTime() - new Date(user.reset_token_created_at).getTime()) /
       1000;
 
-    // // Check if token expired (1 minute)
-    // if (tokenAge > 60) {
-    //   throw new ConflictException('Reset token expired');
-    // }
+    // Check if token expired (1 minute)
+    if (tokenAge > 60) {
+      throw new ConflictException('Reset token expired');
+    }
+
+    user.reset_token = null; // Clear reset token after use
+
+    await this.userRepo.save(user);
+
+    return { message: 'Otp verification successful' };
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const { email, new_password } = resetPasswordDto;
+
+    const user = await this.userRepo.findOne({
+      where: { email, reset_token: null },
+    });
+
+    if (!user) {
+      throw new NotFoundException(
+        'User not found or token likely not verified',
+      );
+    }
 
     // Hash the new password and save
     const hashedPassword = await hashPassword(new_password);
     user.password = hashedPassword;
-    user.reset_token = null; // Clear reset token after use
 
     await this.userRepo.save(user);
 
     return { message: 'Password successfully reset' };
   }
 
-  // Update password: Update current password with new password
   async updatePassword(createNewPasswordDto: CreateNewPasswordDto) {
     const { old_password, new_password } = createNewPasswordDto;
 

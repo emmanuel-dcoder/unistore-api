@@ -27,7 +27,10 @@ import {
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
+import {
+  ResetPasswordDto,
+  VerifyPasswordOtpDto,
+} from './dto/reset-password.dto';
 import { CreateNewPasswordDto } from './dto/create-new-password.dto';
 import { LoginDto } from './dto/login.dto';
 import {
@@ -301,17 +304,43 @@ export class UserController {
     }
   }
 
-  @Post('reset-password')
-  @ApiOperation({ summary: 'Reset password with the token provided' })
-  @ApiBody({ type: ResetPasswordDto })
-  @ApiResponse({ status: 200, description: 'Password successfully reset.' })
+  @Post('verify-password-otp')
+  @ApiOperation({
+    summary: 'Verify password reset otp, provide the email during verification',
+  })
+  @ApiBody({ type: VerifyPasswordOtpDto })
+  @ApiResponse({ status: 200, description: 'Otp verification successful.' })
   @ApiResponse({ status: 404, description: 'Invalid reset token.' })
   @ApiResponse({ status: 409, description: 'Reset token expired.' })
+  async verifyPassword(@Body() verifyPasswordDto: VerifyPasswordOtpDto) {
+    try {
+      await this.userService.verifyPasswordOtp(verifyPasswordDto);
+      return successResponse({
+        message: 'Otp verification successful',
+        code: HttpStatus.OK,
+        status: 'success',
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @Post('reset-password')
+  @ApiOperation({
+    summary: 'Reset password by providing email and password',
+  })
+  @ApiBody({ type: ResetPasswordDto })
+  @ApiResponse({ status: 200, description: 'Otp verification successful.' })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found or token likely not verified',
+  })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     try {
       await this.userService.resetPassword(resetPasswordDto);
       return successResponse({
-        message: 'Password successfully reset.',
+        message: 'Otp verification successful',
         code: HttpStatus.OK,
         status: 'success',
       });
