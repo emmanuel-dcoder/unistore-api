@@ -46,6 +46,17 @@ export class AdminProductController {
       'Create a new product with uploaded images. Must be form-data; key: files - for product image upload',
   })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @ApiResponse({ status: 201, description: 'Product created successfully' })
   @ApiResponse({ status: 401, description: 'Unable to create product' })
   @ApiBody({ type: AdminProductDto })
@@ -81,6 +92,17 @@ export class AdminProductController {
       'Update an existing product. Optionally update product image(s). You have to use existing data and add your changes to the data',
   })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @ApiResponse({ status: 200, description: 'Product updated successfully' })
   @ApiResponse({
     status: 400,
