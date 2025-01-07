@@ -47,6 +47,10 @@ export class SchoolController {
           type: 'string',
           format: 'binary',
         },
+        name: {
+          type: 'string',
+          description: 'Name of the school',
+        },
       },
     },
   })
@@ -71,15 +75,30 @@ export class SchoolController {
   }
 
   @Put(':id')
-  @UseInterceptors(FileInterceptor('file')) // Image field in the form
   @ApiOperation({
     summary: 'Update a school with an image, the keyword is "file"',
   })
-  @ApiBody({ type: UpdateSchoolDto })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+        name: {
+          type: 'string',
+          description: 'Name of the school',
+        },
+      },
+    },
+  })
+  @ApiBody({ type: UpdateSchoolDto })
   @ApiParam({ name: 'id', description: 'ID of the school to update' })
   @ApiResponse({ status: 200, description: 'School updated successfully' })
   @ApiResponse({ status: 404, description: 'School not found' })
+  @UseInterceptors(FileInterceptor('file')) // Image field in the form
   async update(
     @Param('id') id: string,
     @Body() updateSchoolDto: CreateSchoolDto,

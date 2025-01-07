@@ -7,10 +7,4 @@ export class CreateSchoolDto {
   @ApiProperty()
   @IsNotEmpty()
   name: string;
-  
-  @ApiPropertyOptional()
-  @IsOptional()
-  @ApiProperty()
-  @IsNotEmpty()
-  file: string;
 }
