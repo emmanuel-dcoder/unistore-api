@@ -270,11 +270,12 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     try {
-      await this.userService.photoIdentification(userId, file);
+      const data = await this.userService.photoIdentification(userId, file);
       return successResponse({
         message: 'Photo-identification uploaded successfully',
         code: HttpStatus.OK,
         status: 'success',
+        data,
       });
     } catch (error) {
       this.logger.error('Upload profile picture failed', error.message);
@@ -331,7 +332,7 @@ export class UserController {
     summary: 'Reset password by providing email and password',
   })
   @ApiBody({ type: ResetPasswordDto })
-  @ApiResponse({ status: 200, description: 'Otp verification successful.' })
+  @ApiResponse({ status: 200, description: 'Password successfully reset.' })
   @ApiResponse({
     status: 404,
     description: 'User not found or token likely not verified',
@@ -340,7 +341,7 @@ export class UserController {
     try {
       await this.userService.resetPassword(resetPasswordDto);
       return successResponse({
-        message: 'Otp verification successful',
+        message: 'Password successfully reset.',
         code: HttpStatus.OK,
         status: 'success',
       });

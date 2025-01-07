@@ -309,13 +309,13 @@ export class UserService {
     }
 
     const uploadedFile = await this.uploadUserImage(file);
-    user.profile_picture = uploadedFile.url;
+    user.profile_picture = uploadedFile;
 
     await this.userRepo.save(user);
 
     return {
       message: 'Profile picture uploaded successfully',
-      profile_picture: uploadedFile.url,
+      profile_picture: uploadedFile,
     };
   }
 
@@ -341,13 +341,13 @@ export class UserService {
     }
 
     const uploadedFile = await this.uploadUserImage(file);
-    user.identification = uploadedFile.url;
+    user.identification = uploadedFile;
 
     await this.userRepo.save(user);
 
     return {
       message: 'Photo-identification uploaded successfully',
-      profile_picture: uploadedFile.url,
+      identification: uploadedFile,
     };
   }
 
