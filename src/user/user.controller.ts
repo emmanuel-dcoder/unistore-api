@@ -10,6 +10,7 @@ import {
   HttpStatus,
   Get,
   Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -230,6 +231,17 @@ export class UserController {
     summary: 'Upload profile picture for the user, use form data (Key: file)',
   })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @ApiResponse({
     status: 200,
     description: 'Profile picture uploaded successfully',
@@ -241,11 +253,16 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     try {
-      await this.userService.uploadProfilePicture(userId, file);
+      if (!file)
+        throw new BadRequestException(
+          'Image file not upload, format must be JPEG/JPG',
+        );
+      const data = await this.userService.uploadProfilePicture(userId, file);
       return successResponse({
         message: 'Profile picture uploaded successfully',
         code: HttpStatus.OK,
         status: 'success',
+        data,
       });
     } catch (error) {
       this.logger.error('Upload profile picture failed', error.message);
@@ -259,6 +276,17 @@ export class UserController {
       'Upload Photo-identification  picture for the user, use form data (Key: file)',
   })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @ApiResponse({
     status: 200,
     description: 'Photo-identification uploaded successfully',
@@ -270,6 +298,11 @@ export class UserController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     try {
+      if (!file)
+        throw new BadRequestException(
+          'Image file not upload, format must be JPEG/JPG',
+        );
+
       const data = await this.userService.photoIdentification(userId, file);
       return successResponse({
         message: 'Photo-identification uploaded successfully',
