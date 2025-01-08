@@ -45,7 +45,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('sendMessage')
-  async handleMessage(client: Socket, @MessageBody() payload: SendMessageDto) {
+  async handleMessage(@MessageBody() payload: SendMessageDto) {
     const { sender, receiver, message, user_type, attachment } = payload;
 
     const receiverSocketId = this.connectedUsers.get(receiver);

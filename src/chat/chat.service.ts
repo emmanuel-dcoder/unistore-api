@@ -72,60 +72,55 @@ export class ChatService {
   }
 
   async getMessages(user: string, merchant: string): Promise<Message[]> {
-    try {
-      const messages = await this.messageRepo.find({
-        where: [
-          {
-            sender: { id: user },
-            chat: { merchant: { id: merchant } },
-          },
-          {
-            sender: { id: merchant },
-            chat: { user: { id: user } },
-          },
-        ],
-        relations: ['chat', 'chat.merchant', 'chat.user', 'sender'],
-        select: {
+    const messages = await this.messageRepo.find({
+      where: [
+        {
+          sender: { id: user },
+          chat: { merchant: { id: merchant } },
+        },
+        {
+          sender: { id: merchant },
+          chat: { user: { id: user } },
+        },
+      ],
+      relations: ['chat', 'chat.merchant', 'chat.user', 'sender'],
+      select: {
+        id: true,
+        message: true,
+        attachment: true,
+        created_at: true,
+        updated_at: true,
+        sender: {
           id: true,
-          message: true,
-          attachment: true,
+          first_name: true,
+          last_name: true,
+          profile_picture: true,
+        },
+        chat: {
+          id: true,
+          last_message: true,
           created_at: true,
           updated_at: true,
-          sender: {
+          merchant: {
             id: true,
             first_name: true,
             last_name: true,
             profile_picture: true,
           },
-          chat: {
+          user: {
             id: true,
-            last_message: true,
-            created_at: true,
-            updated_at: true,
-            merchant: {
-              id: true,
-              first_name: true,
-              last_name: true,
-              profile_picture: true,
-            },
-            user: {
-              id: true,
-              first_name: true,
-              last_name: true,
-              profile_picture: true,
-            },
+            first_name: true,
+            last_name: true,
+            profile_picture: true,
           },
         },
-        order: {
-          created_at: 'ASC',
-        },
-      });
+      },
+      order: {
+        created_at: 'ASC',
+      },
+    });
 
-      return messages;
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      throw new Error('Failed to fetch messages');
-    }
+    return messages;
   }
 
   async getChatsByParticipant(participantId: string): Promise<Chat[]> {
@@ -153,10 +148,6 @@ export class ChatService {
         },
       },
     });
-
-    if (!chats || chats.length === 0) {
-      throw new NotFoundException('No chats found for this participant.');
-    }
 
     return chats;
   }
