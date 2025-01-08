@@ -13,7 +13,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { successResponse, SuccessResponseType } from 'src/core/common';
+import { successResponse } from 'src/core/common';
 import { AdminInvoiceService } from '../services/admin-invoice.service';
 import { AdminGuard } from 'src/core/guards/admin.guard';
 

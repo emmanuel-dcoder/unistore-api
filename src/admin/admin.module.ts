@@ -18,13 +18,17 @@ import { AdminProductService } from './services/admin-product.service';
 import { Product } from 'src/product/entities/product.entity';
 import { CategoryService } from 'src/category/category.service';
 import { Category } from 'src/category/entities/category.entity';
+import { User } from 'src/user/entities/user.entity';
+import { AdminUserDashboardService } from './services/admin-user-dashboard.service';
+import { AdminUserDashboardController } from './controllers/admin-user-dashboard.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Admin, Order, Product, Category])],
+  imports: [TypeOrmModule.forFeature([Admin, Order, Product, Category, User])],
   controllers: [
     AdminController,
     AdminInvoiceController,
     AdminProductController,
+    AdminUserDashboardController,
   ],
   providers: [
     AdminService,
@@ -32,6 +36,7 @@ import { Category } from 'src/category/entities/category.entity';
     AdminInvoiceService,
     AdminProductService,
     CategoryService,
+    AdminUserDashboardService,
   ],
 })
 export class AdminModule implements NestModule {
