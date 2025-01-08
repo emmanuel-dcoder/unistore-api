@@ -3,6 +3,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -73,26 +74,6 @@ export class AdminUserDashboardController {
     }
   }
 
-  @Get('category')
-  @ApiOperation({
-    summary: 'Get all Categories',
-  })
-  @ApiResponse({ status: 200, description: 'Categories fetched' })
-  async getCategory() {
-    try {
-      const category = await this.adminUserDashboardService.findCategory();
-      return successResponse({
-        message: 'Categories fetched',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: category,
-      });
-    } catch (error) {
-      this.logger.error('Error retrieving category', error.message);
-      throw error;
-    }
-  }
-
   @Get('product/highest')
   @ApiOperation({
     summary: 'Get products with the highest price',
@@ -139,6 +120,86 @@ export class AdminUserDashboardController {
         'Error retrieving user and order counts',
         error.message,
       );
+      throw error;
+    }
+  }
+
+  @Get('invoice-orders')
+  @ApiOperation({
+    summary: 'Get invoice orders with pagination and filter by date',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Limit number of orders per page',
+    type: Number,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    description: 'Start date to filter orders',
+    type: String,
+    example: '2023-01-01',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    description: 'End date to filter orders',
+    type: String,
+    example: '2023-12-31',
+  })
+  @ApiResponse({ status: 200, description: 'Orders fetched successfully' })
+  async getOrders(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    try {
+      const orders =
+        await this.adminUserDashboardService.getOrdersWithPagination(
+          page,
+          limit,
+          startDate,
+          endDate,
+        );
+
+      return successResponse({
+        message: 'Orders fetched successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: orders,
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving orders', error.message);
+      throw error;
+    }
+  }
+
+  @Get('category')
+  @ApiOperation({
+    summary: 'Get all Categories',
+  })
+  @ApiResponse({ status: 200, description: 'Categories fetched' })
+  async getCategory() {
+    try {
+      const category = await this.adminUserDashboardService.findCategory();
+      return successResponse({
+        message: 'Categories fetched',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: category,
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving category', error.message);
       throw error;
     }
   }

@@ -255,6 +255,55 @@ export class AdminUserDashboardService {
     return ((currentCount - previousCount) / previousCount) * 100;
   }
 
+  async getOrdersWithPagination(
+    page: number = 1,
+    limit: number = 10,
+    startDate: string,
+    endDate: string,
+  ): Promise<any> {
+    const skip = (page - 1) * limit;
+
+    // Convert startDate and endDate to Date objects if they are provided
+    const start = startDate ? new Date(startDate) : new Date();
+    const end = endDate ? new Date(endDate) : new Date();
+
+    const orders = await this.orderRepo.find({
+      where: {
+        created_at: Between(start, end),
+      },
+      relations: ['invoices', 'user', 'product_owner'],
+      select: {
+        user: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          profile_picture: true,
+        },
+        product_owner: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          profile_picture: true,
+        },
+      },
+      skip,
+      take: limit,
+    });
+
+    const totalOrders = await this.orderRepo.count({
+      where: {
+        created_at: Between(start, end),
+      },
+    });
+
+    return {
+      orders,
+      totalOrders,
+      page,
+      totalPages: Math.ceil(totalOrders / limit),
+    };
+  }
+
   async findCategory(): Promise<Category[]> {
     const category = this.categoryRepo.find();
     if (!category) throw new BadRequestException('Unable to fetch categories');
