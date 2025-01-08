@@ -14,7 +14,7 @@ export class Message {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Chat, { eager: true })
+  @ManyToOne(() => Chat)
   @JoinColumn({ name: 'chat_id' })
   chat: Chat;
 
@@ -24,7 +24,7 @@ export class Message {
   @Column('text', { nullable: true })
   attachment: string;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'sender_id' })
   sender: User;
 

@@ -18,11 +18,11 @@ export class Chat {
   @Column({ nullable: true })
   last_message: string;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'merchant_id' })
   merchant: User;
 

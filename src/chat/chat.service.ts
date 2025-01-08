@@ -70,66 +70,89 @@ export class ChatService {
     });
     return chatMessage;
   }
-  async getMessages(user: string, merchant: string): Promise<Message[]> {
-    const message = await this.messageRepo
-      .createQueryBuilder('message')
-      .leftJoinAndSelect('message.chat', 'chat')
-      .leftJoinAndSelect('message.sender', 'sender')
-      .addSelect([
-        'sender.id',
-        'sender.first_name',
-        'sender.last_name',
-        'sender.profile_picture',
-      ])
-      .leftJoinAndSelect('chat.user', 'chatUser')
-      .addSelect([
-        'chatUser.id',
-        'chatUser.first_name',
-        'chatUser.last_name',
-        'chatUser.profile_picture',
-      ])
-      .leftJoinAndSelect('chat.merchant', 'chatMerchant')
-      .addSelect([
-        'chatMerchant.id',
-        'chatMerchant.first_name',
-        'chatMerchant.last_name',
-        'chatMerchant.profile_picture',
-      ])
-      .where('(message.sender.id = :user AND chat.merchant.id = :merchant)', {
-        user,
-        merchant,
-      })
-      .orWhere('(chat.user.id = :user AND message.sender.id = :merchant)', {
-        user,
-        merchant,
-      })
-      .orderBy('message.created_at', 'ASC')
-      .getMany();
 
-    return message;
+  async getMessages(user: string, merchant: string): Promise<Message[]> {
+    try {
+      const messages = await this.messageRepo.find({
+        where: [
+          {
+            sender: { id: user },
+            chat: { merchant: { id: merchant } },
+          },
+          {
+            sender: { id: merchant },
+            chat: { user: { id: user } },
+          },
+        ],
+        relations: ['chat', 'chat.merchant', 'chat.user', 'sender'],
+        select: {
+          id: true,
+          message: true,
+          attachment: true,
+          created_at: true,
+          updated_at: true,
+          sender: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            profile_picture: true,
+          },
+          chat: {
+            id: true,
+            last_message: true,
+            created_at: true,
+            updated_at: true,
+            merchant: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              profile_picture: true,
+            },
+            user: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              profile_picture: true,
+            },
+          },
+        },
+        order: {
+          created_at: 'ASC',
+        },
+      });
+
+      return messages;
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      throw new Error('Failed to fetch messages');
+    }
   }
 
   async getChatsByParticipant(participantId: string): Promise<Chat[]> {
-    const chats = await this.chatRepo
-      .createQueryBuilder('chat')
-      .leftJoinAndSelect('chat.user', 'user')
-      .addSelect([
-        'user.id',
-        'user.first_name',
-        'user.last_name',
-        'user.profile_picture',
-      ])
-      .leftJoinAndSelect('chat.merchant', 'merchant')
-      .addSelect([
-        'merchant.id',
-        'merchant.first_name',
-        'merchant.last_name',
-        'merchant.profile_picture',
-      ])
-      .where('user.id = :participantId', { participantId })
-      .orWhere('merchant.id = :participantId', { participantId })
-      .orderBy('chat.updated_at', 'DESC')
-      .getMany();
+    const chats = await this.chatRepo.find({
+      relations: ['user', 'merchant'],
+      where: [
+        { user: { id: participantId } },
+        { merchant: { id: participantId } },
+      ],
+      order: {
+        updated_at: 'DESC',
+      },
+      select: {
+        user: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          profile_picture: true,
+        },
+        merchant: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          profile_picture: true,
+        },
+      },
+    });
 
     if (!chats || chats.length === 0) {
       throw new NotFoundException('No chats found for this participant.');
