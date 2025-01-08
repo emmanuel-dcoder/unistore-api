@@ -38,6 +38,8 @@ export class ChatService {
     });
 
     if (existingChat) {
+      existingChat.last_message = last_message;
+      await this.chatRepo.save(existingChat);
       return existingChat;
     }
 
@@ -57,7 +59,7 @@ export class ChatService {
     sender: string,
     receiver: string,
     message: string,
-    attachment: string,
+    attachment?: string,
   ): Promise<Message> {
     const chatMessage = await this.messageRepo.save({
       chat: { id: chat } as any,
@@ -69,7 +71,7 @@ export class ChatService {
     return chatMessage;
   }
   async getMessages(user: string, merchant: string): Promise<Message[]> {
-    return this.messageRepo
+    const message = await this.messageRepo
       .createQueryBuilder('message')
       .leftJoinAndSelect('message.chat', 'chat')
       .leftJoinAndSelect('message.sender', 'sender')
@@ -103,6 +105,8 @@ export class ChatService {
       })
       .orderBy('message.created_at', 'ASC')
       .getMany();
+
+    return message;
   }
 
   async getChatsByParticipant(participantId: string): Promise<Chat[]> {

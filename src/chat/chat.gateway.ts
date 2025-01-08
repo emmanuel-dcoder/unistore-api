@@ -13,7 +13,6 @@ import { Repository } from 'typeorm';
 import { Chat } from './entities/chat.entity';
 import { GetMessagesDto, SendMessageDto } from './dto/create-chat.dto';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
-import { BadRequestException } from '@nestjs/common';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -53,7 +52,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (!sender || !receiver || message || user_type) {
       return await this.server
-        .to(receiverSocketId)
+        .to(sender)
         .emit(
           'receiveMessage',
           'Sender, receiver, message and user_type are required',
