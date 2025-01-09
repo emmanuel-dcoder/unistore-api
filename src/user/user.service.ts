@@ -79,10 +79,9 @@ export class UserService {
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
-    // Find the user by email and populate the school relation
     const user = await this.userRepo.findOne({
       where: { email },
-      relations: ['school'], // Ensure the school relation is fetched
+      relations: ['school'],
       select: [
         'first_name',
         'last_name',
@@ -114,12 +113,10 @@ export class UserService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Extract school details to include in the token
     const schoolPayload = user.school
       ? { id: user.school.id, name: user.school.name }
       : null;
 
-    // Generate JWT
     const access_token = generateAccessToken(
       {
         id: user.id,
@@ -130,7 +127,6 @@ export class UserService {
         is_merchant_verified: user.is_merchant_verified,
         school: schoolPayload,
         profile_picture: user.profile_picture,
-        identification: user.identification,
         user_status: user.user_status,
       },
       'user_access_key',
@@ -180,7 +176,6 @@ export class UserService {
     const otpCreationTime = user.created_at.getTime();
     const currentTime = Date.now();
 
-    // Check if OTP is expired
     if (currentTime - otpCreationTime > otpExpiryLimit) {
       throw new BadRequestException('OTP has expired');
     }
@@ -224,11 +219,10 @@ export class UserService {
 
     await this.userRepo.save(user);
 
-    // Optionally, you can send the OTP to the user via email here (use mail service)
     await this.mailService.sendMailNotification(
       user.email,
       'OTP Resent',
-      { otp }, // Send OTP to the user
+      { otp },
       'otp_resend',
     );
 
@@ -255,10 +249,9 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    // Merge existing user data with the new data
+
     const updatedUser = { ...user, ...updateUserDto };
 
-    // Save the updated user
     return await this.userRepo.save(updatedUser);
   }
 
@@ -284,10 +277,8 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    // Merge other properties from the DTO
     Object.assign(user, updateUserSchoolDto);
 
-    // Save the updated user
     return await this.userRepo.save(user);
   }
 
@@ -355,7 +346,6 @@ export class UserService {
     };
   }
 
-  // Forgot password: generate OTP and send to email
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
     const user = await this.userRepo.findOne({
       where: { email: forgotPasswordDto.email },
@@ -365,13 +355,12 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    const resetToken = RandomFourDigits(); // You can replace with JWT or any token
+    const resetToken = RandomFourDigits();
     user.reset_token = resetToken;
-    user.reset_token_created_at = new Date(); // Save the token's creation time
+    user.reset_token_created_at = new Date();
 
     await this.userRepo.save(user);
 
-    // Send the token via email to the user (Make sure mail service is implemented)
     await this.mailService.sendMailNotification(
       user.email,
       'Password Reset Request',
@@ -403,7 +392,7 @@ export class UserService {
       throw new ConflictException('Reset token expired');
     }
 
-    user.reset_token = null; // Clear reset token after use
+    user.reset_token = null;
 
     await this.userRepo.save(user);
 
@@ -423,7 +412,6 @@ export class UserService {
       );
     }
 
-    // Hash the new password and save
     const hashedPassword = await hashPassword(new_password);
     user.password = hashedPassword;
 
@@ -435,16 +423,14 @@ export class UserService {
   async updatePassword(createNewPasswordDto: CreateNewPasswordDto) {
     const { old_password, new_password } = createNewPasswordDto;
 
-    // Find user (assume user is already authenticated, use current logged-in user)
     const user = await this.userRepo.findOne({
-      where: { email: 'user@example.com' }, // Replace with actual user fetching logic
+      where: { email: 'user@example.com' },
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    // Check if old password matches
     const isOldPasswordCorrect = await comparePassword(
       old_password,
       user.password,

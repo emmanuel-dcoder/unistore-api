@@ -37,7 +37,6 @@ export const generateAccessToken = (
     is_merchant_verified?: boolean;
     school?: any;
     profile_picture?: string;
-    identification?: string;
     user_status?: string;
   },
   domain: TokenKey = 'user_access_key',

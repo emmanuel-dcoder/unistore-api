@@ -33,10 +33,9 @@ export class AdminUserDashboardService {
           new Date(currentYear, currentMonth + 1, 0),
         ),
       },
-      relations: ['invoices', 'invoices.product'], // Load the related invoices and products
+      relations: ['invoices', 'invoices.product'],
     });
 
-    // Aggregate product prices and return product names with total amount
     const productSales: Record<string, { totalAmount: number; name: string }> =
       {};
 
@@ -56,7 +55,6 @@ export class AdminUserDashboardService {
       });
     });
 
-    // Return the products sorted by total amount
     return Object.values(productSales).sort(
       (a, b) => b.totalAmount - a.totalAmount,
     );
@@ -70,10 +68,8 @@ export class AdminUserDashboardService {
     const previousMonthYear =
       currentMonth === 0 ? currentYear - 1 : currentYear;
 
-    // Get all categories
     const categories = await this.categoryRepo.find();
 
-    // Get paid orders for current month
     const currentMonthOrders = await this.orderRepo.find({
       where: {
         status: 'paid',
@@ -85,7 +81,6 @@ export class AdminUserDashboardService {
       relations: ['invoices', 'invoices.product', 'invoices.product.category'],
     });
 
-    // Get paid orders for previous month
     const previousMonthOrders = await this.orderRepo.find({
       where: {
         status: 'paid',
@@ -123,7 +118,6 @@ export class AdminUserDashboardService {
         const product = invoice.product;
         const categoryId = product.category.id;
 
-        // Increase the count for this category
         categoryCounts[categoryId] = (categoryCounts[categoryId] || 0) + 1;
       });
     });
