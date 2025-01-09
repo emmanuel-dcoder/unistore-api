@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
 import { UpdateSchoolDto } from './dto/update-school.dto';
+import { RandomSevenDigits } from 'src/core/common';
 
 @Injectable()
 export class SchoolService {
@@ -23,14 +24,25 @@ export class SchoolService {
 
     let imageUrl = '';
     if (file) {
-      imageUrl = await this.storeSchoolImage(file); // Store the image and get the file name
+      imageUrl = await this.storeSchoolImage(file);
     }
 
-    const newSchool = { ...payload, image: imageUrl };
+    let schoolId = RandomSevenDigits();
+    const confirmSchool = await this.schoolRepo.findOne({
+      where: { school_id: schoolId },
+    });
+
+    do {
+      schoolId = RandomSevenDigits();
+    } while (confirmSchool);
+
+    const newSchool = { ...payload, school_id: schoolId, image: imageUrl };
+
     const result = await this.schoolRepo.save(newSchool);
     if (!result) throw new BadRequestException('Unable to create school');
     return result;
   }
+
   async update(
     id: string,
     payload: UpdateSchoolDto,
