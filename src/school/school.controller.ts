@@ -144,6 +144,54 @@ export class SchoolController {
     }
   }
 
+  @Get('pagination')
+  @ApiOperation({
+    summary: 'Get all schools with optional search and pagination',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search term for filtering schools',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number for pagination (default is 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of records per page (default is 10)',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Schools retrieved successfully with pagination',
+  })
+  async findAllByPagination(
+    @Query('search') search?: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    try {
+      const data = await this.schoolService.findAllByPagination(
+        search,
+        page,
+        limit,
+      );
+      return successResponse({
+        message: 'Schools retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error fetching schools', error.message);
+      throw error;
+    }
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a single school by ID' })
   @ApiParam({ name: 'id', description: 'ID of the school to retrieve' })

@@ -51,7 +51,6 @@ export class SchoolService {
     return result;
   }
 
-  // Fetch schools with optional search
   async findAll(search?: string): Promise<School[]> {
     const queryBuilder = this.schoolRepo.createQueryBuilder('school');
     if (search) {
@@ -61,6 +60,32 @@ export class SchoolService {
     }
     const schools = await queryBuilder.getMany();
     return schools;
+  }
+
+  async findAllByPagination(
+    search?: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ data: School[]; total: number; page: number; limit: number }> {
+    const queryBuilder = this.schoolRepo.createQueryBuilder('school');
+
+    if (search) {
+      queryBuilder.where('LOWER(school.name) LIKE :search', {
+        search: `%${search.toLowerCase()}%`,
+      });
+    }
+
+    const [data, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
   }
 
   async findOne(id: string): Promise<School> {
