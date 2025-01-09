@@ -297,7 +297,7 @@ export class AdminUserDashboardService {
       totalPages: Math.ceil(totalOrders / limit),
     };
   }
-
+  
   async findUsersBySchoolAndType(
     schoolId: string,
     userType: string,
@@ -306,6 +306,10 @@ export class AdminUserDashboardService {
     page: number = 1,
     limit: number = 10,
   ) {
+    // Ensure page and limit are valid numbers
+    page = isNaN(page) ? 1 : Math.max(1, page);
+    limit = isNaN(limit) ? 10 : Math.max(1, limit);
+
     const queryBuilder = this.userRepo.createQueryBuilder('user');
 
     queryBuilder
@@ -365,7 +369,6 @@ export class AdminUserDashboardService {
       userCount,
     };
   }
-
   async getMerchantStats(
     schoolId: string,
     search: string = '',
@@ -376,8 +379,7 @@ export class AdminUserDashboardService {
 
     // Query to filter merchants by school_id and user_type
     const query: any = {
-      // Filter by school_id and merchant user_type
-      product_owner: {
+      user: {
         school: { id: schoolId }, // Filtering merchants by their school_id
         user_type: 'merchant', // Ensure the user is a merchant
       },
@@ -385,8 +387,8 @@ export class AdminUserDashboardService {
 
     // Optional search filter for first_name or last_name of the user (merchant)
     if (search) {
-      query.product_owner = {
-        ...query.product_owner,
+      query.user = {
+        ...query.user,
         first_name: Like(`%${search}%`),
         last_name: Like(`%${search}%`),
       };
