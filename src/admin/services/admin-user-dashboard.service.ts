@@ -369,6 +369,7 @@ export class AdminUserDashboardService {
       userCount,
     };
   }
+  
   async getMerchantStats(
     schoolId: string,
     search: string = '',
