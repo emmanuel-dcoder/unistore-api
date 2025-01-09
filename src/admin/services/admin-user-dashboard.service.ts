@@ -446,7 +446,6 @@ export class AdminUserDashboardService {
     // Build the query to fetch users with filters
     const query = this.userRepo
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.orders', 'order')
       .where('user.user_type = :userType', { userType: 'user' })
       .andWhere('user.school_id = :schoolId', { schoolId });
 
