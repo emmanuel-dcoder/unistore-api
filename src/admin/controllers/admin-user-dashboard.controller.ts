@@ -1,8 +1,16 @@
-import { Controller, Get, Query, HttpStatus, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  HttpStatus,
+  Logger,
+  Param,
+} from '@nestjs/common';
 import {
   ApiBody,
   ApiConsumes,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
@@ -180,6 +188,242 @@ export class AdminUserDashboardController {
       });
     } catch (error) {
       this.logger.error('Error retrieving orders', error.message);
+      throw error;
+    }
+  }
+
+  @Get('school/:id/merchants/stats')
+  @ApiOperation({
+    summary:
+      'Get the count of products and orders for all merchants within a specific school, including optional search and pagination',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID of the school',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description:
+      'Optional search term for filtering products and orders by merchant name',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Limit number of results per page (default is 10)',
+    type: Number,
+    example: 10,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Merchant product and order statistics fetched successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Unable to fetch merchant product and order statistics',
+  })
+  async getMerchantStats(
+    @Param('id') schoolId: string,
+    @Query('search') search: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    try {
+      // Fetch statistics using the adminUserDashboardService
+      const stats = await this.adminUserDashboardService.getMerchantStats(
+        schoolId,
+        search,
+        page,
+        limit,
+      );
+
+      return successResponse({
+        message: 'Merchant product and order statistics fetched successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: stats,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Error retrieving statistics for merchants in school with ID ${schoolId}`,
+        error.message,
+      );
+      throw error;
+    }
+  }
+
+  @Get(':id/users')
+  @ApiOperation({
+    summary:
+      'Get users (merchant or user) by school ID with optional filters and pagination',
+  })
+  @ApiQuery({
+    name: 'user_type',
+    required: false,
+    description: 'Filter by user type ("merchant" or "user")',
+  })
+  @ApiQuery({
+    name: 'start_date',
+    required: false,
+    description: 'Start date for filtering users (YYYY-MM-DD)',
+  })
+  @ApiQuery({
+    name: 'end_date',
+    required: false,
+    description: 'End date for filtering users (YYYY-MM-DD)',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination (default is 1)',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of records per page (default is 10)',
+    type: Number,
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Users retrieved successfully based on user_type and date filters',
+  })
+  async getUsersBySchool(
+    @Param('id') schoolId: string,
+    @Query('user_type') userType: string,
+    @Query('start_date') startDate: string,
+    @Query('end_date') endDate: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    try {
+      const data =
+        await this.adminUserDashboardService.findUsersBySchoolAndType(
+          schoolId,
+          userType,
+          startDate,
+          endDate,
+          page,
+          limit,
+        );
+      return successResponse({
+        message: 'Users retrieved successfully',
+        code: 200,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error(
+        'Error fetching users by school and type',
+        error.message,
+      );
+      throw error;
+    }
+  }
+
+  @Get('counts/:schoolId')
+  @ApiOperation({ summary: 'Get the count of merchants and users in a school' })
+  @ApiParam({ name: 'schoolId', description: 'ID of the school' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User counts retrieved successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Unable to fetch user counts',
+  })
+  async getUserCountsBySchool(@Param('schoolId') schoolId: string) {
+    try {
+      const userCounts =
+        await this.adminUserDashboardService.getUserCountsBySchool(schoolId);
+      return successResponse({
+        message: 'User counts retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: userCounts,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Error fetching user counts for school with ID ${schoolId}`,
+        error.message,
+      );
+      throw error;
+    }
+  }
+
+  @Get('with-orders')
+  @ApiOperation({
+    summary: 'Get users with their order counts',
+    description:
+      'This endpoint retrieves a paginated list of users with `user_type` set to "user". It includes their total order counts (paid and pending) and filters by a specific school ID. Optional search functionality is provided to search users by their first name, last name, or email.',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    example: 1,
+    description: 'Page number for pagination. Default is 1.',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    example: 10,
+    description: 'Number of results per page. Default is 10.',
+  })
+  @ApiQuery({
+    name: 'school_id',
+    required: true,
+    type: String,
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    description: 'The ID of the school to filter users by.',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    example: 'john',
+    description: "Search query for user's first name, last name, or email.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved the list of users with order counts.',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid request parameters.' })
+  @ApiResponse({ status: 404, description: 'School ID not found.' })
+  async getUsersWithOrderCounts(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('school_id') school_id: string,
+    @Query('search') search: string,
+  ) {
+    try {
+      // Call the service to fetch the data
+      const result =
+        await this.adminUserDashboardService.getUsersWithOrderCounts(
+          page,
+          limit,
+          school_id,
+          search,
+        );
+
+      return successResponse({
+        message: 'Successfully retrieved the list of users with order counts.',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: result,
+      });
+    } catch (error) {
+      this.logger.error(`Error:`, error.message);
       throw error;
     }
   }

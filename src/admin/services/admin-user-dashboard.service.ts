@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
+import { Between, In, Like, Repository } from 'typeorm';
 import { Order } from 'src/invoice/entities/order.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { Product } from 'src/product/entities/product.entity';
@@ -295,6 +295,198 @@ export class AdminUserDashboardService {
       totalOrders,
       page,
       totalPages: Math.ceil(totalOrders / limit),
+    };
+  }
+
+  async findUsersBySchoolAndType(
+    schoolId: string,
+    userType: string,
+    startDate?: string,
+    endDate?: string,
+    page: number = 1,
+    limit: number = 10,
+  ) {
+    const queryBuilder = this.userRepo.createQueryBuilder('user');
+
+    queryBuilder
+      .leftJoinAndSelect('user.school', 'school')
+      .where('school.id = :schoolId', { schoolId })
+      .andWhere('user.user_type IN (:...userTypes)', {
+        userTypes: ['merchant', 'user'].includes(userType)
+          ? [userType]
+          : ['merchant', 'user'],
+      })
+      .orderBy('user.created_at', 'DESC');
+
+    // Apply date filters if provided
+    if (startDate) {
+      queryBuilder.andWhere('user.created_at >= :startDate', { startDate });
+    }
+    if (endDate) {
+      queryBuilder.andWhere('user.created_at <= :endDate', { endDate });
+    }
+
+    // Pagination logic
+    queryBuilder.skip((page - 1) * limit).take(limit);
+
+    try {
+      const [users, total] = await queryBuilder.getManyAndCount();
+      return {
+        data: users,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      throw new BadRequestException('Unable to fetch users');
+    }
+  }
+
+  async getUserCountsBySchool(schoolId: string) {
+    // Count users with 'merchant' user_type
+    const merchantCount = await this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.school', 'school')
+      .where('school.id = :schoolId', { schoolId })
+      .andWhere('user.user_type = :userType', { userType: 'merchant' })
+      .getCount();
+
+    // Count users with 'user' user_type
+    const userCount = await this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.school', 'school')
+      .where('school.id = :schoolId', { schoolId })
+      .andWhere('user.user_type = :userType', { userType: 'user' })
+      .getCount();
+
+    return {
+      merchantCount,
+      userCount,
+    };
+  }
+
+  async getMerchantStats(
+    schoolId: string,
+    search: string = '',
+    page: number = 1,
+    limit: number = 10,
+  ) {
+    const skip = (page - 1) * limit;
+
+    // Query to filter merchants by school_id and user_type
+    const query: any = {
+      // Filter by school_id and merchant user_type
+      product_owner: {
+        school: { id: schoolId }, // Filtering merchants by their school_id
+        user_type: 'merchant', // Ensure the user is a merchant
+      },
+    };
+
+    // Optional search filter for first_name or last_name of the user (merchant)
+    if (search) {
+      query.product_owner = {
+        ...query.product_owner,
+        first_name: Like(`%${search}%`),
+        last_name: Like(`%${search}%`),
+      };
+    }
+
+    // Fetch product count related to all merchants within the given school
+    const productCount = await this.productRepo.count({
+      where: query,
+    });
+
+    // Fetch order count related to all merchants within the given school
+    const orderCount = await this.orderRepo.count({
+      where: {
+        product_owner: {
+          school: { id: schoolId },
+          user_type: 'merchant',
+        },
+      },
+    });
+
+    // Optional: Pagination for fetching products
+    const products = await this.productRepo.find({
+      where: query,
+      skip,
+      take: limit,
+    });
+
+    // Optional: Pagination for fetching orders
+    const orders = await this.orderRepo.find({
+      where: {
+        product_owner: {
+          school: { id: schoolId },
+          user_type: 'merchant',
+        },
+      },
+      skip,
+      take: limit,
+    });
+
+    return {
+      productCount,
+      orderCount,
+      products,
+      orders,
+    };
+  }
+
+  async getUsersWithOrderCounts(
+    page: number = 1,
+    limit: number = 10,
+    schoolId: string,
+    search?: string,
+  ) {
+    // Default pagination values
+    const skip = (page - 1) * limit;
+
+    // Build the query to fetch users with filters
+    const query = this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.orders', 'order')
+      .where('user.user_type = :userType', { userType: 'user' })
+      .andWhere('user.school_id = :schoolId', { schoolId });
+
+    // Optional search filter
+    if (search) {
+      query.andWhere(
+        '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    // Execute the query with pagination
+    const [users, total] = await query.skip(skip).take(limit).getManyAndCount(); // Ensures `users` is an array and total count is fetched
+
+    // Fetch order counts for each user
+    const usersWithOrderCounts = await Promise.all(
+      users.map(async (user) => {
+        const paidCount = await this.orderRepo.count({
+          where: { user: { id: user.id }, status: 'paid' },
+        });
+        const pendingCount = await this.orderRepo.count({
+          where: { user: { id: user.id }, status: 'awaiting_payment' },
+        });
+
+        return {
+          ...user,
+          orderCounts: {
+            paid: paidCount,
+            pending: pendingCount,
+          },
+        };
+      }),
+    );
+
+    // Return the response with pagination metadata
+    return {
+      data: usersWithOrderCounts,
+      total,
+      page,
+      limit,
     };
   }
 
