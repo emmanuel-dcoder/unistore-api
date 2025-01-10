@@ -19,6 +19,8 @@ export class WebhookController {
     @Body() payload: any,
   ): Promise<any> {
     try {
+      // Process payment status
+      console.log('Webhook received:', this.sanitizePayload(payload));
       const secretHash = process.env.FLUTTERWAVE_SECRET_HASH;
       const computedHash = crypto
         .createHmac('sha256', secretHash)
