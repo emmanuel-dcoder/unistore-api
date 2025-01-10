@@ -33,7 +33,7 @@ export class OrderInvoiceController {
     summary:
       'NOTE: the invoice payload is an array of objects in this:  { productId: string; quantity: number } Create Invoice for order while generating payment intent',
   })
-  @ApiBody({ type: CreateOrderDto }) // Ensure CreateInvoiceDto matches the expected structure
+  @ApiBody({ type: CreateOrderDto }) 
   @ApiResponse({ status: 200, description: `Invoice Generated successfully` })
   @ApiResponse({ status: 401, description: 'Unable to create invoice.' })
   // @UseGuards(MerchantGuard)
