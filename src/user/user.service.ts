@@ -101,11 +101,11 @@ export class UserService {
       throw new UnauthorizedErrorException('Invalid email or password');
     }
 
-    if (!user.is_active) {
-      throw new UnauthorizedErrorException(
-        'User not currently active, kindly verify your account',
-      );
-    }
+    // if (!user.is_active) {
+    //   throw new UnauthorizedErrorException(
+    //     'User not currently active, kindly verify your account',
+    //   );
+    // }
 
     // Compare the provided password with the stored hashed password
     const isPasswordValid = await compare(password, user.password);

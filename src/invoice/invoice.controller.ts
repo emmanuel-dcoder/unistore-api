@@ -36,7 +36,7 @@ export class OrderInvoiceController {
   @ApiBody({ type: CreateOrderDto }) // Ensure CreateInvoiceDto matches the expected structure
   @ApiResponse({ status: 200, description: `Invoice Generated successfully` })
   @ApiResponse({ status: 401, description: 'Unable to create invoice.' })
-  @UseGuards(MerchantGuard)
+  // @UseGuards(MerchantGuard)
   async create(@Req() req: any, @Body() createOrderDto: CreateOrderDto) {
     try {
       const user = req.user.id;

@@ -52,6 +52,9 @@ export class Order {
   city: string;
 
   @Column({ type: 'json', nullable: true })
+  payment_details: Record<string, any>;
+
+  @Column({ type: 'json', nullable: true })
   virtualAccountDetails: Record<string, any>;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

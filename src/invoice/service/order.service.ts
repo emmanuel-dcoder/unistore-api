@@ -26,7 +26,6 @@ export class OrderService {
     orderPayload: OrderPayloadDto,
     productOwner: string,
   ) {
-    // Validate user
     const validateUser = await this.userRepo.findOne({
       where: { id: orderPayload.user },
     });
@@ -45,7 +44,6 @@ export class OrderService {
     const invoices: Invoice[] = [];
     let totalAmount = 0;
 
-    // Iterate over the array of invoice objects
     for (const createInvoice of invoicePayloadDto) {
       const validateProduct = await this.productRepo.findOne({
         where: { id: createInvoice.productId },
@@ -55,7 +53,6 @@ export class OrderService {
         throw new BadRequestException('Product not found');
       }
 
-      // Calculate total price
       const productTotal = validateProduct.price * createInvoice.quantity;
       totalAmount += productTotal;
       const invoice = await this.invoiceService.createInvoice(
@@ -65,21 +62,20 @@ export class OrderService {
       invoices.push(invoice);
     }
 
-    // Associate the invoices with the order
     order.invoices = invoices;
     order.total_price = totalAmount;
 
-    // Save the order along with the associated invoices
     const savedOrder = await this.orderRepo.save(order);
 
-    // Generate virtual account
-    const virtualAccountResponse = await this.createVirtualAccount(
+    const paymentResponse = await this.createPaymentRequest(
       validateUser.email,
       totalAmount,
+      validateUser.first_name + ' ' + validateUser.last_name,
+      validateUser.phone,
     );
 
-    if (!virtualAccountResponse || !virtualAccountResponse.data) {
-      throw new BadRequestException('Failed to create virtual account');
+    if (!paymentResponse || paymentResponse.status !== 'success') {
+      throw new BadRequestException('Failed to create payment request');
     }
 
     let orderId = RandomSevenDigits();
@@ -91,11 +87,11 @@ export class OrderService {
       orderId = RandomSevenDigits();
     } while (validateOrder);
 
-    // Update order with virtual account details
     savedOrder.status = 'awaiting_payment';
     savedOrder.updated_at = new Date();
-    savedOrder.reference = virtualAccountResponse.data.order_ref;
-    savedOrder.virtualAccountDetails = virtualAccountResponse.data;
+    savedOrder.reference =
+      paymentResponse.meta.authorization.transfer_reference;
+    savedOrder.payment_details = paymentResponse.meta.authorization;
     savedOrder.order_id = orderId;
 
     await this.orderRepo.save(savedOrder);
@@ -182,41 +178,53 @@ export class OrderService {
     });
   }
 
-  private async createVirtualAccount(
+  private async createPaymentRequest(
     email: string,
     amount: number,
+    fullname: string,
+    phone_number: string,
   ): Promise<any> {
+    console.log('this is getting here three');
     const data = {
-      email,
       amount,
+      email,
       currency: 'NGN',
       tx_ref: `order_${Date.now()}`,
+      fullname,
+      phone_number,
+      // client_ip: '154.123.220.1',
+      // device_fingerprint: '62wd23423rq324323qew1',
+      meta: {
+        sideNote: 'This is a side note to track this payment request',
+      },
       is_permanent: false, // Set to true for a static account number
     };
 
+    const options = {
+      method: 'POST',
+      url: 'https://api.flutterwave.com/v3/charges?type=bank_transfer',
+      headers: {
+        accept: 'application/json',
+        Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      data,
+    };
+
     try {
-      const response = await axios.post(
-        'https://api.flutterwave.com/v3/virtual-account-numbers',
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
+      const response = await axios.request(options);
       return response.data;
     } catch (error) {
       if (error.response) {
         throw new BadRequestException(
-          'Error creating virtual account',
+          'Error creating payment request',
           error.response.data.message || error.message,
         );
       } else if (error.request) {
-        throw new BadRequestException('No response received from Flutterwave');
+        throw new BadRequestException('No response received from payment API');
       } else {
         throw new BadRequestException(
-          'Error creating virtual account',
+          'Error creating payment request',
           error.message,
         );
       }
