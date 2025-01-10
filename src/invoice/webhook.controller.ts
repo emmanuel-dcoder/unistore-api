@@ -19,14 +19,15 @@ export class WebhookController {
     @Body() payload: any,
   ): Promise<any> {
     try {
-      // Process payment status
-      console.log('Webhook received:', this.sanitizePayload(payload));
+      console.log('Received webhook:', this.sanitizePayload(payload));
+
       const secretHash = process.env.FLUTTERWAVE_SECRET_HASH;
       const computedHash = crypto
         .createHmac('sha256', secretHash)
         .update(JSON.stringify(payload))
         .digest('hex');
 
+      // Verify the webhook signature
       if (verifHash !== computedHash) {
         throw new HttpException(
           'Invalid webhook signature.',
@@ -34,14 +35,12 @@ export class WebhookController {
         );
       }
 
-      // Process payment status
-      console.log('Webhook received:', this.sanitizePayload(payload));
-      // Delegate to WebhookService
+      // Handle payment status
       await this.webhookService.verifyOrderPaymentStatus(payload);
 
       return { status: 'success' };
     } catch (error) {
-      console.error('Webhook error:', error.message);
+      console.error('Error processing webhook:', error.message);
       throw new HttpException(
         'Webhook handling failed.',
         HttpStatus.INTERNAL_SERVER_ERROR,
