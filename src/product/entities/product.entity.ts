@@ -48,6 +48,9 @@ export class Product {
   price: number;
 
   @Column({ type: 'decimal', nullable: true })
+  discount: number;
+
+  @Column({ type: 'decimal', nullable: true })
   avg_rating: number;
 
   @Column({

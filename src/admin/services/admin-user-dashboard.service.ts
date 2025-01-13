@@ -1,16 +1,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, In, Like, Repository } from 'typeorm';
-import { Order } from 'src/invoice/entities/order.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
+import { Invoice } from 'src/invoice/entities/invoice.entity';
 
 @Injectable()
 export class AdminUserDashboardService {
   constructor(
-    @InjectRepository(Order)
-    private readonly orderRepo: Repository<Order>,
+    @InjectRepository(Invoice)
+    private readonly invoiceRepo: Repository<Invoice>,
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
     @InjectRepository(Category)
@@ -18,112 +18,6 @@ export class AdminUserDashboardService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
   ) {}
-
-  async getPaidProductsForMonth(): Promise<any[]> {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-
-    // Find all paid orders within the current month
-    const orders = await this.orderRepo.find({
-      where: {
-        status: 'paid',
-        created_at: Between(
-          new Date(currentYear, currentMonth, 1),
-          new Date(currentYear, currentMonth + 1, 0),
-        ),
-      },
-      relations: ['invoices', 'invoices.product'],
-    });
-
-    const productSales: Record<string, { totalAmount: number; name: string }> =
-      {};
-
-    orders.forEach((order) => {
-      order.invoices.forEach((invoice) => {
-        const product = invoice.product;
-
-        if (!productSales[product.product_name]) {
-          productSales[product.product_name] = {
-            totalAmount: 0,
-            name: product.product_name,
-          };
-        }
-
-        productSales[product.product_name].totalAmount +=
-          product.price * invoice.quantity;
-      });
-    });
-
-    return Object.values(productSales).sort(
-      (a, b) => b.totalAmount - a.totalAmount,
-    );
-  }
-
-  async getCategoryProductCounts(): Promise<any[]> {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-    const previousMonthYear =
-      currentMonth === 0 ? currentYear - 1 : currentYear;
-
-    const categories = await this.categoryRepo.find();
-
-    const currentMonthOrders = await this.orderRepo.find({
-      where: {
-        status: 'paid',
-        created_at: Between(
-          new Date(currentYear, currentMonth, 1),
-          new Date(currentYear, currentMonth + 1, 0),
-        ),
-      },
-      relations: ['invoices', 'invoices.product', 'invoices.product.category'],
-    });
-
-    const previousMonthOrders = await this.orderRepo.find({
-      where: {
-        status: 'paid',
-        created_at: Between(
-          new Date(previousMonthYear, previousMonth, 1),
-          new Date(previousMonthYear, previousMonth + 1, 0),
-        ),
-      },
-      relations: ['invoices', 'invoices.product', 'invoices.product.category'],
-    });
-
-    // Aggregate product counts by category for the current month
-    const currentMonthCategoryCounts =
-      this.aggregateProductCountsByCategory(currentMonthOrders);
-
-    // Aggregate product counts by category for the previous month
-    const previousMonthCategoryCounts =
-      this.aggregateProductCountsByCategory(previousMonthOrders);
-
-    // Calculate percentage change and include categories with zero count
-    return this.calculateCategoryChangePercentage(
-      categories,
-      currentMonthCategoryCounts,
-      previousMonthCategoryCounts,
-    );
-  }
-
-  private aggregateProductCountsByCategory(
-    orders: Order[],
-  ): Record<string, number> {
-    const categoryCounts: Record<string, number> = {};
-
-    orders.forEach((order) => {
-      order.invoices.forEach((invoice) => {
-        const product = invoice.product;
-        const categoryId = product.category.id;
-
-        categoryCounts[categoryId] = (categoryCounts[categoryId] || 0) + 1;
-      });
-    });
-
-    return categoryCounts;
-  }
 
   private calculateCategoryChangePercentage(
     categories: Category[],
@@ -167,14 +61,14 @@ export class AdminUserDashboardService {
     );
 
     // Get order counts in the last 7 days
-    const currentOrders = await this.orderRepo.count({
+    const currentOrders = await this.invoiceRepo.count({
       where: {
         created_at: Between(sevenDaysAgo, currentDate),
       },
     });
 
     // Get order counts in the previous 7 days
-    const previousOrders = await this.orderRepo.count({
+    const previousOrders = await this.invoiceRepo.count({
       where: {
         created_at: Between(fourteenDaysAgo, sevenDaysAgo),
       },
@@ -249,55 +143,6 @@ export class AdminUserDashboardService {
     return ((currentCount - previousCount) / previousCount) * 100;
   }
 
-  async getOrdersWithPagination(
-    page: number = 1,
-    limit: number = 10,
-    startDate: string,
-    endDate: string,
-  ): Promise<any> {
-    const skip = (page - 1) * limit;
-
-    // Convert startDate and endDate to Date objects if they are provided
-    const start = startDate ? new Date(startDate) : new Date();
-    const end = endDate ? new Date(endDate) : new Date();
-
-    const orders = await this.orderRepo.find({
-      where: {
-        created_at: Between(start, end),
-      },
-      relations: ['invoices', 'user', 'product_owner'],
-      select: {
-        user: {
-          id: true,
-          first_name: true,
-          last_name: true,
-          profile_picture: true,
-        },
-        product_owner: {
-          id: true,
-          first_name: true,
-          last_name: true,
-          profile_picture: true,
-        },
-      },
-      skip,
-      take: limit,
-    });
-
-    const totalOrders = await this.orderRepo.count({
-      where: {
-        created_at: Between(start, end),
-      },
-    });
-
-    return {
-      orders,
-      totalOrders,
-      page,
-      totalPages: Math.ceil(totalOrders / limit),
-    };
-  }
-  
   async findUsersBySchoolAndType(
     schoolId: string,
     userType: string,
@@ -369,7 +214,7 @@ export class AdminUserDashboardService {
       userCount,
     };
   }
-  
+
   async getMerchantStats(
     schoolId: string,
     search: string = '',
@@ -401,7 +246,7 @@ export class AdminUserDashboardService {
     });
 
     // Fetch order count related to all merchants within the given school
-    const orderCount = await this.orderRepo.count({
+    const orderCount = await this.invoiceRepo.count({
       where: {
         product_owner: {
           school: { id: schoolId },
@@ -418,7 +263,7 @@ export class AdminUserDashboardService {
     });
 
     // Optional: Pagination for fetching orders
-    const orders = await this.orderRepo.find({
+    const orders = await this.invoiceRepo.find({
       where: {
         product_owner: {
           school: { id: schoolId },
@@ -434,61 +279,6 @@ export class AdminUserDashboardService {
       orderCount,
       products,
       orders,
-    };
-  }
-
-  async getUsersWithOrderCounts(
-    page: number = 1,
-    limit: number = 10,
-    schoolId: string,
-    search?: string,
-  ) {
-    // Default pagination values
-    const skip = (page - 1) * limit;
-
-    // Build the query to fetch users with filters
-    const query = this.userRepo
-      .createQueryBuilder('user')
-      .where('user.user_type = :userType', { userType: 'user' })
-      .andWhere('user.school_id = :schoolId', { schoolId });
-
-    // Optional search filter
-    if (search) {
-      query.andWhere(
-        '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search)',
-        { search: `%${search}%` },
-      );
-    }
-
-    // Execute the query with pagination
-    const [users, total] = await query.skip(skip).take(limit).getManyAndCount(); // Ensures `users` is an array and total count is fetched
-
-    // Fetch order counts for each user
-    const usersWithOrderCounts = await Promise.all(
-      users.map(async (user) => {
-        const paidCount = await this.orderRepo.count({
-          where: { user: { id: user.id }, status: 'paid' },
-        });
-        const pendingCount = await this.orderRepo.count({
-          where: { user: { id: user.id }, status: 'awaiting_payment' },
-        });
-
-        return {
-          ...user,
-          orderCounts: {
-            paid: paidCount,
-            pending: pendingCount,
-          },
-        };
-      }),
-    );
-
-    // Return the response with pagination metadata
-    return {
-      data: usersWithOrderCounts,
-      total,
-      page,
-      limit,
     };
   }
 

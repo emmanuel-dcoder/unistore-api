@@ -1,53 +1,15 @@
-import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsArray,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  IsUUID,
-  ValidateNested,
-} from 'class-validator';
+import { Optional } from '@nestjs/common';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
 
 export class InvoicePayloadDto {
-  @IsUUID() // Ensures productId is a valid UUID
+  @ApiProperty()
   @IsNotEmpty()
-  productId: string;
+  products: string;
 
-  @IsNumber() // Ensures quantity is a number
+  @ApiProperty()
+  @IsNumber()
   @IsNotEmpty()
-  quantity: number;
-}
+  total_price: number;
 
-export class OrderPayloadDto {
-  @ApiProperty()
-  @IsUUID()
-  @IsNotEmpty()
-  user: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  billing_address: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  zip_code: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  city: string;
-}
-
-export class CreateOrderDto {
-  @ApiProperty()
-  @IsArray()
-  @IsNotEmpty()
-  invoices: InvoicePayloadDto[];
-
-  @ApiProperty()
-  @ValidateNested({ each: true })
-  createOrder: OrderPayloadDto;
 }

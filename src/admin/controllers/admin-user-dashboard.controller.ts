@@ -26,62 +26,6 @@ export class AdminUserDashboardController {
     private readonly adminUserDashboardService: AdminUserDashboardService,
   ) {}
 
-  @Get('orders/products/month')
-  @ApiOperation({
-    summary:
-      'Get products related to orders with status "paid" and total amount for the month',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Paid products for the month fetched',
-  })
-  async getPaidProductsForMonth() {
-    try {
-      const products =
-        await this.adminUserDashboardService.getPaidProductsForMonth();
-      return successResponse({
-        message: 'Paid products for the month fetched',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: products,
-      });
-    } catch (error) {
-      this.logger.error(
-        'Error retrieving paid products for the month',
-        error.message,
-      );
-      throw error;
-    }
-  }
-
-  @Get('category-product-counts')
-  @ApiOperation({
-    summary:
-      'Get the count of products in each category for paid orders, with percentage increase/decrease compared to previous month',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Category product counts with percentage change',
-  })
-  async getCategoryProductCounts() {
-    try {
-      const categoryChanges =
-        await this.adminUserDashboardService.getCategoryProductCounts();
-      return successResponse({
-        message: 'Category product counts fetched successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: categoryChanges,
-      });
-    } catch (error) {
-      this.logger.error(
-        'Error retrieving category product counts',
-        error.message,
-      );
-      throw error;
-    }
-  }
-
   @Get('product/highest')
   @ApiOperation({
     summary: 'Get products with the highest price',
@@ -128,66 +72,6 @@ export class AdminUserDashboardController {
         'Error retrieving user and order counts',
         error.message,
       );
-      throw error;
-    }
-  }
-
-  @Get('invoice-orders')
-  @ApiOperation({
-    summary: 'Get invoice orders with pagination and filter by date',
-  })
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    description: 'Page number for pagination',
-    type: Number,
-    example: 1,
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Limit number of orders per page',
-    type: Number,
-    example: 10,
-  })
-  @ApiQuery({
-    name: 'startDate',
-    required: false,
-    description: 'Start date to filter orders',
-    type: String,
-    example: '2023-01-01',
-  })
-  @ApiQuery({
-    name: 'endDate',
-    required: false,
-    description: 'End date to filter orders',
-    type: String,
-    example: '2023-12-31',
-  })
-  @ApiResponse({ status: 200, description: 'Orders fetched successfully' })
-  async getOrders(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-    @Query('startDate') startDate: string,
-    @Query('endDate') endDate: string,
-  ) {
-    try {
-      const orders =
-        await this.adminUserDashboardService.getOrdersWithPagination(
-          page,
-          limit,
-          startDate,
-          endDate,
-        );
-
-      return successResponse({
-        message: 'Orders fetched successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: orders,
-      });
-    } catch (error) {
-      this.logger.error('Error retrieving orders', error.message);
       throw error;
     }
   }
@@ -356,74 +240,6 @@ export class AdminUserDashboardController {
         `Error fetching user counts for school with ID ${schoolId}`,
         error.message,
       );
-      throw error;
-    }
-  }
-
-  @Get('with-orders')
-  @ApiOperation({
-    summary: 'Get users with their order counts',
-    description:
-      'This endpoint retrieves a paginated list of users with `user_type` set to "user". It includes their total order counts (paid and pending) and filters by a specific school ID. Optional search functionality is provided to search users by their first name, last name, or email.',
-  })
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    type: Number,
-    example: 1,
-    description: 'Page number for pagination. Default is 1.',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    type: Number,
-    example: 10,
-    description: 'Number of results per page. Default is 10.',
-  })
-  @ApiQuery({
-    name: 'school_id',
-    required: true,
-    type: String,
-    example: '123e4567-e89b-12d3-a456-426614174000',
-    description: 'The ID of the school to filter users by.',
-  })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-    type: String,
-    example: 'john',
-    description: "Search query for user's first name, last name, or email.",
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully retrieved the list of users with order counts.',
-  })
-  @ApiResponse({ status: 400, description: 'Invalid request parameters.' })
-  @ApiResponse({ status: 404, description: 'School ID not found.' })
-  async getUsersWithOrderCounts(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-    @Query('school_id') school_id: string,
-    @Query('search') search: string,
-  ) {
-    try {
-      // Call the service to fetch the data
-      const result =
-        await this.adminUserDashboardService.getUsersWithOrderCounts(
-          page,
-          limit,
-          school_id,
-          search,
-        );
-
-      return successResponse({
-        message: 'Successfully retrieved the list of users with order counts.',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: result,
-      });
-    } catch (error) {
-      this.logger.error(`Error:`, error.message);
       throw error;
     }
   }

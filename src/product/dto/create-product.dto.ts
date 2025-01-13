@@ -50,6 +50,13 @@ export class CreateProductDto {
   price: number;
 
   @ApiProperty()
+  @ApiPropertyOptional()
+  @IsNumber()
+  @Min(0)
+  @IsNotEmpty()
+  discount: number;
+
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   product_description: string;
@@ -120,10 +127,7 @@ export class AdminProductDto {
   avg_rating: number;
 }
 
-
 export enum ProductStatus {
   VERIFIED = 'verified',
   NOT_VERIFIED = 'not-verified',
 }
-
-

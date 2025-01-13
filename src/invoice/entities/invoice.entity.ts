@@ -1,4 +1,3 @@
-import { Product } from 'src/product/entities/product.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,9 +6,8 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
 } from 'typeorm';
-import { Order } from './order.entity';
+
 import { User } from 'src/user/entities/user.entity';
 
 @Entity()
@@ -17,20 +15,33 @@ export class Invoice {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Product, (product) => product.id)
-  @JoinColumn({ name: 'product_id' })
-  product: Product;
+  @Column({ nullable: true })
+  invoice_id: string;
 
-  @ManyToOne(() => Order, (order) => order.invoices)
-  @JoinColumn({ name: 'order_id' })
-  order: Order;
+  @Column({ nullable: true })
+  products: string;
 
   @ManyToOne(() => User, (user) => user.id)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+  @JoinColumn({ name: 'product_owner_id' })
+  product_owner: User;
 
-  @Column({ default: 1 })
-  quantity: number;
+  @Column({ nullable: true, type: 'decimal' })
+  total_price: number;
+
+  @Column({ default: 'pending' })
+  status: string;
+
+  @Column({ type: 'json', nullable: true })
+  payment_details: Record<string, any>;
+
+  @Column({ nullable: true })
+  customer_name: string;
+
+  @Column({ nullable: true })
+  customer_email: string;
+
+  @Column({ nullable: true })
+  reference: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

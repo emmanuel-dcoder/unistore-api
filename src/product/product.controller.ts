@@ -329,7 +329,7 @@ export class ProductController {
     status: 400,
     description: 'Unable to delete products.',
   })
-  @UseGuards(MerchantGuard)
+  // @UseGuards(MerchantGuard)
   async deleteAll() {
     try {
       const response = await this.productService.deleteAll();

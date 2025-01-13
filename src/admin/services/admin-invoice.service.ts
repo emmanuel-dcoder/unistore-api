@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Invoice } from 'src/invoice/entities/invoice.entity';
 import { Repository } from 'typeorm';
-import { Order } from 'src/invoice/entities/order.entity';
+
 
 @Injectable()
 export class AdminInvoiceService {
   constructor(
-    @InjectRepository(Order) private readonly orderRepo: Repository<Order>,
+    @InjectRepository(Invoice) private readonly invoiceRepo: Repository<Invoice>,
   ) {}
 
   async getAllOrdersByUser(
@@ -14,10 +15,10 @@ export class AdminInvoiceService {
     status: string = '',
     page: number = 1,
     limit: number = 10,
-  ): Promise<Order[]> {
+  ): Promise<Invoice[]> {
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.orderRepo
+    const queryBuilder = this.invoiceRepo
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.user', 'user')
       .leftJoinAndSelect('order.product_owner', 'productOwner');
@@ -49,12 +50,12 @@ export class AdminInvoiceService {
       'user.profile_picture',
       'user.email',
       'user.phone',
-      'productOwner.id',
-      'productOwner.first_name',
-      'productOwner.last_name',
-      'productOwner.profile_picture',
-      'productOwner.email',
-      'productOwner.phone',
+      'product_owner.id',
+      'product_owner.first_name',
+      'product_owner.last_name',
+      'product_owner.profile_picture',
+      'product_owner.email',
+      'product_owner.phone',
     ]);
 
     queryBuilder.skip(skip).take(limit).orderBy('order.created_at', 'DESC');

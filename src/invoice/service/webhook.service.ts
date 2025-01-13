@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Order } from '../entities/order.entity';
+import { Invoice } from '../entities/invoice.entity';
 
 @Injectable()
 export class WebhookService {
   constructor(
-    @InjectRepository(Order)
-    private readonly orderRepo: Repository<Order>,
+    @InjectRepository(Invoice)
+    private readonly invoiceRepo: Repository<Invoice>,
   ) {}
 
   async verifyOrderPaymentStatus(payload: any) {
@@ -32,45 +32,45 @@ export class WebhookService {
   }
 
   private async handleSuccess(payload: any) {
-    const order = await this.getOrderByReference(
+    const invoice = await this.getInvoiceByReference(
       payload.meta.authorization.transfer_reference,
     );
-    if (order) {
-      order.status = 'paid';
-      await this.orderRepo.save(order);
-      console.log(`Order ${order.reference} status updated to 'paid'`);
+    if (invoice) {
+      invoice.status = 'paid';
+      await this.invoiceRepo.save(invoice);
+      console.log(`Invoice ${invoice.reference} status updated to 'paid'`);
     }
   }
 
   private async handleFailure(payload: any) {
-    const order = await this.getOrderByReference(
+    const invoice = await this.getInvoiceByReference(
       payload.meta.authorization.transfer_reference,
     );
-    if (order) {
-      order.status = 'failed';
-      await this.orderRepo.save(order);
-      console.log(`Order ${order.reference} status updated to 'failed'`);
+    if (invoice) {
+      invoice.status = 'failed';
+      await this.invoiceRepo.save(invoice);
+      console.log(`Invoice ${invoice.reference} status updated to 'failed'`);
     }
   }
 
   private async handlePending(payload: any) {
-    const order = await this.getOrderByReference(
+    const invoice = await this.getInvoiceByReference(
       payload.meta.authorization.transfer_reference,
     );
-    if (order) {
-      order.status = 'pending';
-      await this.orderRepo.save(order);
-      console.log(`Order ${order.reference} status updated to 'pending'`);
+    if (invoice) {
+      invoice.status = 'pending';
+      await this.invoiceRepo.save(invoice);
+      console.log(`Invoice ${invoice.reference} status updated to 'pending'`);
     }
   }
 
-  private async getOrderByReference(reference: string) {
-    const order = await this.orderRepo.findOne({
+  private async getInvoiceByReference(reference: string) {
+    const invoice = await this.invoiceRepo.findOne({
       where: { reference },
     });
-    if (!order) {
-      console.warn(`Order with reference ${reference} not found.`);
+    if (!invoice) {
+      console.warn(`Invoice with reference ${reference} not found.`);
     }
-    return order;
+    return invoice;
   }
 }
