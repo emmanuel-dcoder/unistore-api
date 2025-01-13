@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, FindOptionsWhere, Like, Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { Invoice } from '../entities/invoice.entity';
 import { User } from 'src/user/entities/user.entity';
 import axios from 'axios';

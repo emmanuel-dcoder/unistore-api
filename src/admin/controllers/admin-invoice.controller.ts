@@ -6,16 +6,11 @@ import {
   Logger,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBody,
-  ApiConsumes,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
 import { AdminInvoiceService } from '../services/admin-invoice.service';
 import { AdminGuard } from 'src/core/guards/admin.guard';
+import { GetInvoicesQueryDto } from '../dto/invoice-admin.dto';
 
 @ApiTags('Admin Invoice/Order')
 @Controller('api/v1/admin-invoice')
@@ -27,31 +22,24 @@ export class AdminInvoiceController {
   @Get('invoice')
   @ApiOperation({
     summary:
-      'Get all Invoices/Orders with search, status filter, and pagination',
+      'Get all Invoices/Orders with optional search, status filter, and pagination',
   })
   @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
-  async getAllOrders(
-    @Query('search') searchQuery: string = '',
-    @Query('status') status: string = '',
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-  ) {
-    try {
-      const orders = await this.adminInvoiceService.getAllOrdersByUser(
-        searchQuery,
-        status,
-        page,
-        limit,
-      );
-      return successResponse({
-        message: 'Orders retrieved successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: orders,
-      });
-    } catch (error) {
-      this.logger.error('Error retrieving orders', error.message);
-      throw error;
-    }
+  async getAllOrders(@Query() query: GetInvoicesQueryDto) {
+    const { search, status, page = 1, limit = 10 } = query;
+
+    const orders = await this.adminInvoiceService.getAllOrdersByUser(
+      search,
+      status,
+      page,
+      limit,
+    );
+
+    return successResponse({
+      message: 'Orders retrieved successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+      data: orders,
+    });
   }
 }
