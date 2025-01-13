@@ -19,32 +19,7 @@ export class AdminUserDashboardService {
     private readonly userRepo: Repository<User>,
   ) {}
 
-  private calculateCategoryChangePercentage(
-    categories: Category[],
-    currentCounts: Record<string, number>,
-    previousCounts: Record<string, number>,
-  ): any[] {
-    const categoryChange: any[] = [];
-
-    categories.forEach((category) => {
-      const currentCount = currentCounts[category.id] || 0;
-      const previousCount = previousCounts[category.id] || 0;
-      const percentageChange = previousCount
-        ? ((currentCount - previousCount) / previousCount) * 100
-        : 0; // 0% change if no products in previous month
-
-      categoryChange.push({
-        categoryName: category.name,
-        currentCount,
-        previousCount,
-        percentageChange,
-      });
-    });
-
-    return categoryChange;
-  }
-
-  async getUserAndOrderCounts(): Promise<any> {
+  async getUserAndOInvoiceCounts(): Promise<any> {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth();
@@ -61,14 +36,14 @@ export class AdminUserDashboardService {
     );
 
     // Get order counts in the last 7 days
-    const currentOrders = await this.invoiceRepo.count({
+    const currentInvoice = await this.invoiceRepo.count({
       where: {
         created_at: Between(sevenDaysAgo, currentDate),
       },
     });
 
     // Get order counts in the previous 7 days
-    const previousOrders = await this.invoiceRepo.count({
+    const previousInvoice = await this.invoiceRepo.count({
       where: {
         created_at: Between(fourteenDaysAgo, sevenDaysAgo),
       },
@@ -108,8 +83,8 @@ export class AdminUserDashboardService {
 
     // Set default counts and percentages to 0 if counts are 0 for the last 7 days
     const orderPercentageChange =
-      currentOrders > 0
-        ? this.calculatePercentageChange(currentOrders, previousOrders)
+      currentInvoice > 0
+        ? this.calculatePercentageChange(currentInvoice, previousInvoice)
         : 0;
     const merchantPercentageChange =
       currentMerchantUsers > 0
@@ -124,7 +99,7 @@ export class AdminUserDashboardService {
         : 0;
 
     return {
-      orderCount: currentOrders,
+      orderCount: currentInvoice,
       orderPercentageChange,
       merchantCount: currentMerchantUsers,
       merchantPercentageChange,
@@ -132,6 +107,98 @@ export class AdminUserDashboardService {
       userPercentageChange,
     };
   }
+
+  async getUsersByUserType(
+    userType: string,
+    page: number,
+    limit: number,
+  ): Promise<User[]> {
+    const skip = (page - 1) * limit;
+    return await this.userRepo.find({
+      where: { user_type: userType },
+      skip: skip,
+      take: limit,
+      order: { created_at: 'DESC' },
+    });
+  }
+
+  async getInactiveUsers(page: number, limit: number): Promise<User[]> {
+    const skip = (page - 1) * limit;
+    return await this.userRepo.find({
+      where: { is_active: false },
+      skip: skip,
+      take: limit,
+      order: { created_at: 'DESC' },
+    });
+  }
+
+  async getInvoiceWithPagination(
+    page: number = 1,
+    limit: number = 10,
+    startDate: string,
+    endDate: string,
+  ): Promise<any> {
+    const skip = (page - 1) * limit;
+
+    // Convert startDate and endDate to Date objects if they are provided
+    const start = startDate ? new Date(startDate) : new Date();
+    const end = endDate ? new Date(endDate) : new Date();
+
+    const invoice = await this.invoiceRepo.find({
+      where: {
+        created_at: Between(start, end),
+      },
+      relations: ['product_owner'],
+      select: {
+        product_owner: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          profile_picture: true,
+        },
+      },
+      skip,
+      take: limit,
+    });
+
+    const totalInvoice = await this.invoiceRepo.count({
+      where: {
+        created_at: Between(start, end),
+      },
+    });
+
+    return {
+      invoice,
+      totalInvoice,
+      page,
+      totalPages: Math.ceil(totalInvoice / limit),
+    };
+  }
+
+  // private calculateCategoryChangePercentage(
+  //   categories: Category[],
+  //   currentCounts: Record<string, number>,
+  //   previousCounts: Record<string, number>,
+  // ): any[] {
+  //   const categoryChange: any[] = [];
+
+  //   categories.forEach((category) => {
+  //     const currentCount = currentCounts[category.id] || 0;
+  //     const previousCount = previousCounts[category.id] || 0;
+  //     const percentageChange = previousCount
+  //       ? ((currentCount - previousCount) / previousCount) * 100
+  //       : 0; // 0% change if no products in previous month
+
+  //     categoryChange.push({
+  //       categoryName: category.name,
+  //       currentCount,
+  //       previousCount,
+  //       percentageChange,
+  //     });
+  //   });
+
+  //   return categoryChange;
+  // }
 
   private calculatePercentageChange(
     currentCount: number,
@@ -292,30 +359,6 @@ export class AdminUserDashboardService {
     return await this.productRepo.find({
       order: { price: 'DESC' },
       take: 5,
-    });
-  }
-
-  async getUsersByUserType(
-    userType: string,
-    page: number,
-    limit: number,
-  ): Promise<User[]> {
-    const skip = (page - 1) * limit;
-    return await this.userRepo.find({
-      where: { user_type: userType },
-      skip: skip,
-      take: limit,
-      order: { created_at: 'DESC' },
-    });
-  }
-
-  async getInactiveUsers(page: number, limit: number): Promise<User[]> {
-    const skip = (page - 1) * limit;
-    return await this.userRepo.find({
-      where: { is_active: false },
-      skip: skip,
-      take: limit,
-      order: { created_at: 'DESC' },
     });
   }
 
