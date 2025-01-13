@@ -15,6 +15,8 @@ import {
 } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
 import { AdminUserDashboardService } from '../services/admin-user-dashboard.service';
+import { PaginationDto } from '../dto/invoice-admin.dto';
+import { School } from 'src/school/entities/school.entity';
 
 @ApiTags('Admin User & Dashboard')
 @Controller('api/v1/admin-user-dashboard')
@@ -216,7 +218,7 @@ export class AdminUserDashboardController {
     required: false,
     description: 'End date to filter Invoice',
     type: String,
-    example: '2023-12-31',
+    example: '2025-12-31',
   })
   @ApiResponse({ status: 200, description: 'Invoice fetched successfully' })
   async getOrders(
@@ -244,6 +246,40 @@ export class AdminUserDashboardController {
       this.logger.error('Error retrieving Invoice', error.message);
       throw error;
     }
+  }
+
+  @Get('schools')
+  @ApiOperation({ summary: 'Get all schools with user and merchant counts' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'The page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'The number of schools to return per page',
+    type: Number,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'searchQuery',
+    required: false,
+    description: 'Search term for filtering by school name or school ID',
+    type: String,
+    example: 'XYZ School',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully fetched schools with user and merchant counts',
+    type: [School],
+  })
+  async getAllSchools(@Query() paginationDto: PaginationDto) {
+    return this.adminUserDashboardService.getAllSchoolsWithUserCounts(
+      paginationDto,
+    );
   }
 
   @Get('school/:id/merchants/stats')

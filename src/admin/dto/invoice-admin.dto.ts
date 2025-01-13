@@ -25,3 +25,9 @@ export class GetInvoicesQueryDto {
   @Min(1)
   limit?: number = 10;
 }
+
+export class PaginationDto {
+  page: number = 1;
+  limit: number = 10;
+  searchQuery?: string; // Optional search query
+}

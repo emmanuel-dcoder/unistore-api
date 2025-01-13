@@ -5,6 +5,8 @@ import { Category } from 'src/category/entities/category.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
+import { School } from 'src/school/entities/school.entity';
+import { PaginationDto } from '../dto/invoice-admin.dto';
 
 @Injectable()
 export class AdminUserDashboardService {
@@ -17,6 +19,7 @@ export class AdminUserDashboardService {
     private readonly categoryRepo: Repository<Category>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(School) private readonly schoolRepo: Repository<School>,
   ) {}
 
   async getUserAndOInvoiceCounts(): Promise<any> {
@@ -108,6 +111,16 @@ export class AdminUserDashboardService {
     };
   }
 
+  private calculatePercentageChange(
+    currentCount: number,
+    previousCount: number,
+  ): number {
+    if (previousCount === 0) {
+      return currentCount === 0 ? 0 : 100; // If previous count is 0, and current is not, it's 100% increase
+    }
+    return ((currentCount - previousCount) / previousCount) * 100;
+  }
+
   async getUsersByUserType(
     userType: string,
     page: number,
@@ -175,39 +188,54 @@ export class AdminUserDashboardService {
     };
   }
 
-  // private calculateCategoryChangePercentage(
-  //   categories: Category[],
-  //   currentCounts: Record<string, number>,
-  //   previousCounts: Record<string, number>,
-  // ): any[] {
-  //   const categoryChange: any[] = [];
+  async getAllSchoolsWithUserCounts(paginationDto: PaginationDto) {
+    const { page, limit, searchQuery } = paginationDto;
 
-  //   categories.forEach((category) => {
-  //     const currentCount = currentCounts[category.id] || 0;
-  //     const previousCount = previousCounts[category.id] || 0;
-  //     const percentageChange = previousCount
-  //       ? ((currentCount - previousCount) / previousCount) * 100
-  //       : 0; // 0% change if no products in previous month
+    const searchFilter = searchQuery
+      ? {
+          where: [
+            { name: Like(`%${searchQuery}%`) },
+            { school_id: Like(`%${searchQuery}%`) },
+          ],
+        }
+      : {};
 
-  //     categoryChange.push({
-  //       categoryName: category.name,
-  //       currentCount,
-  //       previousCount,
-  //       percentageChange,
-  //     });
-  //   });
+    const [schools, totalSchools] = await this.schoolRepo.findAndCount({
+      ...searchFilter,
+      skip: (page - 1) * limit,
+      take: limit,
+    });
 
-  //   return categoryChange;
-  // }
+    const schoolsWithCounts = [];
 
-  private calculatePercentageChange(
-    currentCount: number,
-    previousCount: number,
-  ): number {
-    if (previousCount === 0) {
-      return currentCount === 0 ? 0 : 100; // If previous count is 0, and current is not, it's 100% increase
+    for (const school of schools) {
+      const merchantCount = await this.userRepo.count({
+        where: {
+          school: { id: school.id },
+          user_type: 'merchant',
+        },
+      });
+
+      const userCount = await this.userRepo.count({
+        where: {
+          school: { id: school.id },
+          user_type: 'user',
+        },
+      });
+
+      schoolsWithCounts.push({
+        school,
+        userCounts: {
+          merchant: merchantCount,
+          user: userCount,
+        },
+      });
     }
-    return ((currentCount - previousCount) / previousCount) * 100;
+
+    return {
+      schools: schoolsWithCounts,
+      totalSchools,
+    };
   }
 
   async findUsersBySchoolAndType(
@@ -290,15 +318,13 @@ export class AdminUserDashboardService {
   ) {
     const skip = (page - 1) * limit;
 
-    // Query to filter merchants by school_id and user_type
     const query: any = {
       user: {
-        school: { id: schoolId }, // Filtering merchants by their school_id
-        user_type: 'merchant', // Ensure the user is a merchant
+        school: { id: schoolId },
+        user_type: 'merchant',
       },
     };
 
-    // Optional search filter for first_name or last_name of the user (merchant)
     if (search) {
       query.user = {
         ...query.user,
@@ -307,12 +333,10 @@ export class AdminUserDashboardService {
       };
     }
 
-    // Fetch product count related to all merchants within the given school
     const productCount = await this.productRepo.count({
       where: query,
     });
 
-    // Fetch order count related to all merchants within the given school
     const orderCount = await this.invoiceRepo.count({
       where: {
         product_owner: {
@@ -322,14 +346,12 @@ export class AdminUserDashboardService {
       },
     });
 
-    // Optional: Pagination for fetching products
     const products = await this.productRepo.find({
       where: query,
       skip,
       take: limit,
     });
 
-    // Optional: Pagination for fetching orders
     const orders = await this.invoiceRepo.find({
       where: {
         product_owner: {

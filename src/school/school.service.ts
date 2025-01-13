@@ -73,7 +73,6 @@ export class SchoolService {
     const schools = await queryBuilder.getMany();
     return schools;
   }
-
   async findAllByPagination(
     search?: string,
     page: number = 1,
@@ -81,16 +80,20 @@ export class SchoolService {
   ): Promise<{ data: School[]; total: number; page: number; limit: number }> {
     const queryBuilder = this.schoolRepo.createQueryBuilder('school');
 
+    // Apply search if provided
     if (search) {
       queryBuilder.where('LOWER(school.name) LIKE :search', {
         search: `%${search.toLowerCase()}%`,
       });
     }
 
-    const [data, total] = await queryBuilder
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getManyAndCount();
+    // Apply pagination only if page and limit are provided
+    if (page && limit) {
+      queryBuilder.skip((page - 1) * limit).take(limit);
+    }
+
+    // Get data and count total
+    const [data, total] = await queryBuilder.getManyAndCount();
 
     return {
       data,

@@ -21,9 +21,10 @@ import { User } from 'src/user/entities/user.entity';
 import { AdminUserDashboardService } from './services/admin-user-dashboard.service';
 import { AdminUserDashboardController } from './controllers/admin-user-dashboard.controller';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
+import { School } from 'src/school/entities/school.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Admin, Product, Invoice, Category, User])],
+  imports: [TypeOrmModule.forFeature([Admin, Product, Invoice, Category, User, School])],
   controllers: [
     AdminController,
     AdminInvoiceController,
