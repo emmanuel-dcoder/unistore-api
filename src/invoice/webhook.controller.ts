@@ -25,7 +25,7 @@ export class WebhookController {
       console.log('Received webhook:', this.sanitizePayload(payload));
       console.log('Received webhook payload:', payload);
 
-      const secretHash = process.env.FLUTTERWAVE_SECRET_HASH!;
+      const secretHash = process.env.FLUTTERWAVE_SECRET_KEY!;
       if (!secretHash) {
         throw new HttpException(
           'Server configuration error: Missing secret hash.',
