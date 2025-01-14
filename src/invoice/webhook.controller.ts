@@ -18,14 +18,14 @@ export class WebhookController {
 
   @Post()
   async handleWebhook(
-    @Headers('verif-hash') verifHash: any,
+    @Headers('verif-hash') verifHash: string,
     @Body() payload: any,
   ): Promise<any> {
     try {
       console.log('Received webhook:', this.sanitizePayload(payload));
       console.log('Received webhook payload:', payload);
 
-      const secretHash = process.env.FLUTTERWAVE_SECRET_KEY!;
+      const secretHash = process.env.FLUTTERWAVE_SECRET_KEY;
       if (!secretHash) {
         throw new HttpException(
           'Server configuration error: Missing secret hash.',
