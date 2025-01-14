@@ -37,7 +37,6 @@ export class WebhookController {
 
       const sanitizedEvent = this.sanitizePayload(payload);
 
-      // Handle payment status
       await this.webhookService.verifyOrderPaymentStatus(sanitizedEvent);
 
       return { status: 'success' };

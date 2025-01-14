@@ -36,7 +36,6 @@ export class WebhookService {
     if (invoice) {
       invoice.status = 'paid';
       await this.invoiceRepo.save(invoice);
-      console.log(`Invoice ${invoice.reference} status updated to 'paid'`);
     }
   }
 
@@ -45,7 +44,6 @@ export class WebhookService {
     if (invoice) {
       invoice.status = 'failed';
       await this.invoiceRepo.save(invoice);
-      console.log(`Invoice ${invoice.reference} status updated to 'failed'`);
     }
   }
 
@@ -54,7 +52,6 @@ export class WebhookService {
     if (invoice) {
       invoice.status = 'pending';
       await this.invoiceRepo.save(invoice);
-      console.log(`Invoice ${invoice.reference} status updated to 'pending'`);
     }
   }
 
