@@ -27,18 +27,14 @@ export class WebhookController {
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-
       if (!verifHash || verifHash !== secretHash) {
         throw new HttpException(
           'Invalid webhook signature.',
           HttpStatus.UNAUTHORIZED,
         );
       }
-
       const sanitizedEvent = this.sanitizePayload(payload);
-
       await this.webhookService.verifyOrderPaymentStatus(sanitizedEvent);
-
       return { status: 'success' };
     } catch (error) {
       console.error('Error processing webhook:', error.message);
