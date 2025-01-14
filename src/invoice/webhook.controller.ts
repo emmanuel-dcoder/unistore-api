@@ -1,7 +1,5 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
-
-import * as crypto from 'crypto';
 import {
   Controller,
   Post,
@@ -32,13 +30,8 @@ export class WebhookController {
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-      const computedHash = crypto
-        .createHmac('sha256', secretHash)
-        .update(JSON.stringify(payload))
-        .digest('hex');
 
-      // Verify the webhook signature
-      if (verifHash !== computedHash) {
+      if (!verifHash || verifHash !== secretHash) {
         throw new HttpException(
           'Invalid webhook signature.',
           HttpStatus.UNAUTHORIZED,
