@@ -19,7 +19,7 @@ export class WebhookController {
     @Body() payload: any,
   ): Promise<any> {
     try {
-      console.log('Received webhook:', this.sanitizePayload(payload));
+      // console.log('Received webhook:', this.sanitizePayload(payload));
 
       const secretHash = process.env.FLUTTERWAVE_SECRET_HASH;
       const computedHash = crypto

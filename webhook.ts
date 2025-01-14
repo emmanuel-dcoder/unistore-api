@@ -35,3 +35,35 @@
 //   },
 //   'event.type': 'BANK_TRANSFER_TRANSACTION'
 // };
+
+// {
+//     "status": "success",
+//     "message": "Invoice created successfully",
+//     "data": {
+//         "invoice_id": "1102362",
+//         "products": "machine, new 1",
+//         "total_price": 50000,
+//         "status": "awaiting_payment",
+//         "payment_details": {
+//             "transfer_reference": "MockFLWRef-1736846576210",
+//             "transfer_account": "0067100155",
+//             "transfer_bank": "Mock Bank",
+//             "account_expiration": 1736850176210,
+//             "transfer_note": "Mock note",
+//             "transfer_amount": "50000.00",
+//             "mode": "banktransfer"
+//         },
+//         "reference": "MockFLWRef-1736846576210",
+//         "product_owner": {
+//             "id": "2fb7b0ef-7b56-4604-ae5b-cc6a7b93eeed"
+//         },
+//         "customer_name": null,
+//         "customer_email": null,
+//         "id": "99c84986-fe62-494b-be54-f31866653f84",
+//         "created_at": "2025-01-14T08:22:56.480Z",
+//         "updated_at": "2025-01-14T08:22:56.480Z"
+//     }
+// }
+
+
+// Error processing webhook: The "key" argument must be of type string or an instance of ArrayBuffer, Buffer, TypedArray, DataView, KeyObject, or CryptoKey. Received undefined

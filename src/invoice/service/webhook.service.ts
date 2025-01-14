@@ -11,6 +11,7 @@ export class WebhookService {
   ) {}
 
   async verifyOrderPaymentStatus(payload: any) {
+    console.log('this is the new payload', payload);
     if (payload.event === 'charge.completed') {
       console.log(`Handling payment status for event: ${payload.status}`);
 
