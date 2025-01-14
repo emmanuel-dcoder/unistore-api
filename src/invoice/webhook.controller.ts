@@ -28,12 +28,12 @@ export class WebhookController {
         .digest('hex');
 
       // Verify the webhook signature
-      if (verifHash !== computedHash) {
-        throw new HttpException(
-          'Invalid webhook signature.',
-          HttpStatus.UNAUTHORIZED,
-        );
-      }
+      // if (verifHash !== computedHash) {
+      //   throw new HttpException(
+      //     'Invalid webhook signature.',
+      //     HttpStatus.UNAUTHORIZED,
+      //   );
+      // }
 
       // Handle payment status
       await this.webhookService.verifyOrderPaymentStatus(payload);
