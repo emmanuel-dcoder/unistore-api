@@ -20,9 +20,6 @@ export class WebhookController {
     @Body() payload: any,
   ): Promise<any> {
     try {
-      console.log('Received webhook:', this.sanitizePayload(payload));
-      console.log('Received webhook payload:', payload);
-
       const secretHash = process.env.FLUTTERWAVE_SECRET_KEY;
       if (!secretHash) {
         throw new HttpException(
@@ -38,8 +35,10 @@ export class WebhookController {
         );
       }
 
+      const sanitizedEvent = this.sanitizePayload(payload);
+
       // Handle payment status
-      await this.webhookService.verifyOrderPaymentStatus(payload);
+      await this.webhookService.verifyOrderPaymentStatus(sanitizedEvent);
 
       return { status: 'success' };
     } catch (error) {

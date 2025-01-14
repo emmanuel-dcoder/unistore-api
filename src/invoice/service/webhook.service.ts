@@ -11,11 +11,10 @@ export class WebhookService {
   ) {}
 
   async verifyOrderPaymentStatus(payload: any) {
-    console.log('this is the new payload', payload);
     if (payload.event === 'charge.completed') {
-      console.log(`Handling payment status for event: ${payload.status}`);
+      console.log(`Handling payment status for event: ${payload.data.status}`);
 
-      switch (payload.status) {
+      switch (payload.data.status) {
         case 'successful':
           await this.handleSuccess(payload);
           break;
@@ -26,16 +25,14 @@ export class WebhookService {
           await this.handlePending(payload);
           break;
         default:
-          console.warn(`Unknown status: ${payload.status}`);
+          console.warn(`Unknown status: ${payload.data.status}`);
           break;
       }
     }
   }
 
   private async handleSuccess(payload: any) {
-    const invoice = await this.getInvoiceByReference(
-      payload.meta.authorization.transfer_reference,
-    );
+    const invoice = await this.getInvoiceByReference(payload.data.tx_ref);
     if (invoice) {
       invoice.status = 'paid';
       await this.invoiceRepo.save(invoice);
@@ -44,9 +41,7 @@ export class WebhookService {
   }
 
   private async handleFailure(payload: any) {
-    const invoice = await this.getInvoiceByReference(
-      payload.meta.authorization.transfer_reference,
-    );
+    const invoice = await this.getInvoiceByReference(payload.data.tx_ref);
     if (invoice) {
       invoice.status = 'failed';
       await this.invoiceRepo.save(invoice);
@@ -55,9 +50,7 @@ export class WebhookService {
   }
 
   private async handlePending(payload: any) {
-    const invoice = await this.getInvoiceByReference(
-      payload.meta.authorization.transfer_reference,
-    );
+    const invoice = await this.getInvoiceByReference(payload.data.tx_ref);
     if (invoice) {
       invoice.status = 'pending';
       await this.invoiceRepo.save(invoice);

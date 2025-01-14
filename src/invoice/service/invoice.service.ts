@@ -33,6 +33,7 @@ export class InvoiceService {
       where: { invoice_id: invoiceId },
     });
 
+    let tx_ref = `order_${Date.now()}`;
     do {
       invoiceId = RandomSevenDigits();
     } while (validateInvoiceId);
@@ -40,6 +41,7 @@ export class InvoiceService {
     const paymentResponse = await this.createPaymentRequest(
       validateUser.email,
       invoicePayloadDto.total_price,
+      tx_ref,
       validateUser.first_name + ' ' + validateUser.last_name,
       validateUser.phone,
     );
@@ -47,7 +49,6 @@ export class InvoiceService {
     if (!paymentResponse || paymentResponse.status !== 'success') {
       throw new BadRequestException('Failed to create payment request');
     }
-
     const invoice = await this.invoiceRepo.create({
       ...invoicePayloadDto,
       product_owner: { id: user } as any,
@@ -56,7 +57,7 @@ export class InvoiceService {
       total_price: invoicePayloadDto.total_price,
       status: 'awaiting_payment',
       payment_details: paymentResponse.meta.authorization,
-      reference: paymentResponse.meta.authorization.transfer_reference,
+      reference: tx_ref,
     });
 
     return await this.invoiceRepo.save(invoice);
@@ -110,6 +111,7 @@ export class InvoiceService {
   private async createPaymentRequest(
     email: string,
     amount: number,
+    tx_ref: string,
     fullname: string,
     phone_number: string,
   ): Promise<any> {
@@ -117,7 +119,7 @@ export class InvoiceService {
       amount,
       email,
       currency: 'NGN',
-      tx_ref: `order_${Date.now()}`,
+      tx_ref,
       fullname,
       phone_number,
       meta: {
