@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import * as crypto from 'crypto';
 import {
   Controller,
@@ -21,7 +24,7 @@ export class WebhookController {
     try {
       console.log('Received webhook:', this.sanitizePayload(payload));
 
-      const secretHash = process.env.FLUTTERWAVE_SECRET_HASH;
+      const secretHash = process.env.FLUTTERWAVE_SECRET_HASH!;
       const computedHash = crypto
         .createHmac('sha256', secretHash)
         .update(JSON.stringify(payload))
