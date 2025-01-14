@@ -23,6 +23,7 @@ export class WebhookController {
   ): Promise<any> {
     try {
       console.log('Received webhook:', this.sanitizePayload(payload));
+      console.log('Received webhook payload:', payload);
 
       const secretHash = process.env.FLUTTERWAVE_SECRET_HASH!;
       if (!secretHash) {
