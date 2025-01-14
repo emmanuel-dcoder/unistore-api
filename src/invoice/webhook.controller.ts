@@ -25,6 +25,12 @@ export class WebhookController {
       console.log('Received webhook:', this.sanitizePayload(payload));
 
       const secretHash = process.env.FLUTTERWAVE_SECRET_HASH!;
+      if (!secretHash) {
+        throw new HttpException(
+          'Server configuration error: Missing secret hash.',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
       const computedHash = crypto
         .createHmac('sha256', secretHash)
         .update(JSON.stringify(payload))
