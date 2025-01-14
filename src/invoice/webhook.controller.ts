@@ -15,11 +15,11 @@ export class WebhookController {
 
   @Post()
   async handleWebhook(
-    @Headers('verif-hash') verifHash: string,
+    @Headers('verif-hash') verifHash: any,
     @Body() payload: any,
   ): Promise<any> {
     try {
-      // console.log('Received webhook:', this.sanitizePayload(payload));
+      console.log('Received webhook:', this.sanitizePayload(payload));
 
       const secretHash = process.env.FLUTTERWAVE_SECRET_HASH;
       const computedHash = crypto
@@ -28,12 +28,12 @@ export class WebhookController {
         .digest('hex');
 
       // Verify the webhook signature
-      // if (verifHash !== computedHash) {
-      //   throw new HttpException(
-      //     'Invalid webhook signature.',
-      //     HttpStatus.UNAUTHORIZED,
-      //   );
-      // }
+      if (verifHash !== computedHash) {
+        throw new HttpException(
+          'Invalid webhook signature.',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
 
       // Handle payment status
       await this.webhookService.verifyOrderPaymentStatus(payload);
