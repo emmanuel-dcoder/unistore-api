@@ -17,6 +17,8 @@ import { successResponse } from 'src/core/common';
 import { AdminUserDashboardService } from '../services/admin-user-dashboard.service';
 import { PaginationDto } from '../dto/invoice-admin.dto';
 import { School } from 'src/school/entities/school.entity';
+import { MerchantPaginationDto } from '../dto/update-admin.dto';
+import { User } from 'src/user/entities/user.entity';
 
 @ApiTags('Admin User & Dashboard')
 @Controller('api/v1/admin-user-dashboard')
@@ -277,9 +279,77 @@ export class AdminUserDashboardController {
     type: [School],
   })
   async getAllSchools(@Query() paginationDto: PaginationDto) {
-    return this.adminUserDashboardService.getAllSchoolsWithUserCounts(
-      paginationDto,
-    );
+    try {
+      const data =
+        await this.adminUserDashboardService.getAllSchoolsWithUserCounts(
+          paginationDto,
+        );
+      return successResponse({
+        message: 'Invoice fetched successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @Get('merchants-product-invoice-count')
+  @ApiOperation({
+    summary: 'Get all merchants with product and invoice counts',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'The page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'The number of merchants to return per page (default: 10)',
+    type: Number,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'searchQuery',
+    required: false,
+    description: 'Search term for filtering by merchant name or email',
+    type: String,
+    example: 'John Doe',
+  })
+  @ApiQuery({
+    name: 'is_active',
+    required: false,
+    description: 'Filter by active status (true or false)',
+    type: Boolean,
+    example: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Successfully fetched merchants with counts of their products and invoices',
+    type: [User], // Adjust this type to match your User entity type
+  })
+  async getAllMerchants(@Query() merchantPaginationDto: MerchantPaginationDto) {
+    try {
+      const data =
+        await this.adminUserDashboardService.getAllMerchantsWithCounts(
+          merchantPaginationDto,
+        );
+      return successResponse({
+        message: 'Invoice fetched successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
   }
 
   @Get('school/:id/merchants/stats')

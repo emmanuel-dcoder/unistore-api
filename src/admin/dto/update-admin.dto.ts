@@ -1,5 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsEmail,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 export class UpdateAdminDto {
   @ApiProperty()
   @ApiPropertyOptional()
@@ -60,4 +68,39 @@ export class UpdateAdminDto {
   @IsString()
   @IsNotEmpty()
   date_of_birth: Date;
+}
+
+export class MerchantPaginationDto {
+  @ApiPropertyOptional({ type: Number, default: 1, description: 'Page number' })
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  page?: number;
+
+  @ApiPropertyOptional({
+    type: Number,
+    default: 10,
+    description: 'Items per page',
+  })
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  limit?: number;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: 'Search query',
+    example: 'John Doe',
+  })
+  @IsOptional()
+  @IsString()
+  searchQuery?: string;
+
+  @ApiPropertyOptional({
+    type: Boolean,
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  is_active?: boolean;
 }

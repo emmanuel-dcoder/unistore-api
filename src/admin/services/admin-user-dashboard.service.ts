@@ -7,6 +7,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
 import { School } from 'src/school/entities/school.entity';
 import { PaginationDto } from '../dto/invoice-admin.dto';
+import { MerchantPaginationDto } from '../dto/update-admin.dto';
 
 @Injectable()
 export class AdminUserDashboardService {
@@ -236,6 +237,77 @@ export class AdminUserDashboardService {
       schools: schoolsWithCounts,
       totalSchools,
     };
+  }
+
+  async getAllMerchantsWithCounts(merchantPaginationDto: MerchantPaginationDto) {
+   const {
+     page = 1,
+     limit = 10,
+     searchQuery,
+     is_active,
+   } = merchantPaginationDto;
+
+   // Define the search filter
+   const searchFilter = searchQuery
+     ? {
+         where: [
+           { first_name: Like(`%${searchQuery}%`) },
+           { last_name: Like(`%${searchQuery}%`) },
+           { email: Like(`%${searchQuery}%`) },
+         ],
+       }
+     : {};
+
+   // Create the 'is_active' filter if specified
+   const activeFilter = is_active !== undefined ? { is_active } : {};
+
+   // Fetch merchants based on the search filter and 'is_active' filter
+   const [merchants, totalMerchants] = await this.userRepo.findAndCount({
+     ...searchFilter,
+     where: { user_type: 'merchant', ...activeFilter },
+     skip: (page - 1) * limit,
+     take: limit,
+     select: [
+       'id',
+       'first_name',
+       'last_name',
+       'email',
+       'profile_picture',
+       'user_type',
+       'is_active',
+       'is_merchant_verified',
+       'created_at',
+       'updated_at',
+     ], // Exclude 'password'
+   });
+
+   const merchantsWithCounts = [];
+
+   // Iterate through each merchant and count related products and invoices
+   for (const merchant of merchants) {
+     const productCount = await this.productRepo.count({
+       where: { user: { id: merchant.id } },
+     });
+
+     const invoiceCount = await this.invoiceRepo.count({
+       where: { product_owner: { id: merchant.id } },
+     });
+
+     merchantsWithCounts.push({
+       merchant,
+       counts: {
+         products: productCount,
+         invoices: invoiceCount,
+       },
+     });
+   }
+
+   return {
+     merchants: merchantsWithCounts,
+     totalMerchants,
+     currentPage: page,
+     totalPages: Math.ceil(totalMerchants / limit),
+   };
   }
 
   async findUsersBySchoolAndType(
