@@ -28,7 +28,7 @@ export class AdminInvoiceController {
   async getAllOrders(@Query() query: GetInvoicesQueryDto) {
     const { search, status, page = 1, limit = 10 } = query;
 
-    const orders = await this.adminInvoiceService.getAllOrdersByUser(
+    const invoice = await this.adminInvoiceService.getAllOrdersByUser(
       search,
       status,
       page,
@@ -39,7 +39,7 @@ export class AdminInvoiceController {
       message: 'Orders retrieved successfully',
       code: HttpStatus.OK,
       status: 'success',
-      data: orders,
+      data: invoice,
     });
   }
 }

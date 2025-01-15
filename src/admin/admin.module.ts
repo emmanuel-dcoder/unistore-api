@@ -24,7 +24,9 @@ import { Invoice } from 'src/invoice/entities/invoice.entity';
 import { School } from 'src/school/entities/school.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Admin, Product, Invoice, Category, User, School])],
+  imports: [
+    TypeOrmModule.forFeature([Admin, Product, Invoice, Category, User, School]),
+  ],
   controllers: [
     AdminController,
     AdminInvoiceController,
@@ -53,6 +55,7 @@ export class AdminModule implements NestModule {
       },
       AdminInvoiceController,
       AdminProductController,
+      AdminUserDashboardController,
     );
   }
 }
