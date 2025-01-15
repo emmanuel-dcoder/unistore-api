@@ -248,6 +248,29 @@ export class AdminUserDashboardService {
     });
   }
 
+  async getUserCountsBySchool(schoolId: string) {
+    // Count users with 'merchant' user_type
+    const merchantCount = await this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.school', 'school')
+      .where('school.id = :schoolId', { schoolId })
+      .andWhere('user.user_type = :userType', { userType: 'merchant' })
+      .getCount();
+
+    // Count users with 'user' user_type
+    const userCount = await this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.school', 'school')
+      .where('school.id = :schoolId', { schoolId })
+      .andWhere('user.user_type = :userType', { userType: 'user' })
+      .getCount();
+
+    return {
+      merchantCount,
+      userCount,
+    };
+  }
+
   async getInactiveUsers(page: number, limit: number): Promise<User[]> {
     const skip = (page - 1) * limit;
     return await this.userRepo.find({
@@ -378,29 +401,6 @@ export class AdminUserDashboardService {
     } catch (error) {
       throw new BadRequestException('Unable to fetch users');
     }
-  }
-
-  async getUserCountsBySchool(schoolId: string) {
-    // Count users with 'merchant' user_type
-    const merchantCount = await this.userRepo
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.school', 'school')
-      .where('school.id = :schoolId', { schoolId })
-      .andWhere('user.user_type = :userType', { userType: 'merchant' })
-      .getCount();
-
-    // Count users with 'user' user_type
-    const userCount = await this.userRepo
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.school', 'school')
-      .where('school.id = :schoolId', { schoolId })
-      .andWhere('user.user_type = :userType', { userType: 'user' })
-      .getCount();
-
-    return {
-      merchantCount,
-      userCount,
-    };
   }
 
   async findCategory(): Promise<Category[]> {

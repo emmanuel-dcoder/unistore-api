@@ -273,31 +273,10 @@ export class AdminUserDashboardController {
     }
   }
 
-  @Get('inactive-users')
+  @Get('counts/school/:schoolId')
   @ApiOperation({
-    summary: 'Get Users with is_active = false with pagination',
+    summary: 'Get the count of merchants and users in a school or university',
   })
-  @ApiResponse({ status: 200, description: 'Inactive users fetched' })
-  async getInactiveUsers(@Query('page') page = 1, @Query('limit') limit = 10) {
-    try {
-      const users = await this.adminUserDashboardService.getInactiveUsers(
-        page,
-        limit,
-      );
-      return successResponse({
-        message: 'Inactive users fetched',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: users,
-      });
-    } catch (error) {
-      this.logger.error('Error retrieving inactive users', error.message);
-      throw error;
-    }
-  }
-
-  @Get('counts/:schoolId')
-  @ApiOperation({ summary: 'Get the count of merchants and users in a school' })
   @ApiParam({ name: 'schoolId', description: 'ID of the school' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -326,7 +305,7 @@ export class AdminUserDashboardController {
     }
   }
 
-  @Get(':id/users')
+  @Get('school/:id/users')
   @ApiOperation({
     summary:
       'Get users (merchant or user) by school ID with optional filters and pagination',
@@ -392,6 +371,29 @@ export class AdminUserDashboardController {
         'Error fetching users by school and type',
         error.message,
       );
+      throw error;
+    }
+  }
+
+  @Get('inactive-users')
+  @ApiOperation({
+    summary: 'Get Users with is_active = false with pagination',
+  })
+  @ApiResponse({ status: 200, description: 'Inactive users fetched' })
+  async getInactiveUsers(@Query('page') page = 1, @Query('limit') limit = 10) {
+    try {
+      const users = await this.adminUserDashboardService.getInactiveUsers(
+        page,
+        limit,
+      );
+      return successResponse({
+        message: 'Inactive users fetched',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: users,
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving inactive users', error.message);
       throw error;
     }
   }
