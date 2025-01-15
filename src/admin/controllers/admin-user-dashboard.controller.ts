@@ -28,7 +28,7 @@ export class AdminUserDashboardController {
     private readonly adminUserDashboardService: AdminUserDashboardService,
   ) {}
 
-  @Get('user-invoice-counts')
+  @Get('user-merchant-invoice-counts')
   @ApiOperation({
     summary:
       'Get the count of Invoice and users (merchant and user) in the last 7 days with percentage change compared to previous 7 days',
@@ -78,7 +78,7 @@ export class AdminUserDashboardController {
     }
   }
 
-  @Get('merchants')
+  @Get('new-merchants')
   @ApiOperation({
     summary: 'Get Users by user_type = "merchant" with pagination',
   })
@@ -108,7 +108,7 @@ export class AdminUserDashboardController {
     }
   }
 
-  @Get('users')
+  @Get('new-users')
   @ApiOperation({
     summary: 'Get Users by user_type = "user" with pagination',
   })
@@ -141,56 +141,7 @@ export class AdminUserDashboardController {
     }
   }
 
-  @Get('inactive-users')
-  @ApiOperation({
-    summary: 'Get Users with is_active = false with pagination',
-  })
-  @ApiResponse({ status: 200, description: 'Inactive users fetched' })
-  async getInactiveUsers(@Query('page') page = 1, @Query('limit') limit = 10) {
-    try {
-      const users = await this.adminUserDashboardService.getInactiveUsers(
-        page,
-        limit,
-      );
-      return successResponse({
-        message: 'Inactive users fetched',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: users,
-      });
-    } catch (error) {
-      this.logger.error('Error retrieving inactive users', error.message);
-      throw error;
-    }
-  }
-
-  @Get('unverified-merchants')
-  @ApiOperation({
-    summary: 'Get Users with is_merchant_verified = false with pagination',
-  })
-  @ApiResponse({ status: 200, description: 'Unverified merchants fetched' })
-  async getUnverifiedMerchants(
-    @Query('page') page = 1,
-    @Query('limit') limit = 10,
-  ) {
-    try {
-      const users = await this.adminUserDashboardService.getUnverifiedMerchants(
-        page,
-        limit,
-      );
-      return successResponse({
-        message: 'Unverified merchants fetched',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: users,
-      });
-    } catch (error) {
-      this.logger.error('Error retrieving unverified merchants', error.message);
-      throw error;
-    }
-  }
-
-  @Get('invoice-orders')
+  @Get('recent-invoice')
   @ApiOperation({
     summary: 'Get invoice Invoice with pagination and filter by date',
   })
@@ -250,6 +201,55 @@ export class AdminUserDashboardController {
     }
   }
 
+  @Get('unverified-merchants')
+  @ApiOperation({
+    summary: 'Get Users with is_merchant_verified = false with pagination',
+  })
+  @ApiResponse({ status: 200, description: 'Unverified merchants fetched' })
+  async getUnverifiedMerchants(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ) {
+    try {
+      const users = await this.adminUserDashboardService.getUnverifiedMerchants(
+        page,
+        limit,
+      );
+      return successResponse({
+        message: 'Unverified merchants fetched',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: users,
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving unverified merchants', error.message);
+      throw error;
+    }
+  }
+
+  @Get('inactive-users')
+  @ApiOperation({
+    summary: 'Get Users with is_active = false with pagination',
+  })
+  @ApiResponse({ status: 200, description: 'Inactive users fetched' })
+  async getInactiveUsers(@Query('page') page = 1, @Query('limit') limit = 10) {
+    try {
+      const users = await this.adminUserDashboardService.getInactiveUsers(
+        page,
+        limit,
+      );
+      return successResponse({
+        message: 'Inactive users fetched',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: users,
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving inactive users', error.message);
+      throw error;
+    }
+  }
+
   @Get('schools')
   @ApiOperation({ summary: 'Get all schools with user and merchant counts' })
   @ApiQuery({
@@ -296,124 +296,30 @@ export class AdminUserDashboardController {
     }
   }
 
-  @Get('merchants-product-invoice-count')
-  @ApiOperation({
-    summary: 'Get all merchants with product and invoice counts',
-  })
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    description: 'The page number for pagination',
-    type: Number,
-    example: 1,
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'The number of merchants to return per page (default: 10)',
-    type: Number,
-    example: 10,
-  })
-  @ApiQuery({
-    name: 'searchQuery',
-    required: false,
-    description: 'Search term for filtering by merchant name or email',
-    type: String,
-    example: 'John Doe',
-  })
-  @ApiQuery({
-    name: 'is_active',
-    required: false,
-    description: 'Filter by active status (true or false)',
-    type: Boolean,
-    example: true,
+  @Get('counts/:schoolId')
+  @ApiOperation({ summary: 'Get the count of merchants and users in a school' })
+  @ApiParam({ name: 'schoolId', description: 'ID of the school' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User counts retrieved successfully',
   })
   @ApiResponse({
-    status: 200,
-    description:
-      'Successfully fetched merchants with counts of their products and invoices',
-    type: [User], // Adjust this type to match your User entity type
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Unable to fetch user counts',
   })
-  async getAllMerchants(@Query() merchantPaginationDto: MerchantPaginationDto) {
+  async getUserCountsBySchool(@Param('schoolId') schoolId: string) {
     try {
-      const data =
-        await this.adminUserDashboardService.getAllMerchantsWithCounts(
-          merchantPaginationDto,
-        );
+      const userCounts =
+        await this.adminUserDashboardService.getUserCountsBySchool(schoolId);
       return successResponse({
-        message: 'Invoice fetched successfully',
+        message: 'User counts retrieved successfully',
         code: HttpStatus.OK,
         status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw error;
-    }
-  }
-
-  @Get('school/:id/merchants/stats')
-  @ApiOperation({
-    summary:
-      'Get the count of products and orders for all merchants within a specific school, including optional search and pagination',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'ID of the school',
-  })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-    description:
-      'Optional search term for filtering products and orders by merchant name',
-    type: String,
-  })
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    description: 'Page number for pagination',
-    type: Number,
-    example: 1,
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Limit number of results per page (default is 10)',
-    type: Number,
-    example: 10,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Merchant product and order statistics fetched successfully',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Unable to fetch merchant product and order statistics',
-  })
-  async getMerchantStats(
-    @Param('id') schoolId: string,
-    @Query('search') search: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-  ) {
-    try {
-      // Fetch statistics using the adminUserDashboardService
-      const stats = await this.adminUserDashboardService.getMerchantStats(
-        schoolId,
-        search,
-        page,
-        limit,
-      );
-
-      return successResponse({
-        message: 'Merchant product and order statistics fetched successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: stats,
+        data: userCounts,
       });
     } catch (error) {
       this.logger.error(
-        `Error retrieving statistics for merchants in school with ID ${schoolId}`,
+        `Error fetching user counts for school with ID ${schoolId}`,
         error.message,
       );
       throw error;
@@ -490,32 +396,58 @@ export class AdminUserDashboardController {
     }
   }
 
-  @Get('counts/:schoolId')
-  @ApiOperation({ summary: 'Get the count of merchants and users in a school' })
-  @ApiParam({ name: 'schoolId', description: 'ID of the school' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'User counts retrieved successfully',
+  @Get('merchants-product-invoice-count')
+  @ApiOperation({
+    summary: 'Get all merchants with product and invoice counts',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'The page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'The number of merchants to return per page (default: 10)',
+    type: Number,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'searchQuery',
+    required: false,
+    description: 'Search term for filtering by merchant name or email',
+    type: String,
+    example: 'John Doe',
+  })
+  @ApiQuery({
+    name: 'is_active',
+    required: false,
+    description: 'Filter by active status (true or false)',
+    type: Boolean,
+    example: true,
   })
   @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Unable to fetch user counts',
+    status: 200,
+    description:
+      'Successfully fetched merchants with counts of their products and invoices',
+    type: [User], // Adjust this type to match your User entity type
   })
-  async getUserCountsBySchool(@Param('schoolId') schoolId: string) {
+  async getAllMerchants(@Query() merchantPaginationDto: MerchantPaginationDto) {
     try {
-      const userCounts =
-        await this.adminUserDashboardService.getUserCountsBySchool(schoolId);
+      const data =
+        await this.adminUserDashboardService.getAllMerchantsWithCounts(
+          merchantPaginationDto,
+        );
       return successResponse({
-        message: 'User counts retrieved successfully',
+        message: 'Invoice fetched successfully',
         code: HttpStatus.OK,
         status: 'success',
-        data: userCounts,
+        data,
       });
     } catch (error) {
-      this.logger.error(
-        `Error fetching user counts for school with ID ${schoolId}`,
-        error.message,
-      );
+      this.logger.error('Error', error.message);
       throw error;
     }
   }
