@@ -96,3 +96,5 @@ export class MerchantPaginationDto {
   @IsString()
   searchQuery?: string;
 }
+
+

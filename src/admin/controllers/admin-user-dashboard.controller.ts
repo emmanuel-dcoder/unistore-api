@@ -414,7 +414,7 @@ export class AdminUserDashboardController {
       'Successfully fetched merchants with counts of their products and invoices',
     type: [User], // Adjust this type to match your User entity type
   })
-  async getAllMerchants(
+  async getAllSchoolMerchants(
     @Query() merchantPaginationDto: MerchantPaginationDto,
     @Query('schoolId') schoolId: string,
   ) {
@@ -478,7 +478,7 @@ export class AdminUserDashboardController {
       'Successfully fetched merchants with counts of their products and invoices',
     type: [User], // Adjust this type to match your User entity type
   })
-  async getAllUsers(
+  async getAllSchoolUsers(
     @Query() userPaginationDto: MerchantPaginationDto,
     @Query('schoolId') schoolId: string,
   ) {
@@ -493,6 +493,55 @@ export class AdminUserDashboardController {
       );
       return successResponse({
         message: 'Users fetched successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @Get('merchants-product-invoice-count')
+  @ApiOperation({
+    summary: 'Get all merchants with product and invoice counts',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'The page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'The number of merchants to return per page (default: 10)',
+    type: Number,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'searchQuery',
+    required: false,
+    description: 'Search term for filtering by merchant name or email',
+    type: String,
+    example: 'John Doe',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Successfully fetched merchants with counts of their products and invoices',
+    type: [User], // Adjust this type to match your User entity type
+  })
+  async getAllMerchants(@Query() merchantPaginationDto: MerchantPaginationDto) {
+    try {
+      const data =
+        await this.adminUserDashboardService.getAllMerchantsWithCounts(
+          merchantPaginationDto,
+        );
+      return successResponse({
+        message: 'Merchants fetched successfully',
         code: HttpStatus.OK,
         status: 'success',
         data,

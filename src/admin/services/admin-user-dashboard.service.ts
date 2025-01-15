@@ -440,6 +440,73 @@ export class AdminUserDashboardService {
     };
   }
 
+  async getAllMerchantsWithCounts(
+    merchantPaginationDto: MerchantPaginationDto,
+  ) {
+    const { page = 1, limit = 10, searchQuery } = merchantPaginationDto;
+
+    // Define the search filter
+    const searchFilter = searchQuery
+      ? {
+          where: [
+            { first_name: Like(`%${searchQuery}%`) },
+            { last_name: Like(`%${searchQuery}%`) },
+            { email: Like(`%${searchQuery}%`) },
+          ],
+        }
+      : {};
+
+    // Fetch merchants based on the search filter, 'is_active', and school filter
+    const [merchants, totalMerchants] = await this.userRepo.findAndCount({
+      ...searchFilter,
+      where: {
+        user_type: 'merchant',
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: [
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'profile_picture',
+        'user_type',
+        'is_active',
+        'is_merchant_verified',
+        'created_at',
+        'updated_at',
+      ], // Exclude 'password'
+    });
+
+    const merchantsWithCounts = [];
+
+    // Iterate through each merchant and count related products and invoices
+    for (const merchant of merchants) {
+      const productCount = await this.productRepo.count({
+        where: { user: { id: merchant.id } },
+      });
+
+      const invoiceCount = await this.invoiceRepo.count({
+        where: { product_owner: { id: merchant.id } },
+      });
+
+      merchantsWithCounts.push({
+        merchant,
+        counts: {
+          products: productCount,
+          invoices: invoiceCount,
+        },
+      });
+    }
+
+    return {
+      merchants: merchantsWithCounts,
+      totalMerchants,
+      currentPage: page,
+      totalPages: Math.ceil(totalMerchants / limit),
+    };
+  }
+
   async findCategory(): Promise<Category[]> {
     const category = this.categoryRepo.find();
     if (!category) throw new BadRequestException('Unable to fetch categories');
