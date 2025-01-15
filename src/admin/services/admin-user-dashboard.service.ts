@@ -187,26 +187,7 @@ export class AdminUserDashboardService {
     };
   }
 
-  async getUnverifiedMerchants(page: number, limit: number): Promise<User[]> {
-    const skip = (page - 1) * limit;
-    return await this.userRepo.find({
-      where: { is_merchant_verified: false },
-      skip: skip,
-      take: limit,
-      order: { created_at: 'DESC' },
-    });
-  }
-
-  async getInactiveUsers(page: number, limit: number): Promise<User[]> {
-    const skip = (page - 1) * limit;
-    return await this.userRepo.find({
-      where: { is_active: false },
-      skip: skip,
-      take: limit,
-      order: { created_at: 'DESC' },
-    });
-  }
-
+  //fetch universities
   async getAllSchoolsWithUserCounts(paginationDto: PaginationDto) {
     const { page, limit, searchQuery } = paginationDto;
 
@@ -255,6 +236,26 @@ export class AdminUserDashboardService {
       schools: schoolsWithCounts,
       totalSchools,
     };
+  }
+
+  async getUnverifiedMerchants(page: number, limit: number): Promise<User[]> {
+    const skip = (page - 1) * limit;
+    return await this.userRepo.find({
+      where: { is_merchant_verified: false },
+      skip: skip,
+      take: limit,
+      order: { created_at: 'DESC' },
+    });
+  }
+
+  async getInactiveUsers(page: number, limit: number): Promise<User[]> {
+    const skip = (page - 1) * limit;
+    return await this.userRepo.find({
+      where: { is_active: false },
+      skip: skip,
+      take: limit,
+      order: { created_at: 'DESC' },
+    });
   }
 
   async getAllMerchantsWithCounts(

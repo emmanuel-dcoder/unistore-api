@@ -227,29 +227,6 @@ export class AdminUserDashboardController {
     }
   }
 
-  @Get('inactive-users')
-  @ApiOperation({
-    summary: 'Get Users with is_active = false with pagination',
-  })
-  @ApiResponse({ status: 200, description: 'Inactive users fetched' })
-  async getInactiveUsers(@Query('page') page = 1, @Query('limit') limit = 10) {
-    try {
-      const users = await this.adminUserDashboardService.getInactiveUsers(
-        page,
-        limit,
-      );
-      return successResponse({
-        message: 'Inactive users fetched',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: users,
-      });
-    } catch (error) {
-      this.logger.error('Error retrieving inactive users', error.message);
-      throw error;
-    }
-  }
-
   @Get('schools')
   @ApiOperation({ summary: 'Get all schools with user and merchant counts' })
   @ApiQuery({
@@ -271,7 +248,7 @@ export class AdminUserDashboardController {
     required: false,
     description: 'Search term for filtering by school name or school ID',
     type: String,
-    example: 'XYZ School',
+    example: 'University of Benin',
   })
   @ApiResponse({
     status: 200,
@@ -292,6 +269,29 @@ export class AdminUserDashboardController {
       });
     } catch (error) {
       this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @Get('inactive-users')
+  @ApiOperation({
+    summary: 'Get Users with is_active = false with pagination',
+  })
+  @ApiResponse({ status: 200, description: 'Inactive users fetched' })
+  async getInactiveUsers(@Query('page') page = 1, @Query('limit') limit = 10) {
+    try {
+      const users = await this.adminUserDashboardService.getInactiveUsers(
+        page,
+        limit,
+      );
+      return successResponse({
+        message: 'Inactive users fetched',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: users,
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving inactive users', error.message);
       throw error;
     }
   }
