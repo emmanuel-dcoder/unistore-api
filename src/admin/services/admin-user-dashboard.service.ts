@@ -320,7 +320,7 @@ export class AdminUserDashboardService {
     }
   }
 
-  async getAllMerchantsWithCounts(
+  async getAllSchoolMerchantsWithCounts(
     merchantPaginationDto: MerchantPaginationDto,
     school_id: string,
   ) {
@@ -389,6 +389,54 @@ export class AdminUserDashboardService {
       totalMerchants,
       currentPage: page,
       totalPages: Math.ceil(totalMerchants / limit),
+    };
+  }
+
+  async getAllSchoolUser(
+    merchantPaginationDto: MerchantPaginationDto,
+    school_id: string,
+  ) {
+    const { page = 1, limit = 10, searchQuery } = merchantPaginationDto;
+
+    const searchFilter = searchQuery
+      ? {
+          where: [
+            { first_name: Like(`%${searchQuery}%`) },
+            { last_name: Like(`%${searchQuery}%`) },
+            { email: Like(`%${searchQuery}%`) },
+          ],
+        }
+      : {};
+
+    const schoolFilter = school_id ? { school: { id: school_id } } : {};
+
+    const [users, totalUsers] = await this.userRepo.findAndCount({
+      ...searchFilter,
+      where: {
+        user_type: 'merchant',
+        ...schoolFilter,
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: [
+        'id',
+        'first_name',
+        'last_name',
+        'email',
+        'profile_picture',
+        'user_type',
+        'is_active',
+        'is_merchant_verified',
+        'created_at',
+        'updated_at',
+      ],
+    });
+
+    return {
+      users,
+      totalUsers,
+      currentPage: page,
+      totalPages: Math.ceil(totalUsers / limit),
     };
   }
 

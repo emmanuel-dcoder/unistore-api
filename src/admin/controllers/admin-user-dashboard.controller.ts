@@ -424,12 +424,75 @@ export class AdminUserDashboardController {
 
     try {
       const data =
-        await this.adminUserDashboardService.getAllMerchantsWithCounts(
+        await this.adminUserDashboardService.getAllSchoolMerchantsWithCounts(
           merchantPaginationDto,
           schoolId,
         );
       return successResponse({
         message: 'Merchants fetched successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @Get('school/users')
+  @ApiOperation({
+    summary: 'Get all users for a school',
+  })
+  @ApiQuery({
+    name: 'schoolId',
+    required: true,
+    description: 'The ID of the school to filter users',
+    type: String,
+    example: '6ebd279c-4d51-4cd2-b445-76d317aa64c3',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'The page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'The number of users to return per page (default: 10)',
+    type: Number,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'searchQuery',
+    required: false,
+    description: 'Search term for filtering by users name or email',
+    type: String,
+    example: 'John Doe',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Successfully fetched merchants with counts of their products and invoices',
+    type: [User], // Adjust this type to match your User entity type
+  })
+  async getAllUsers(
+    @Query() userPaginationDto: MerchantPaginationDto,
+    @Query('schoolId') schoolId: string,
+  ) {
+    if (!schoolId) {
+      throw new BadRequestException('school_id is required');
+    }
+
+    try {
+      const data = await this.adminUserDashboardService.getAllSchoolUser(
+        userPaginationDto,
+        schoolId,
+      );
+      return successResponse({
+        message: 'Users fetched successfully',
         code: HttpStatus.OK,
         status: 'success',
         data,
