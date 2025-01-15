@@ -271,14 +271,53 @@ export class AdminUserDashboardService {
     };
   }
 
-  async getInactiveUsers(page: number, limit: number): Promise<User[]> {
-    const skip = (page - 1) * limit;
-    return await this.userRepo.find({
-      where: { is_active: false },
-      skip: skip,
-      take: limit,
-      order: { created_at: 'DESC' },
-    });
+  async findUsersBySchoolAndType(
+    schoolId: string,
+    userType: string,
+    startDate?: string,
+    endDate?: string,
+    page: number = 1,
+    limit: number = 10,
+  ) {
+    // Ensure page and limit are valid numbers
+    page = isNaN(page) ? 1 : Math.max(1, page);
+    limit = isNaN(limit) ? 10 : Math.max(1, limit);
+
+    const queryBuilder = this.userRepo.createQueryBuilder('user');
+
+    queryBuilder
+      .leftJoinAndSelect('user.school', 'school')
+      .where('school.id = :schoolId', { schoolId })
+      .andWhere('user.user_type IN (:...userTypes)', {
+        userTypes: ['merchant', 'user'].includes(userType)
+          ? [userType]
+          : ['merchant', 'user'],
+      })
+      .orderBy('user.created_at', 'DESC');
+
+    // Apply date filters if provided
+    if (startDate) {
+      queryBuilder.andWhere('user.created_at >= :startDate', { startDate });
+    }
+    if (endDate) {
+      queryBuilder.andWhere('user.created_at <= :endDate', { endDate });
+    }
+
+    // Pagination logic
+    queryBuilder.skip((page - 1) * limit).take(limit);
+
+    try {
+      const [users, total] = await queryBuilder.getManyAndCount();
+      return {
+        data: users,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      throw new BadRequestException('Unable to fetch users');
+    }
   }
 
   async getAllMerchantsWithCounts(
@@ -354,58 +393,19 @@ export class AdminUserDashboardService {
     };
   }
 
-  async findUsersBySchoolAndType(
-    schoolId: string,
-    userType: string,
-    startDate?: string,
-    endDate?: string,
-    page: number = 1,
-    limit: number = 10,
-  ) {
-    // Ensure page and limit are valid numbers
-    page = isNaN(page) ? 1 : Math.max(1, page);
-    limit = isNaN(limit) ? 10 : Math.max(1, limit);
-
-    const queryBuilder = this.userRepo.createQueryBuilder('user');
-
-    queryBuilder
-      .leftJoinAndSelect('user.school', 'school')
-      .where('school.id = :schoolId', { schoolId })
-      .andWhere('user.user_type IN (:...userTypes)', {
-        userTypes: ['merchant', 'user'].includes(userType)
-          ? [userType]
-          : ['merchant', 'user'],
-      })
-      .orderBy('user.created_at', 'DESC');
-
-    // Apply date filters if provided
-    if (startDate) {
-      queryBuilder.andWhere('user.created_at >= :startDate', { startDate });
-    }
-    if (endDate) {
-      queryBuilder.andWhere('user.created_at <= :endDate', { endDate });
-    }
-
-    // Pagination logic
-    queryBuilder.skip((page - 1) * limit).take(limit);
-
-    try {
-      const [users, total] = await queryBuilder.getManyAndCount();
-      return {
-        data: users,
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      };
-    } catch (error) {
-      throw new BadRequestException('Unable to fetch users');
-    }
-  }
-
   async findCategory(): Promise<Category[]> {
     const category = this.categoryRepo.find();
     if (!category) throw new BadRequestException('Unable to fetch categories');
     return category;
+  }
+
+  async getInactiveUsers(page: number, limit: number): Promise<User[]> {
+    const skip = (page - 1) * limit;
+    return await this.userRepo.find({
+      where: { is_active: false },
+      skip: skip,
+      take: limit,
+      order: { created_at: 'DESC' },
+    });
   }
 }
