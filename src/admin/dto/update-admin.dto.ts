@@ -95,12 +95,4 @@ export class MerchantPaginationDto {
   @IsOptional()
   @IsString()
   searchQuery?: string;
-
-  @ApiPropertyOptional({
-    type: Boolean,
-    example: true,
-  })
-  @IsOptional()
-  @IsBoolean()
-  is_active?: boolean;
 }

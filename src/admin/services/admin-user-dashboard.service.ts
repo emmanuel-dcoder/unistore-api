@@ -322,13 +322,9 @@ export class AdminUserDashboardService {
 
   async getAllMerchantsWithCounts(
     merchantPaginationDto: MerchantPaginationDto,
+    school_id: string,
   ) {
-    const {
-      page = 1,
-      limit = 10,
-      searchQuery,
-      is_active,
-    } = merchantPaginationDto;
+    const { page = 1, limit = 10, searchQuery } = merchantPaginationDto;
 
     // Define the search filter
     const searchFilter = searchQuery
@@ -341,13 +337,16 @@ export class AdminUserDashboardService {
         }
       : {};
 
-    // Create the 'is_active' filter if specified
-    const activeFilter = is_active !== undefined ? { is_active } : {};
+    // Add school filter
+    const schoolFilter = school_id ? { school: { id: school_id } } : {};
 
-    // Fetch merchants based on the search filter and 'is_active' filter
+    // Fetch merchants based on the search filter, 'is_active', and school filter
     const [merchants, totalMerchants] = await this.userRepo.findAndCount({
       ...searchFilter,
-      where: { user_type: 'merchant', ...activeFilter },
+      where: {
+        user_type: 'merchant',
+        ...schoolFilter,
+      },
       skip: (page - 1) * limit,
       take: limit,
       select: [

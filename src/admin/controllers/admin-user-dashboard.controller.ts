@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Logger,
   Param,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -377,7 +378,14 @@ export class AdminUserDashboardController {
 
   @Get('school/merchants-product-invoice-count')
   @ApiOperation({
-    summary: 'Get all merchants with product and invoice counts',
+    summary: 'Get all merchants with product and invoice counts for a school',
+  })
+  @ApiQuery({
+    name: 'schoolId',
+    required: true,
+    description: 'The ID of the school to filter merchants',
+    type: String,
+    example: '6ebd279c-4d51-4cd2-b445-76d317aa64c3',
   })
   @ApiQuery({
     name: 'page',
@@ -400,27 +408,28 @@ export class AdminUserDashboardController {
     type: String,
     example: 'John Doe',
   })
-  @ApiQuery({
-    name: 'is_active',
-    required: false,
-    description: 'Filter by active status (true or false)',
-    type: Boolean,
-    example: true,
-  })
   @ApiResponse({
     status: 200,
     description:
       'Successfully fetched merchants with counts of their products and invoices',
     type: [User], // Adjust this type to match your User entity type
   })
-  async getAllMerchants(@Query() merchantPaginationDto: MerchantPaginationDto) {
+  async getAllMerchants(
+    @Query() merchantPaginationDto: MerchantPaginationDto,
+    @Query('schoolId') schoolId: string,
+  ) {
+    if (!schoolId) {
+      throw new BadRequestException('school_id is required');
+    }
+
     try {
       const data =
         await this.adminUserDashboardService.getAllMerchantsWithCounts(
           merchantPaginationDto,
+          schoolId,
         );
       return successResponse({
-        message: 'Invoice fetched successfully',
+        message: 'Merchants fetched successfully',
         code: HttpStatus.OK,
         status: 'success',
         data,
