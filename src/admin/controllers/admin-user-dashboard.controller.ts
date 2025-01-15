@@ -552,6 +552,89 @@ export class AdminUserDashboardController {
     }
   }
 
+  @Get('merchant-invoices')
+  @ApiOperation({
+    summary: 'Get product count and filtered invoices for a merchant',
+  })
+  @ApiQuery({
+    name: 'merchantId',
+    required: true,
+    description: 'ID of the user (merchant)',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Optional search term for filtering invoices by invoice_id',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination (default is 1)',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Limit number of results per page (default is 10)',
+    type: Number,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    description: 'Optional start date for filtering invoices',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    description: 'Optional end date for filtering invoices',
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Merchant product count and filtered invoices fetched successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Unable to fetch merchant product count and invoices',
+  })
+  async getMerchantProductAndInvoices(
+    @Query('userId') userId: string,
+    @Query('search') search?: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    try {
+      const stats =
+        await this.adminUserDashboardService.getMerchantProductAndInvoices(
+          userId,
+          search,
+          page,
+          limit,
+          startDate,
+          endDate,
+        );
+
+      return successResponse({
+        message:
+          'Merchant product count and filtered invoices fetched successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: stats,
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving category', error.message);
+      throw error;
+    }
+  }
+
   @Get('category')
   @ApiOperation({
     summary: 'Get all Categories',

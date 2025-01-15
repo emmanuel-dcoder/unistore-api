@@ -1,6 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, In, Like, Repository } from 'typeorm';
+import {
+  Between,
+  In,
+  LessThanOrEqual,
+  Like,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { Category } from 'src/category/entities/category.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -504,6 +511,76 @@ export class AdminUserDashboardService {
       totalMerchants,
       currentPage: page,
       totalPages: Math.ceil(totalMerchants / limit),
+    };
+  }
+
+  async getMerchantProductAndInvoices(
+    userId: string,
+    search: string = '',
+    page: number = 1,
+    limit: number = 10,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    const validatedPage = Math.max(1, page);
+    const validatedLimit = Math.max(1, limit);
+    const skip = (validatedPage - 1) * validatedLimit;
+
+    // Get product count for the merchant
+    const productCount = await this.productRepo.count({
+      where: { user: { id: userId } },
+    });
+
+    // Count invoices by status
+    const awaitingPaymentInvoiceCount = await this.invoiceRepo.count({
+      where: {
+        product_owner: { id: userId },
+        status: 'awaiting_payment',
+      },
+    });
+
+    const paidInvoiceCount = await this.invoiceRepo.count({
+      where: {
+        product_owner: { id: userId },
+        status: 'paid',
+      },
+    });
+
+    // Build the query for filtering invoices
+    const query: any = {
+      product_owner: { id: userId },
+    };
+
+    if (search) {
+      query.invoice_id = Like(`%${search}%`);
+    }
+
+    if (startDate && endDate) {
+      query.created_at = Between(new Date(startDate), new Date(endDate));
+    } else if (startDate) {
+      query.created_at = MoreThanOrEqual(new Date(startDate));
+    } else if (endDate) {
+      query.created_at = LessThanOrEqual(new Date(endDate));
+    }
+
+    // Get invoices with filtering and pagination
+    const invoices = await this.invoiceRepo.find({
+      where: query,
+      skip,
+      take: validatedLimit,
+      order: { created_at: 'DESC' },
+    });
+
+    return {
+      productCount,
+      pendingInvoice: awaitingPaymentInvoiceCount,
+      paidInvoice: paidInvoiceCount,
+      invoices,
+      pagination: {
+        currentPage: validatedPage,
+        pageSize: validatedLimit,
+        totalInvoices: invoices.length,
+      },
     };
   }
 
