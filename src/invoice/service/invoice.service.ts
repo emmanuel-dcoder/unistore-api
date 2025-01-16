@@ -6,6 +6,7 @@ import { User } from 'src/user/entities/user.entity';
 import axios from 'axios';
 import { RandomSevenDigits } from 'src/core/common';
 import { InvoicePayloadDto } from '../dto/create-invoice.dto';
+import { Product } from 'src/product/entities/product.entity';
 
 @Injectable()
 export class InvoiceService {
@@ -13,7 +14,45 @@ export class InvoiceService {
     @InjectRepository(Invoice)
     private readonly invoiceRepo: Repository<Invoice>,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
+    @InjectRepository(Product)
+    private readonly productRepo: Repository<Product>,
   ) {}
+
+  async getMerchantAnalysis(userId: string): Promise<any> {
+    const totalInvoice = await this.invoiceRepo.count({
+      where: { product_owner: { id: userId } },
+    });
+
+    const totalProduct = await this.productRepo.count({
+      where: { user: { id: userId } },
+    });
+
+    const total = await this.invoiceRepo.find({
+      where: {
+        product_owner: { id: userId },
+        status: 'paid',
+      },
+    });
+
+    const totalEarnings = total.reduce(
+      (acc, invoice) => acc + invoice.total_price,
+      0,
+    );
+
+    const pendingPayment = await this.invoiceRepo.count({
+      where: {
+        product_owner: { id: userId },
+        status: 'awaiting_payment',
+      },
+    });
+
+    return {
+      totalInvoice,
+      totalProduct,
+      totalEarnings: Number(totalEarnings),
+      pendingPayment,
+    };
+  }
 
   // Create an invoice
   async createInvoice(

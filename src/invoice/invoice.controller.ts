@@ -23,6 +23,39 @@ export class OrderInvoiceController {
   private readonly logger = new Logger(OrderInvoiceController.name);
   constructor(private readonly invoiceService: InvoiceService) {}
 
+  @Get('merchant-dashboard')
+  @ApiOperation({
+    summary: 'Get Analysis counts by status for a specific merchant',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Analysis counts retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'No Analysis found for this owner' })
+  @UseGuards(MerchantGuard)
+  async getInvoiceCounts(@Req() req: any): Promise<any> {
+    try {
+      const userId = req.user.id;
+
+      const counts = await this.invoiceService.getMerchantAnalysis(userId);
+
+      if (!counts) {
+        throw new NotFoundException('No Analysis found for this owner');
+      }
+
+      return successResponse({
+        message: 'Analysis counts retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: counts,
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving Analysis counts', error.message);
+      throw error;
+    }
+  }
+
   @Post()
   @ApiOperation({
     summary: 'Create Invoice for order while generating payment intent',

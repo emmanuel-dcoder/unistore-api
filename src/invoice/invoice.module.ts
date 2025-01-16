@@ -7,10 +7,11 @@ import { User } from 'src/user/entities/user.entity';
 import { VerifyTokenMiddleware } from 'src/core/common/middlewares';
 import { WebhookController } from './webhook.controller';
 import { WebhookService } from './service/webhook.service';
+import { Product } from 'src/product/entities/product.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Invoice, User]), // Register the Product entity
+    TypeOrmModule.forFeature([Invoice, User, Product]), // Register the Product entity
   ],
   controllers: [OrderInvoiceController, WebhookController],
   providers: [InvoiceService, WebhookService],
