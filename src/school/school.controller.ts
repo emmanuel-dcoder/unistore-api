@@ -75,6 +75,7 @@ export class SchoolController {
   }
 
   @Put(':id')
+  @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: 'Update a school with an image, the keyword is "file"',
   })
@@ -98,10 +99,9 @@ export class SchoolController {
   @ApiParam({ name: 'id', description: 'ID of the school to update' })
   @ApiResponse({ status: 200, description: 'School updated successfully' })
   @ApiResponse({ status: 404, description: 'School not found' })
-  @UseInterceptors(FileInterceptor('file')) // Image field in the form
   async update(
     @Param('id') id: string,
-    @Body() updateSchoolDto: CreateSchoolDto,
+    @Body() updateSchoolDto: UpdateSchoolDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
     try {
