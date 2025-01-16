@@ -15,7 +15,7 @@ import { School } from 'src/school/entities/school.entity';
 import { PaginationDto } from '../dto/invoice-admin.dto';
 import { MerchantPaginationDto } from '../dto/update-admin.dto';
 import { randomBytes } from 'crypto';
-import * as bcrypt from 'bcrypt';
+import { hashPassword } from 'src/core/common';
 
 @Injectable()
 export class AdminUserDashboardService {
@@ -41,7 +41,7 @@ export class AdminUserDashboardService {
   }): Promise<User> {
     const generatedPassword = randomBytes(3).toString('hex');
 
-    const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+    const hashedPassword = await hashPassword(generatedPassword);
 
     const newUser = this.userRepo.create({
       ...payload,

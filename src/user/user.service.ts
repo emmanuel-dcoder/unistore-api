@@ -11,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto, UpdateUserSchoolDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import {
+  BadRequestErrorException,
   comparePassword,
   ConflictErrorException,
   generateAccessToken,
@@ -101,11 +102,11 @@ export class UserService {
       throw new UnauthorizedErrorException('Invalid email or password');
     }
 
-    // if (!user.is_active) {
-    //   throw new UnauthorizedErrorException(
-    //     'User not currently active, kindly verify your account',
-    //   );
-    // }
+    if (!user.is_active) {
+      throw new UnauthorizedErrorException(
+        'User not currently active, kindly verify your account',
+      );
+    }
 
     // Compare the provided password with the stored hashed password
     const isPasswordValid = await compare(password, user.password);
@@ -446,6 +447,41 @@ export class UserService {
     await this.userRepo.save(user);
 
     return { message: 'Password successfully updated' };
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<any> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new BadRequestErrorException('User not found');
+    }
+
+    const isCurrentPasswordValid = await compare(
+      currentPassword,
+      user.password,
+    );
+
+    if (!isCurrentPasswordValid) {
+      throw new BadRequestErrorException('Current password is incorrect');
+    }
+
+    if (newPassword.length < 6) {
+      throw new BadRequestErrorException(
+        'New password must be between 6 and 20 characters',
+      );
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+
+    user.password = hashedPassword;
+
+    await this.userRepo.save(user);
+
+    return { message: 'Password updated successfully' };
   }
 
   async getCurrentUser(userId: string): Promise<User | undefined> {
