@@ -32,7 +32,10 @@ import {
   ResetPasswordDto,
   VerifyPasswordOtpDto,
 } from './dto/reset-password.dto';
-import { CreateNewPasswordDto } from './dto/create-new-password.dto';
+import {
+  CreateNewPasswordDto,
+  PasswordUserChangeDto,
+} from './dto/create-new-password.dto';
 import { LoginDto } from './dto/login.dto';
 import {
   BadRequestErrorException,
@@ -41,7 +44,6 @@ import {
 } from 'src/core/common';
 import { ResendOtpDto, VerifyOtpDto } from './dto/verify-otp.dto.';
 import { SchoolService } from 'src/school/school.service';
-import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('api/v1/user')
 @ApiTags('User')
@@ -407,7 +409,7 @@ export class UserController {
 
   @Put('change-password')
   @ApiOperation({ summary: 'Change user password' })
-  @ApiBody({ type: ChangePasswordDto }) // Defines the request body type
+  @ApiBody({ type: PasswordUserChangeDto })
   @ApiResponse({
     status: 200,
     description: 'Password changed successfully',
@@ -428,7 +430,7 @@ export class UserController {
   })
   async changePassword(
     @Req() req: any,
-    @Body() changePasswordDto: ChangePasswordDto,
+    @Body() changePasswordDto: PasswordUserChangeDto,
   ) {
     try {
       if (!req.user.id) {
