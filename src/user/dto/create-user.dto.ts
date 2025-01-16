@@ -45,11 +45,15 @@ export class CreateUserDto {
   @IsOptional()
   school;
 
-  @ApiProperty()
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   user_type;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  description;
 }
 
 export class UpdateUserRoleDto {

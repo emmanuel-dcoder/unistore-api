@@ -2,7 +2,6 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Between,
-  In,
   LessThanOrEqual,
   Like,
   MoreThanOrEqual,
@@ -15,6 +14,8 @@ import { Invoice } from 'src/invoice/entities/invoice.entity';
 import { School } from 'src/school/entities/school.entity';
 import { PaginationDto } from '../dto/invoice-admin.dto';
 import { MerchantPaginationDto } from '../dto/update-admin.dto';
+import { randomBytes } from 'crypto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AdminUserDashboardService {
@@ -30,37 +31,57 @@ export class AdminUserDashboardService {
     @InjectRepository(School) private readonly schoolRepo: Repository<School>,
   ) {}
 
+  async createUser(payload: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    user_type: string;
+    description?: string;
+  }): Promise<User> {
+    const generatedPassword = randomBytes(3).toString('hex');
+
+    const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+
+    const newUser = this.userRepo.create({
+      ...payload,
+      password: hashedPassword,
+      is_active: true,
+    });
+
+    const savedUser = await this.userRepo.save(newUser);
+
+    delete savedUser.password;
+
+    return { ...savedUser };
+  }
+
   async getUserAndOInvoiceCounts(): Promise<any> {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth();
     const currentDay = currentDate.getDate();
 
-    // Date for 7 days ago
     const sevenDaysAgo = new Date(currentYear, currentMonth, currentDay - 7);
 
-    // Date for 14 days ago (for previous 7 days comparison)
     const fourteenDaysAgo = new Date(
       currentYear,
       currentMonth,
       currentDay - 14,
     );
 
-    // Get order counts in the last 7 days
     const currentInvoice = await this.invoiceRepo.count({
       where: {
         created_at: Between(sevenDaysAgo, currentDate),
       },
     });
 
-    // Get order counts in the previous 7 days
     const previousInvoice = await this.invoiceRepo.count({
       where: {
         created_at: Between(fourteenDaysAgo, sevenDaysAgo),
       },
     });
 
-    // Get user counts with user_type "merchant" in the last 7 days
     const currentMerchantUsers = await this.userRepo.count({
       where: {
         user_type: 'merchant',
@@ -68,7 +89,6 @@ export class AdminUserDashboardService {
       },
     });
 
-    // Get user counts with user_type "merchant" in the previous 7 days
     const previousMerchantUsers = await this.userRepo.count({
       where: {
         user_type: 'merchant',
@@ -76,7 +96,6 @@ export class AdminUserDashboardService {
       },
     });
 
-    // Get user counts with user_type "user" in the last 7 days
     const currentUserUsers = await this.userRepo.count({
       where: {
         user_type: 'user',
@@ -84,7 +103,6 @@ export class AdminUserDashboardService {
       },
     });
 
-    // Get user counts with user_type "user" in the previous 7 days
     const previousUserUsers = await this.userRepo.count({
       where: {
         user_type: 'user',
@@ -92,7 +110,6 @@ export class AdminUserDashboardService {
       },
     });
 
-    // Set default counts and percentages to 0 if counts are 0 for the last 7 days
     const orderPercentageChange =
       currentInvoice > 0
         ? this.calculatePercentageChange(currentInvoice, previousInvoice)
@@ -124,7 +141,7 @@ export class AdminUserDashboardService {
     previousCount: number,
   ): number {
     if (previousCount === 0) {
-      return currentCount === 0 ? 0 : 100; // If previous count is 0, and current is not, it's 100% increase
+      return currentCount === 0 ? 0 : 100;
     }
     return ((currentCount - previousCount) / previousCount) * 100;
   }
@@ -158,7 +175,6 @@ export class AdminUserDashboardService {
   ): Promise<any> {
     const skip = (page - 1) * limit;
 
-    // Convert startDate and endDate to Date objects if they are provided
     const start = startDate ? new Date(startDate) : new Date();
     const end = endDate ? new Date(endDate) : new Date();
 
@@ -194,7 +210,6 @@ export class AdminUserDashboardService {
     };
   }
 
-  //fetch universities
   async getAllSchoolsWithUserCounts(paginationDto: PaginationDto) {
     const { page, limit, searchQuery } = paginationDto;
 
@@ -256,7 +271,6 @@ export class AdminUserDashboardService {
   }
 
   async getUserCountsBySchool(schoolId: string) {
-    // Count users with 'merchant' user_type
     const merchantCount = await this.userRepo
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.school', 'school')
@@ -286,7 +300,6 @@ export class AdminUserDashboardService {
     page: number = 1,
     limit: number = 10,
   ) {
-    // Ensure page and limit are valid numbers
     page = isNaN(page) ? 1 : Math.max(1, page);
     limit = isNaN(limit) ? 10 : Math.max(1, limit);
 
@@ -302,7 +315,6 @@ export class AdminUserDashboardService {
       })
       .orderBy('user.created_at', 'DESC');
 
-    // Apply date filters if provided
     if (startDate) {
       queryBuilder.andWhere('user.created_at >= :startDate', { startDate });
     }
@@ -310,7 +322,6 @@ export class AdminUserDashboardService {
       queryBuilder.andWhere('user.created_at <= :endDate', { endDate });
     }
 
-    // Pagination logic
     queryBuilder.skip((page - 1) * limit).take(limit);
 
     try {

@@ -40,6 +40,9 @@ export class User {
   @Column({ nullable: true })
   identification: string;
 
+  @Column({ nullable: true })
+  description: string;
+
   @Column({ enum: Role, default: Role.BUYER, nullable: true })
   user_type: string;
 

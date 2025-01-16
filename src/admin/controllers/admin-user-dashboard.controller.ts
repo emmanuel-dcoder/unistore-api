@@ -6,8 +6,11 @@ import {
   Logger,
   Param,
   BadRequestException,
+  Body,
+  Post,
 } from '@nestjs/common';
 import {
+  ApiBody,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -28,6 +31,53 @@ export class AdminUserDashboardController {
   constructor(
     private readonly adminUserDashboardService: AdminUserDashboardService,
   ) {}
+
+  @Post('create-user')
+  @ApiOperation({
+    summary: `Create a new user with "merchant' or "user" as user_type`,
+  })
+  @ApiResponse({ status: 201, description: 'User successfully created' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        first_name: { type: 'string' },
+        last_name: { type: 'string' },
+        email: { type: 'string' },
+        phone: { type: 'string' },
+        description: { type: 'string' },
+        user_type: {
+          type: 'string',
+          enum: ['buyer', 'merchant'],
+          default: 'buyer',
+        },
+      },
+    },
+  })
+  async createUser(
+    @Body()
+    payload: {
+      first_name: string;
+      last_name: string;
+      email: string;
+      phone: string;
+      user_type: string;
+      description?: string;
+    },
+  ) {
+    try {
+      const user = await this.adminUserDashboardService.createUser(payload);
+      return successResponse({
+        message: 'User successfully created',
+        code: HttpStatus.CREATED,
+        status: 'success',
+        data: user,
+      });
+    } catch (error) {
+      this.logger.error('Error creating user', error.message);
+      throw new BadRequestException('Unable to create user');
+    }
+  }
 
   @Get('user-merchant-invoice-counts')
   @ApiOperation({
