@@ -34,4 +34,12 @@ export class NotificationService {
 
     return notification;
   }
+
+  async fetchAll() {
+    const notification = await this.notificationRepo.find({
+      order: { created_at: 'DESC' },
+    });
+
+    return notification;
+  }
 }
