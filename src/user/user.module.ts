@@ -13,13 +13,20 @@ import { MailService } from 'src/core/mail/email';
 import { SchoolService } from 'src/school/school.service';
 import { School } from 'src/school/entities/school.entity';
 import { VerifyTokenMiddleware } from 'src/core/common/middlewares';
+import { NotificationService } from 'src/notification/notification.service';
+import { Notification } from 'src/notification/entities/notification.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, School])],
+  imports: [TypeOrmModule.forFeature([User, School, Notification])],
   controllers: [UserController],
-  providers: [UserService, CloudinaryService, MailService, SchoolService],
+  providers: [
+    UserService,
+    CloudinaryService,
+    MailService,
+    SchoolService,
+    NotificationService,
+  ],
 })
-
 export class UserModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(VerifyTokenMiddleware).forRoutes(

@@ -31,6 +31,7 @@ import { CreateNewPasswordDto } from './dto/create-new-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResendOtpDto } from './dto/verify-otp.dto.';
 import { MailService } from 'src/core/mail/email';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class UserService {
@@ -38,6 +39,7 @@ export class UserService {
     private readonly cloudinaryService: CloudinaryService,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     private readonly mailService: MailService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(payload: CreateUserDto) {
@@ -67,12 +69,24 @@ export class UserService {
 
     const result = await this.userRepo.save(payload);
 
-    await this.mailService.sendMailNotification(
-      result.email,
-      'Welcome to UniStore',
-      { name: result.first_name, otp },
-      'welcome',
-    );
+    try {
+      await this.mailService.sendMailNotification(
+        result.email,
+        'Welcome to UniStore',
+        { name: result.first_name, otp },
+        'welcome',
+      );
+
+      await this.notificationService.create(
+        {
+          title: 'Welcome to Unistore',
+          message: 'Hello, you welcome to Unistore. Glad to have you here',
+        },
+        result.id,
+      );
+    } catch (error) {
+      console.log('error:', error);
+    }
     delete result.password;
     return result;
   }
