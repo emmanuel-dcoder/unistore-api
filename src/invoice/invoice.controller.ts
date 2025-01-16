@@ -23,7 +23,7 @@ export class OrderInvoiceController {
   private readonly logger = new Logger(OrderInvoiceController.name);
   constructor(private readonly invoiceService: InvoiceService) {}
 
-  @Get('merchant-dashboard')
+  @Get('merchant-dashboard-analysis')
   @ApiOperation({
     summary: 'Get Analysis counts by status for a specific merchant',
   })
