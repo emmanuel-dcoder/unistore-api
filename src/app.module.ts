@@ -13,6 +13,7 @@ import { RatingModule } from './rating/rating.module';
 import { ChatModule } from './chat/chat.module';
 import { AdminModule } from './admin/admin.module';
 import { InvoiceModule } from './invoice/invoice.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { InvoiceModule } from './invoice/invoice.module';
     ChatModule,
     InvoiceModule,
     AdminModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
