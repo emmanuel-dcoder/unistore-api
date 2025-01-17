@@ -202,6 +202,25 @@ export class UserService {
     user.is_active = true;
     await this.userRepo.save(user);
 
+    try {
+      await this.mailService.sendMailNotification(
+        user.email,
+        'OTP Verification',
+        { name: user.first_name },
+        'otp_verified',
+      );
+
+      await this.notificationService.create(
+        {
+          title: 'OTP Verification',
+          message: 'Hi, your account is now verified',
+        },
+        user.id,
+      );
+    } catch (error) {
+      console.log('error:', error);
+    }
+
     return { message: 'OTP verified successfully' };
   }
 
@@ -234,12 +253,16 @@ export class UserService {
 
     await this.userRepo.save(user);
 
-    await this.mailService.sendMailNotification(
-      user.email,
-      'OTP Resent',
-      { otp },
-      'otp_resend',
-    );
+    try {
+      await this.mailService.sendMailNotification(
+        user.email,
+        'OTP Resent',
+        { otp },
+        'otp_resend',
+      );
+    } catch (error) {
+      console.log('error:', error);
+    }
 
     return { message: 'OTP has been resent successfully' };
   }
