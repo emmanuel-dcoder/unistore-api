@@ -44,6 +44,23 @@ export class GetMessagesDto {
   merchant: string;
 }
 
+export class GetAdminMessagesDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  user: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  merchant: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  senderType: string;
+}
+
 export class UserDto {
   @ApiProperty({
     description: 'User ID',

@@ -129,7 +129,7 @@ export class ChatService {
     sender: string,
     receiver: string,
     message: string,
-    senderType: 'User' | 'Admin',
+    senderType: string,
     attachment?: string,
   ): Promise<AdminMessage> {
     const chatMessage = await this.adminMessageRepo.save({
@@ -195,21 +195,20 @@ export class ChatService {
     return messages;
   }
   async getAdminMessages(
-    adminId: string,
-    merchantId: string,
-    senderType: 'User' | 'Admin',
+    admin: string,
+    merchant: string,
+    senderType: string,
   ): Promise<AdminMessage[]> {
-    // Fetch messages from the repository
     const messages = await this.adminMessageRepo.find({
       where: [
         {
-          sender: merchantId,
+          sender: merchant,
           senderType,
-          chat: { admin: { id: adminId } },
+          chat: { admin: { id: admin } },
         },
         {
           senderType: 'Admin',
-          chat: { merchant: { id: merchantId } },
+          chat: { merchant: { id: merchant } },
         },
       ],
       relations: ['chat', 'chat.merchant', 'chat.admin'], // Exclude 'sender' from relations
@@ -298,7 +297,9 @@ export class ChatService {
 
     return chats;
   }
-  async getAdminChatsByParticipant(participantId: string): Promise<AdminChat[]> {
+  async getAdminChatsByParticipant(
+    participantId: string,
+  ): Promise<AdminChat[]> {
     const chats = await this.adminChatRepo.find({
       relations: ['user', 'merchant'],
       where: [

@@ -29,7 +29,7 @@ export class AdminMessage {
   sender: string;
 
   @Column('text', { nullable: false })
-  senderType: 'User' | 'Admin';
+  senderType: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

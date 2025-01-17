@@ -11,7 +11,11 @@ import { ChatService } from './chat.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Chat } from './entities/chat.entity';
-import { GetMessagesDto, SendMessageDto } from './dto/create-chat.dto';
+import {
+  GetAdminMessagesDto,
+  GetMessagesDto,
+  SendMessageDto,
+} from './dto/create-chat.dto';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
 import { AdminChat } from './entities/admin-chat.entity';
 
@@ -115,6 +119,76 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('sendAdminMessage')
+  async handleAdminMessage(@MessageBody() payload: SendMessageDto) {
+    const { sender, receiver, message, user_type, attachment } = payload;
+
+    const receiverSocketId = this.connectedUsers.get(receiver);
+
+    if (!sender || !receiver || message || user_type) {
+      return await this.server
+        .to(sender)
+        .emit(
+          'receiveMessage',
+          'Sender, receiver, message and user_type are required',
+        );
+    }
+
+    let admin;
+    let merchant;
+    if (user_type === 'merchant') {
+      admin = receiver;
+      merchant = sender;
+    }
+
+    if (user_type === 'admin') {
+      admin = sender;
+      merchant = receiver;
+    }
+
+    let chat;
+    chat = await this.adminChatRepo.findOne({
+      where: { admin: { id: admin }, merchant: { id: merchant } },
+    });
+
+    if (!chat) {
+      chat =
+        user_type === 'merchant'
+          ? await this.chatService.createAdminChatId({
+              merchant: sender,
+              admin: receiver,
+              last_message: message,
+            })
+          : await this.chatService.createAdminChatId({
+              merchant: receiver,
+              admin: sender,
+              last_message: message,
+            });
+    }
+
+    let imageString;
+    let senderType = user_type === 'merchant' ? 'User' : 'Admin';
+    if (attachment) {
+      const image = await this.uploadAttachment(attachment);
+      imageString = image.url as string;
+    }
+
+    const savedMessage = await this.chatService.saveAdminMessage(
+      chat.id as string,
+      sender,
+      receiver,
+      message,
+      senderType,
+      imageString,
+    );
+
+    if (receiverSocketId) {
+      return await this.server
+        .to(receiverSocketId)
+        .emit('receiveMessage', savedMessage);
+    }
+  }
+
   @SubscribeMessage('getMessages')
   async handleGetMessages(client: Socket, payload: GetMessagesDto) {
     const messages = await this.chatService.getMessages(
@@ -124,10 +198,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.emit('messageHistory', messages);
   }
 
+  @SubscribeMessage('getAdminMessages')
+  async handleAdminGetMessages(client: Socket, payload: GetAdminMessagesDto) {
+    const messages = await this.chatService.getAdminMessages(
+      payload.user,
+      payload.merchant,
+      payload.senderType,
+    );
+
+    client.emit('messageHistory', messages);
+  }
+
   @SubscribeMessage('getChats')
   async handleGetChats(client: Socket, participantId: string) {
     try {
       const chats = await this.chatService.getChatsByParticipant(participantId);
+      client.emit('chatList', chats);
+    } catch (error) {
+      client.emit('error', { message: error.message });
+    }
+  }
+
+  @SubscribeMessage('getAdminChats')
+  async handleAdminGetChats(client: Socket, participantId: string) {
+    try {
+      const chats =
+        await this.chatService.getAdminChatsByParticipant(participantId);
       client.emit('chatList', chats);
     } catch (error) {
       client.emit('error', { message: error.message });
