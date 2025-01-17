@@ -8,8 +8,9 @@ import { VerifyTokenMiddleware } from 'src/core/common/middlewares';
 import { WebhookController } from './webhook.controller';
 import { WebhookService } from './service/webhook.service';
 import { Product } from 'src/product/entities/product.entity';
-import { NotificationService } from 'src/notification/notification.service';
 import { MailService } from 'src/core/mail/email';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Invoice, User, Product, Notification])],
