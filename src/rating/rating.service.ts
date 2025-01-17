@@ -59,6 +59,7 @@ export class RatingService {
           name: validate.user.first_name,
           productName: validate.product_name,
           ratedBy: rating.ratedBy.first_name,
+          ratings: rating_number,
         },
         'rating',
       );
