@@ -3,6 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Chat } from './entities/chat.entity';
 import { Message } from './entities/message.entity';
+import { AdminMessage } from './entities/admin-message.entity';
+import { AdminChat } from './entities/admin-chat.entity';
+import { Admin } from 'src/admin/entities/admin.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class ChatService {
@@ -11,6 +15,12 @@ export class ChatService {
     private readonly chatRepo: Repository<Chat>,
     @InjectRepository(Message)
     private readonly messageRepo: Repository<Message>,
+    @InjectRepository(AdminMessage)
+    private readonly adminMessageRepo: Repository<AdminMessage>,
+    @InjectRepository(AdminChat)
+    private readonly adminChatRepo: Repository<AdminChat>,
+    @InjectRepository(Admin) private readonly adminRepo: Repository<Admin>,
+    @InjectRepository(User) private readonly userRepo: Repository<User>,
   ) {}
 
   async findOne(payload: { user: string; merchant: string }): Promise<Chat> {
@@ -22,6 +32,22 @@ export class ChatService {
 
     if (!existingChat) {
       throw new NotFoundException('Chat not found');
+    }
+    return existingChat;
+  }
+
+  async findOneWithAdmin(payload: {
+    admin: string;
+    merchant: string;
+  }): Promise<AdminChat> {
+    const { admin, merchant } = payload;
+
+    const existingChat = await this.adminChatRepo.findOne({
+      where: { admin: { id: admin }, merchant: { id: merchant } },
+    });
+
+    if (!existingChat) {
+      throw new NotFoundException('Admin Chat not found');
     }
     return existingChat;
   }
@@ -50,8 +76,36 @@ export class ChatService {
     });
   }
 
+  async createAdminChatId(payload: {
+    admin: string;
+    merchant: string;
+    last_message: string;
+  }): Promise<AdminChat> {
+    const { admin, merchant, last_message } = payload;
+
+    const existingChat = await this.adminChatRepo.findOne({
+      where: { admin: { id: admin }, merchant: { id: merchant } },
+    });
+
+    if (existingChat) {
+      existingChat.last_message = last_message;
+      await this.chatRepo.save(existingChat);
+      return existingChat;
+    }
+
+    return this.chatRepo.save({
+      admin: { id: admin } as any,
+      merchant: { id: merchant } as any,
+      last_message,
+    });
+  }
+
   async getChat(id: string): Promise<Chat[]> {
     return await this.chatRepo.find({ where: { id: id } });
+  }
+
+  async getAdminChat(id: string): Promise<AdminChat[]> {
+    return await this.adminChatRepo.find({ where: { id: id } });
   }
 
   async saveMessage(
@@ -65,6 +119,24 @@ export class ChatService {
       chat: { id: chat } as any,
       sender: { id: sender } as any,
       receiver: { id: receiver } as any,
+      message,
+      attachment,
+    });
+    return chatMessage;
+  }
+  async saveAdminMessage(
+    chat: string,
+    sender: string,
+    receiver: string,
+    message: string,
+    senderType: 'User' | 'Admin',
+    attachment?: string,
+  ): Promise<AdminMessage> {
+    const chatMessage = await this.adminMessageRepo.save({
+      chat: { id: chat } as any,
+      sender: { id: sender } as any,
+      receiver: { id: receiver } as any,
+      senderType,
       message,
       attachment,
     });
@@ -122,6 +194,81 @@ export class ChatService {
 
     return messages;
   }
+  async getAdminMessages(
+    adminId: string,
+    merchantId: string,
+    senderType: 'User' | 'Admin',
+  ): Promise<AdminMessage[]> {
+    // Fetch messages from the repository
+    const messages = await this.adminMessageRepo.find({
+      where: [
+        {
+          sender: merchantId,
+          senderType,
+          chat: { admin: { id: adminId } },
+        },
+        {
+          senderType: 'Admin',
+          chat: { merchant: { id: merchantId } },
+        },
+      ],
+      relations: ['chat', 'chat.merchant', 'chat.admin'], // Exclude 'sender' from relations
+      select: {
+        id: true,
+        message: true,
+        attachment: true,
+        created_at: true,
+        updated_at: true,
+        chat: {
+          id: true,
+          last_message: true,
+          created_at: true,
+          updated_at: true,
+          merchant: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            profile_picture: true,
+          },
+          admin: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            profile_picture: true,
+          },
+        },
+      },
+      order: {
+        created_at: 'ASC',
+      },
+    });
+
+    // Populate the `sender` field dynamically
+    const populatedMessages = await Promise.all(
+      messages.map(async (message) => {
+        let senderDetails;
+
+        if (message.senderType === 'User') {
+          senderDetails = await this.userRepo.findOne({
+            where: { id: message.sender },
+            select: ['id', 'first_name', 'last_name', 'profile_picture'],
+          });
+        } else if (message.senderType === 'Admin') {
+          senderDetails = await this.adminRepo.findOne({
+            where: { id: message.sender },
+            select: ['id', 'first_name', 'last_name', 'profile_picture'],
+          });
+        }
+
+        return {
+          ...message,
+          sender: senderDetails,
+        };
+      }),
+    );
+
+    return populatedMessages;
+  }
 
   async getChatsByParticipant(participantId: string): Promise<Chat[]> {
     const chats = await this.chatRepo.find({
@@ -135,6 +282,34 @@ export class ChatService {
       },
       select: {
         user: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          profile_picture: true,
+        },
+        merchant: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          profile_picture: true,
+        },
+      },
+    });
+
+    return chats;
+  }
+  async getAdminChatsByParticipant(participantId: string): Promise<AdminChat[]> {
+    const chats = await this.adminChatRepo.find({
+      relations: ['user', 'merchant'],
+      where: [
+        { admin: { id: participantId } },
+        { merchant: { id: participantId } },
+      ],
+      order: {
+        updated_at: 'DESC',
+      },
+      select: {
+        admin: {
           id: true,
           first_name: true,
           last_name: true,

@@ -13,6 +13,7 @@ import { Repository } from 'typeorm';
 import { Chat } from './entities/chat.entity';
 import { GetMessagesDto, SendMessageDto } from './dto/create-chat.dto';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
+import { AdminChat } from './entities/admin-chat.entity';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -22,6 +23,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     @InjectRepository(Chat)
     private readonly chatRepo: Repository<Chat>,
+    @InjectRepository(AdminChat)
+    private readonly adminChatRepo: Repository<AdminChat>,
     private readonly chatService: ChatService,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
