@@ -4,6 +4,8 @@ import { Rating } from './entities/rating.entity';
 import { Repository } from 'typeorm';
 import { CreateRatingDto } from './dto/create-rating.dto';
 import { ProductService } from 'src/product/product.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { MailService } from 'src/core/mail/email';
 
 @Injectable()
 export class RatingService {
@@ -11,6 +13,8 @@ export class RatingService {
     @InjectRepository(Rating)
     private readonly ratingRepo: Repository<Rating>,
     private readonly productService: ProductService,
+    private readonly notificationService: NotificationService,
+    private readonly mailService: MailService,
   ) {}
 
   async create(createRatingDto: CreateRatingDto, user: string) {
@@ -37,7 +41,6 @@ export class RatingService {
       throw new BadRequestException('Unable to create rating');
     }
 
-    // Update product average rating
     const ratings = await this.ratingRepo.find({
       where: { product: { id: product } },
     });
@@ -47,6 +50,29 @@ export class RatingService {
     await this.productService.updateWithoutImage(product, {
       avg_rating: avgRating,
     });
+
+    try {
+      await this.mailService.sendMailNotification(
+        validate.user.email,
+        'Product Rating',
+        {
+          name: validate.user.first_name,
+          productName: validate.product_name,
+          ratedBy: rating.ratedBy.first_name,
+        },
+        'rating',
+      );
+
+      await this.notificationService.create(
+        {
+          title: 'Product Rating',
+          message: `Hi, your product: ${validate.product_name}  has been rated by ${rating.ratedBy.first_name}`,
+        },
+        validate.user.id,
+      );
+    } catch (error) {
+      console.log('error:', error);
+    }
 
     return result;
   }
