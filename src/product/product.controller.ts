@@ -70,7 +70,6 @@ export class ProductController {
       const user = req.user.id;
       const school = req.user.school.id;
 
-      // Pass the extracted data along with other fields to the service
       const data = await this.productService.create(
         createProductDto,
         files,
@@ -111,7 +110,7 @@ export class ProductController {
     status: 400,
     description: 'Invalid payload or product not found',
   })
-  @ApiBody({ type: CreateProductDto }) // Can reuse CreateProductDto or define a specific update DTO
+  @ApiBody({ type: CreateProductDto })
   @UseInterceptors(FilesInterceptor('files', 5))
   @UseGuards(MerchantGuard)
   async update(

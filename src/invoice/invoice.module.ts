@@ -8,13 +8,13 @@ import { VerifyTokenMiddleware } from 'src/core/common/middlewares';
 import { WebhookController } from './webhook.controller';
 import { WebhookService } from './service/webhook.service';
 import { Product } from 'src/product/entities/product.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { MailService } from 'src/core/mail/email';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Invoice, User, Product]), // Register the Product entity
-  ],
+  imports: [TypeOrmModule.forFeature([Invoice, User, Product, Notification])],
   controllers: [OrderInvoiceController, WebhookController],
-  providers: [InvoiceService, WebhookService],
+  providers: [InvoiceService, WebhookService, NotificationService, MailService],
 })
 export class InvoiceModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
