@@ -67,7 +67,7 @@ export class RatingService {
       await this.notificationService.create(
         {
           title: 'Product Rating',
-          message: `Hi, your product: ${validate.product_name}  has been rated by ${rating.ratedBy.first_name}`,
+          message: `Hi, your product: ${validate.product_name}  has been rated ${rating_number} by ${rating.ratedBy.first_name}`,
         },
         validate.user.id,
       );
