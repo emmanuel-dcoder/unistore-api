@@ -214,7 +214,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     const messages = await this.chatService.getAdminMessages(
-      payload.user,
+      payload.admin,
       payload.merchant,
       payload.senderType,
     );

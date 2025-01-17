@@ -48,7 +48,7 @@ export class GetAdminMessagesDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  user: string;
+  admin: string;
 
   @ApiProperty()
   @IsString()
