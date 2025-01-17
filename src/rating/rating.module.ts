@@ -9,10 +9,13 @@ import { Rating } from './entities/rating.entity';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
 import { CategoryService } from 'src/category/category.service';
 import { Category } from 'src/category/entities/category.entity';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { MailService } from 'src/core/mail/email';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Rating, Product, Category]), // Register the Product entity
+    TypeOrmModule.forFeature([Rating, Product, Category, Notification]),
   ],
   controllers: [RatingController],
   providers: [
@@ -20,6 +23,8 @@ import { Category } from 'src/category/entities/category.entity';
     ProductService,
     CloudinaryService,
     CategoryService,
+    NotificationService,
+    MailService,
   ],
 })
 export class RatingModule implements NestModule {
