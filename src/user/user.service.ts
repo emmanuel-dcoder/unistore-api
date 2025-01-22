@@ -109,7 +109,7 @@ export class UserService {
         'identification',
         'user_status',
         'password',
-        "user_type"
+        'user_type',
       ],
     });
 
@@ -575,5 +575,17 @@ export class UserService {
       'profile_pictures',
     );
     return uploadedFile.url;
+  }
+
+  async deleteUserByEmail(email: string): Promise<{ message: string }> {
+    const result = await this.userRepo.delete({ email });
+
+    if (result.affected === 0) {
+      throw new NotFoundException(`User with email ${email} not found.`);
+    }
+
+    return {
+      message: `User with email ${email} has been deleted successfully.`,
+    };
   }
 }

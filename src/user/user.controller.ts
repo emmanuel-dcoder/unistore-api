@@ -11,6 +11,8 @@ import {
   Get,
   Req,
   BadRequestException,
+  Delete,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -482,5 +484,10 @@ export class UserController {
       this.logger.error('Error', error.message);
       throw error;
     }
+  }
+
+  @Delete()
+  async deleteUserByEmail(@Body() deleteUserDto: { email: string }) {
+    return this.userService.deleteUserByEmail(deleteUserDto.email);
   }
 }
