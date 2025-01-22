@@ -7,6 +7,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -58,7 +59,7 @@ export class User {
   @Column({ nullable: true })
   verification_otp: string;
 
-  @OneToOne(() => School, (school) => school.id)
+  @ManyToOne(() => School, (school) => school.id)
   @JoinColumn({ name: 'school_id' })
   school: School;
 

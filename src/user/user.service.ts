@@ -295,6 +295,14 @@ export class UserService {
   }
 
   async updateSchool(id: string, updateUserSchoolDto: UpdateUserSchoolDto) {
+    const existingUser = await this.userRepo.findOne({
+      where: { id },
+    });
+
+    if (existingUser && existingUser.id !== id) {
+      throw new BadRequestException('Email is already in use by another user.');
+    }
+
     const user = await this.userRepo.findOne({
       where: { id },
       select: [

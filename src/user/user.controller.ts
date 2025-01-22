@@ -216,6 +216,7 @@ export class UserController {
     @Body() updateUserSchoolDto: UpdateUserSchoolDto,
   ) {
     try {
+      //school
       const { school } = updateUserSchoolDto;
       await this.schoolService.findOne(school);
       await this.userService.updateSchool(id, updateUserSchoolDto);
