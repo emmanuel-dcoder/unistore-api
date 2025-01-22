@@ -109,6 +109,7 @@ export class UserService {
         'identification',
         'user_status',
         'password',
+        "user_type"
       ],
     });
 
