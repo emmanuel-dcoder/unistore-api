@@ -188,7 +188,7 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    const otpExpiryLimit = 60 * 1000;
+    const otpExpiryLimit = 60 * 5000;
     const otpCreationTime = user.created_at.getTime();
     const currentTime = Date.now();
 
@@ -424,7 +424,7 @@ export class UserService {
 
     const tokenAge =
       (new Date().getTime() - new Date(user.reset_token_created_at).getTime()) /
-      1000;
+      5000;
 
     // Check if token expired (1 minute)
     if (tokenAge > 60) {
