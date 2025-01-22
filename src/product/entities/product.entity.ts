@@ -41,6 +41,9 @@ export class Product {
   @Column()
   stock_quantity: number;
 
+  @Column({ type: 'boolean', default: false, nullable: true })
+  featured: boolean;
+
   @Column()
   condition: string;
 

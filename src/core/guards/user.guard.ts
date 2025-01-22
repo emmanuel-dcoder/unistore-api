@@ -11,7 +11,10 @@ export class UserGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
 
     // Check if user_type is 'user'
-    if (request.user.user_type === 'user' && request.user.user_type.is_active) {
+    if (
+      (request.user.user_type === 'user' && request.user.user_type.is_active) ||
+      request.user.school !== null
+    ) {
       return true;
     }
     throw new UnauthorizedException(
