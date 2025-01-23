@@ -39,6 +39,25 @@ export class CategoryController {
     }
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a category by ID' })
+  @ApiResponse({ status: 200, description: `Category retrieved successfully` })
+  @ApiResponse({ status: 404, description: `Category not found` })
+  async findOne(@Param('id') id: string) {
+    try {
+      const data = await this.categoryService.findOne(id);
+      return successResponse({
+        message: `Category retrieved successfully`,
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all categories' })
   @ApiResponse({
@@ -50,25 +69,6 @@ export class CategoryController {
       const data = await this.categoryService.findAll(search);
       return successResponse({
         message: `Categories retrieved successfully`,
-        code: HttpStatus.OK,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw error;
-    }
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Get a category by ID' })
-  @ApiResponse({ status: 200, description: `Category retrieved successfully` })
-  @ApiResponse({ status: 404, description: `Category not found` })
-  async findOne(@Param('id') id: string) {
-    try {
-      const data = await this.categoryService.findOne(id);
-      return successResponse({
-        message: `Category retrieved successfully`,
         code: HttpStatus.OK,
         status: 'success',
         data,
