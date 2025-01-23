@@ -17,9 +17,20 @@ import { NotificationService } from 'src/notification/notification.service';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { Product } from 'src/product/entities/product.entity';
+import { InvoiceService } from 'src/invoice/service/invoice.service';
+import { Invoice } from 'src/invoice/entities/invoice.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, School, Notification, Category, Product])],
+  imports: [
+    TypeOrmModule.forFeature([
+      User,
+      School,
+      Notification,
+      Category,
+      Product,
+      Invoice,
+    ]),
+  ],
   controllers: [UserController],
   providers: [
     UserService,
@@ -27,6 +38,7 @@ import { Product } from 'src/product/entities/product.entity';
     MailService,
     SchoolService,
     NotificationService,
+    InvoiceService,
   ],
 })
 export class UserModule implements NestModule {
@@ -51,6 +63,14 @@ export class UserModule implements NestModule {
       {
         path: 'api/v1/user/change-password',
         method: RequestMethod.PUT,
+      },
+      {
+        path: 'api/v1/user/merchant/dashboard',
+        method: RequestMethod.GET,
+      },
+      {
+        path: 'api/v1/user/dashboard',
+        method: RequestMethod.GET,
       },
     );
   }

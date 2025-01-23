@@ -12,6 +12,7 @@ import {
   Req,
   BadRequestException,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -45,6 +46,9 @@ import {
 } from 'src/core/common';
 import { ResendOtpDto, VerifyOtpDto } from './dto/verify-otp.dto.';
 import { SchoolService } from 'src/school/school.service';
+import { InvoiceService } from 'src/invoice/service/invoice.service';
+import { MerchantGuard } from 'src/core/guards/merchant.guard';
+import { UserGuard } from 'src/core/guards/user.guard';
 
 @Controller('api/v1/user')
 @ApiTags('User')
@@ -53,12 +57,53 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly schoolService: SchoolService,
+    private readonly invoiceService: InvoiceService,
   ) {}
 
+  @UseGuards(MerchantGuard)
+  @Get('merchant/dashboard')
+  @ApiOperation({
+    summary: 'Get merchant dashboard with analysis',
+  })
+  @ApiResponse({ status: 200, description: 'Data fetched successfully' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async getMerchantDashboardData(
+    @Req() req: any,
+  ): Promise<SuccessResponseType> {
+    try {
+      const userId = req.user.id;
+
+      const merchantAnalysis =
+        await this.invoiceService.getMerchantAnalysis(userId);
+
+      let limit = 5;
+      const invoice =
+        await this.invoiceService.getInvoicesByProductOwnerWithSearch(
+          userId,
+          '',
+          limit,
+        );
+
+      return successResponse({
+        message: 'Dashboard data fetched successfully',
+        code: 200,
+        status: 'success',
+        data: {
+          merchantAnalysis,
+          invoice: invoice,
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard data', error);
+      throw error;
+    }
+  }
+
+  @UseGuards(UserGuard)
   @Get('dashboard')
   @ApiOperation({
     summary:
-      'Get categories, featured products, all products, and merchant users',
+      'Dashboard: Get categories, featured products, all products, and  users',
   })
   @ApiResponse({ status: 200, description: 'Data fetched successfully' })
   @ApiResponse({ status: 500, description: 'Internal server error' })

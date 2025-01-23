@@ -105,6 +105,7 @@ export class InvoiceService {
   async getInvoicesByProductOwnerWithSearch(
     productOwnerId: string,
     search?: string,
+    limit?: number,
   ): Promise<Invoice[]> {
     const queryBuilder = this.invoiceRepo.createQueryBuilder('invoice');
 
@@ -132,13 +133,16 @@ export class InvoiceService {
         }),
       );
     }
-
     queryBuilder.select([
       'invoice',
       'product_owner.first_name',
       'product_owner.last_name',
     ]);
     queryBuilder.orderBy('invoice.created_at', 'DESC');
+
+    if (limit) {
+      queryBuilder.take(5);
+    }
 
     return queryBuilder.getMany();
   }
