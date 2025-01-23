@@ -32,15 +32,64 @@ import { LoginDto } from './dto/login.dto';
 import { ResendOtpDto } from './dto/verify-otp.dto.';
 import { MailService } from 'src/core/mail/email';
 import { NotificationService } from 'src/notification/notification.service';
+import { Product } from 'src/product/entities/product.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly cloudinaryService: CloudinaryService,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
+    @InjectRepository(Category)
+    private readonly categoryRepo: Repository<Category>,
+    @InjectRepository(Product)
+    private readonly productRepo: Repository<Product>,
     private readonly mailService: MailService,
     private readonly notificationService: NotificationService,
   ) {}
+
+  /**user dashboard and analysis */
+  // Fetch all users with 'merchant' user_type
+  async findUsersByType(userType: string): Promise<User[]> {
+    return await this.userRepo.find({
+      where: { user_type: userType },
+      select: [
+        'first_name',
+        'last_name',
+        'user_type',
+        'phone',
+        'id',
+        'profile_picture',
+        'is_active',
+        'is_merchant_verified',
+        'email',
+        'identification',
+        'user_status',
+      ],
+    });
+  }
+
+  // Fetch all products where 'featured' is true
+  async findFeaturedProducts(schoolId: string): Promise<Product[]> {
+    return await this.productRepo.find({
+      where: { featured: true, school: { id: schoolId } },
+    });
+  }
+
+  // Fetch all products
+  async findAll(schoolId: string): Promise<Product[]> {
+    return await this.productRepo.find({
+      where: { school: { id: schoolId } },
+    });
+  }
+
+  // Fetch categories in descending order by created_at
+  async findAllDesc(): Promise<Category[]> {
+    return await this.categoryRepo.find({
+      order: { created_at: 'DESC' },
+    });
+  }
+  /**end of user dashboard analysis */
 
   async create(payload: CreateUserDto) {
     const userRecord = await this.userRepo.findOne({

@@ -15,6 +15,8 @@ import { AdminChat } from './entities/admin-chat.entity';
 import { MailService } from 'src/core/mail/email';
 import { NotificationService } from 'src/notification/notification.service';
 import { Notification } from 'src/notification/entities/notification.entity';
+import { Category } from 'src/category/entities/category.entity';
+import { Product } from 'src/product/entities/product.entity';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { Notification } from 'src/notification/entities/notification.entity';
       AdminMessage,
       AdminChat,
       Notification,
+      Category,
+      Product,
     ]),
   ],
   controllers: [ChatController],

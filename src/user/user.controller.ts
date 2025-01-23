@@ -55,6 +55,43 @@ export class UserController {
     private readonly schoolService: SchoolService,
   ) {}
 
+  @Get('dashboard')
+  @ApiOperation({
+    summary:
+      'Get categories, featured products, all products, and merchant users',
+  })
+  @ApiResponse({ status: 200, description: 'Data fetched successfully' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async getDashboardData(@Req() req: any): Promise<SuccessResponseType> {
+    try {
+      const schoolId = req.user?.school?.id;
+
+      const categories = await this.userService.findAllDesc();
+
+      const featuredProducts =
+        await this.userService.findFeaturedProducts(schoolId);
+
+      const allProducts = await this.userService.findAll(schoolId);
+
+      const merchantUsers = await this.userService.findUsersByType('merchant');
+
+      return successResponse({
+        message: 'Dashboard data fetched successfully',
+        code: 200,
+        status: 'success',
+        data: {
+          categories,
+          featuredProducts,
+          allProducts,
+          merchantUsers,
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard data', error);
+      throw error;
+    }
+  }
+
   @Post('')
   @ApiOperation({ summary: 'Create User' })
   @ApiBody({ type: CreateUserDto })

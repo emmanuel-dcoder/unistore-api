@@ -15,9 +15,11 @@ import { School } from 'src/school/entities/school.entity';
 import { VerifyTokenMiddleware } from 'src/core/common/middlewares';
 import { NotificationService } from 'src/notification/notification.service';
 import { Notification } from 'src/notification/entities/notification.entity';
+import { Category } from 'src/category/entities/category.entity';
+import { Product } from 'src/product/entities/product.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, School, Notification])],
+  imports: [TypeOrmModule.forFeature([User, School, Notification, Category, Product])],
   controllers: [UserController],
   providers: [
     UserService,
