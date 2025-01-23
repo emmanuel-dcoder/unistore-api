@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Logger, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Logger,
+  HttpStatus,
+  Query,
+  Get,
+  Param,
+} from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -20,6 +29,46 @@ export class CategoryController {
       const data = await this.categoryService.create(createCategoryDto);
       return successResponse({
         message: `Category created successfully`,
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all categories' })
+  @ApiResponse({
+    status: 200,
+    description: `Categories retrieved successfully`,
+  })
+  async findAll(@Query('search') search?: string) {
+    try {
+      const data = await this.categoryService.findAll(search);
+      return successResponse({
+        message: `Categories retrieved successfully`,
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a category by ID' })
+  @ApiResponse({ status: 200, description: `Category retrieved successfully` })
+  @ApiResponse({ status: 404, description: `Category not found` })
+  async findOne(@Param('id') id: string) {
+    try {
+      const data = await this.categoryService.findOne(id);
+      return successResponse({
+        message: `Category retrieved successfully`,
         code: HttpStatus.OK,
         status: 'success',
         data,
