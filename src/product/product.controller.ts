@@ -13,6 +13,7 @@ import {
   Delete,
   Query,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -204,6 +205,28 @@ export class ProductController {
       });
     } catch (error) {
       this.logger.error('Error fetching products', error.message);
+      throw error;
+    }
+  }
+
+  @Get('product/:id')
+  @ApiOperation({ summary: 'Get product by ID' })
+  @ApiResponse({ status: 200, description: 'Product retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Product not found' })
+  async getProductById(@Param('id') productId: string) {
+    try {
+      const product = await this.productService.findById(productId);
+      if (!product) {
+        throw new BadRequestException('Product not found');
+      }
+      return successResponse({
+        message: 'Product retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: product,
+      });
+    } catch (error) {
+      this.logger.error('Error fetching product', error.message);
       throw error;
     }
   }

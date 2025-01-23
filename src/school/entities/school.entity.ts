@@ -23,6 +23,9 @@ export class School {
   image: string;
 
   @Column({ nullable: true })
+  abbreviation: string;
+
+  @Column({ nullable: true })
   description: string;
 
   @Column({ nullable: true })

@@ -12,4 +12,9 @@ export class CreateSchoolDto {
   @ApiProperty()
   @IsNotEmpty()
   description: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNotEmpty()
+  abbreviation: string;
 }

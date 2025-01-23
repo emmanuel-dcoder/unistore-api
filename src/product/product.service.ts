@@ -71,12 +71,11 @@ export class ProductService {
     updateProductDto: Partial<CreateProductDto> & {
       school?: string;
       user?: string;
-    }, // Assuming this DTO has all the fields needed for update
+    },
     files: Array<Express.Multer.File> | undefined,
   ) {
     const { category, school, user, ...rest } = updateProductDto;
 
-    // Fetch the product to update
     const product = await this.productRepo.findOne({
       where: { id: productId },
     });
@@ -85,7 +84,6 @@ export class ProductService {
       throw new BadRequestException('Product not found');
     }
 
-    // Update category if provided
     if (category) {
       product.category = { id: category } as any;
     }
@@ -124,8 +122,8 @@ export class ProductService {
       throw new NotFoundException(`Product with ID ${productId} not found`);
     }
 
-    Object.assign(product, updateData); // Merge the update data into the existing product
-    return this.productRepo.save(product); // Save the updated product
+    Object.assign(product, updateData);
+    return this.productRepo.save(product);
   }
 
   async findByUser(userId: string, search: string, schoolId: string) {
@@ -162,7 +160,24 @@ export class ProductService {
   async findById(productId: string) {
     const product = await this.productRepo.findOne({
       where: { id: productId },
-      relations: ['user', 'school'], // Include related entities if needed
+      relations: ['user', 'school'],
+      select: {
+        user: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          email: true,
+          phone: true,
+          profile_picture: true,
+        },
+        school: {
+          id: true,
+          name: true,
+          image: true,
+          abbreviation: true,
+          school_id: true
+        }
+      },
     });
 
     if (!product) {
