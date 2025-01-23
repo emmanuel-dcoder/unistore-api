@@ -10,7 +10,13 @@ import {
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
 
 @Controller('api/v1/category')
@@ -60,6 +66,11 @@ export class CategoryController {
 
   @Get()
   @ApiOperation({ summary: 'Get all categories' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search term to filter categories by name (optional)',
+  })
   @ApiResponse({
     status: 200,
     description: `Categories retrieved successfully`,
