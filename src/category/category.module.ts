@@ -10,11 +10,4 @@ import { VerifyTokenMiddleware } from 'src/core/common/middlewares';
   controllers: [CategoryController],
   providers: [CategoryService],
 })
-export class CategoryModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(VerifyTokenMiddleware)
-      .forRoutes(CategoryController)
-      .apply(VerifyTokenMiddleware);
-  }
-}
+export class CategoryModule {}
