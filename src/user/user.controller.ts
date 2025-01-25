@@ -13,6 +13,7 @@ import {
   BadRequestException,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -27,6 +28,7 @@ import {
   ApiResponse,
   ApiBody,
   ApiConsumes,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -198,6 +200,36 @@ export class UserController {
       const data = await this.userService.getCurrentUser(userId);
       return successResponse({
         message: 'Login successful',
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @UseGuards(UserGuard)
+  @Get('/merchants')
+  @ApiOperation({ summary: 'Get all merchants' })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description:
+      'Optional search parameter to filter merchants by first name, last name, or email. For example, providing "john" will match merchants with "john" in their name or email.',
+  })
+  @ApiResponse({ status: 200, description: 'Merchants fetched successfully.' })
+  @ApiResponse({ status: 404, description: 'No merchants found.' })
+  @ApiResponse({ status: 401, description: 'Unable to fetch merchants.' })
+  async findMerchants(@Req() req: any, @Query('search') search?: string) {
+    try {
+      const schoolId = req.user.school.id;
+      const data = await this.userService.findMerchants(search, schoolId);
+
+      return successResponse({
+        message: 'Merchants fetched successfully.',
         code: HttpStatus.OK,
         status: 'success',
         data,

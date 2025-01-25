@@ -72,6 +72,10 @@ export class UserModule implements NestModule {
         path: 'api/v1/user/dashboard',
         method: RequestMethod.GET,
       },
+      {
+        path: 'api/v1/user/merchants',
+        method: RequestMethod.GET,
+      },
     );
   }
 }

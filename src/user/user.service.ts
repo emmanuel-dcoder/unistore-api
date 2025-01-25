@@ -34,6 +34,7 @@ import { MailService } from 'src/core/mail/email';
 import { NotificationService } from 'src/notification/notification.service';
 import { Product } from 'src/product/entities/product.entity';
 import { Category } from 'src/category/entities/category.entity';
+import { Role } from 'src/core/enums/role.enum';
 
 @Injectable()
 export class UserService {
@@ -217,6 +218,43 @@ export class UserService {
     };
   }
 
+  async findMerchants(search?: string, schoolId?: string): Promise<any[]> {
+    const queryBuilder = this.userRepo.createQueryBuilder('user');
+
+    queryBuilder
+      .select([
+        'user.id',
+        'user.first_name',
+        'user.last_name',
+        'user.email',
+        'user.phone',
+        'user.profile_picture',
+        'user.is_active',
+        'user.is_merchant_verified',
+        'user.user_type',
+        'user.created_at',
+      ])
+      .where('user.user_type = :userType', { userType: Role.MERCHANT });
+
+    queryBuilder.andWhere('user.school = :schoolId', { schoolId });
+
+    if (search) {
+      queryBuilder.andWhere(
+        '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    queryBuilder.orderBy('user.created_at', 'DESC');
+
+    const merchants = await queryBuilder.getMany();
+
+    if (!merchants || merchants.length === 0) {
+      throw new NotFoundException('No merchants found.');
+    }
+
+    return merchants;
+  }
   async verifyOtp(payload: { email: string; otp: string }) {
     const { email, otp } = payload;
     const user = await this.userRepo.findOne({
