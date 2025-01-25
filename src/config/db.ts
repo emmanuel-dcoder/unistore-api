@@ -20,7 +20,6 @@ class DbConfig {
       password: POSTGRES_PASSWORD,
       database: POSTGRES_DATABASE,
       synchronize: process.env.NODE_ENV === 'development' ? true : false,
-      dropSchema: process.env.NODE_ENV === 'development',
       entities: ['dist/**/*.entity.js'],
       migrationsTableName: 'migration',
       migrations: ['dist/migration/*.js'],
