@@ -30,9 +30,9 @@ export class User {
 
   @Column({ nullable: true })
   phone: string;
-  
-  @Column({ nullable: true })
-  featured: Boolean;
+
+  @Column({ type: 'boolean', default: false, nullable: true })
+  featured: boolean;
 
   @Column()
   password: string;

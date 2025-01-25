@@ -20,8 +20,8 @@ export class Category {
   @Column({ nullable: true })
   description: string;
 
-  @Column({ nullable: true })
-  featured: Boolean;
+  @Column({ type: 'boolean', default: false, nullable: true })
+  featured: boolean;
 
   @OneToMany(() => Product, (product) => product.category, { cascade: true })
   products: Product[];
