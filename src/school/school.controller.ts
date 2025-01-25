@@ -51,6 +51,14 @@ export class SchoolController {
           type: 'string',
           description: 'Name of the school',
         },
+        abbreviation: {
+          type: 'string',
+          description: 'abbreviation of the school',
+        },
+        description: {
+          type: 'string',
+          description: 'description of the school',
+        },
       },
     },
   })
