@@ -32,7 +32,7 @@ export class User {
   phone: string;
   
   @Column({ nullable: true })
-  featured: string;
+  featured: Boolean;
 
   @Column()
   password: string;

@@ -230,6 +230,7 @@ export class UserService {
         'user.phone',
         'user.profile_picture',
         'user.is_active',
+        'user.featured',
         'user.is_merchant_verified',
         'user.user_type',
         'user.created_at',
