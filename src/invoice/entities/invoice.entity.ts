@@ -21,7 +21,7 @@ export class Invoice {
   @Column({ nullable: true })
   products: string;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'product_owner_id' })
   product_owner: User;
 

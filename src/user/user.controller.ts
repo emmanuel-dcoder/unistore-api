@@ -602,6 +602,7 @@ export class UserController {
 
   @Delete()
   async deleteUserByEmail(@Body() deleteUserDto: { email: string }) {
-    return this.userService.deleteUserByEmail(deleteUserDto.email);
+    const { email } = deleteUserDto;
+    return await this.userService.deleteUserByEmail(email);
   }
 }

@@ -64,7 +64,10 @@ export class Product {
   })
   status: ProductStatus;
 
-  @ManyToOne(() => User, (user) => user.id, { nullable: true })
+  @ManyToOne(() => User, (user) => user.id, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
 

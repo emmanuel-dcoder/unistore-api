@@ -18,7 +18,7 @@ export class Chat {
   @Column({ nullable: true })
   last_message: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 

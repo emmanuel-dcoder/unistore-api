@@ -24,7 +24,7 @@ export class Rating {
   @ManyToOne(() => Product, (product) => product.rating)
   product: Product;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
   ratedBy: User;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

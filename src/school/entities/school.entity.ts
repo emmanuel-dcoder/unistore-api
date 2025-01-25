@@ -34,7 +34,7 @@ export class School {
   @OneToMany(() => Product, (product) => product.school)
   product: Product[];
 
-  @OneToOne(() => User, (user) => user.school)
+  @OneToOne(() => User, (user) => user.school, { onDelete: 'CASCADE' })
   user: User;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
