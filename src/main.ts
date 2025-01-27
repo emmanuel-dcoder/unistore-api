@@ -19,6 +19,10 @@ async function bootstrap() {
     .setDescription(
       'A platform that connects buyers and merchants in a unique way',
     )
+    .addApiKey(
+      { type: 'apiKey', name: 'x-access-token', in: 'header' },
+      'x-access-token',
+    )
     .setVersion('1.0')
     .addBearerAuth(
       {
