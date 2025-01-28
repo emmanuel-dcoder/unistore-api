@@ -42,7 +42,6 @@ export const generateAccessToken = (
   domain: TokenKey = 'user_access_key',
 ) => {
   const { id } = payload;
-  console.log('payload', payload);
   return jwt.sign({ ...payload, id }, tokenKeys[domain], {
     expiresIn: AccessTokenMaxAge / 1000,
   });
