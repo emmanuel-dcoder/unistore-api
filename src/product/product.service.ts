@@ -150,10 +150,6 @@ export class ProductService {
 
     const products = await queryBuilder.getMany();
 
-    if (!products.length) {
-      throw new BadRequestException('No products found for this user');
-    }
-
     return products;
   }
 
@@ -175,8 +171,8 @@ export class ProductService {
           name: true,
           image: true,
           abbreviation: true,
-          school_id: true
-        }
+          school_id: true,
+        },
       },
     });
 
