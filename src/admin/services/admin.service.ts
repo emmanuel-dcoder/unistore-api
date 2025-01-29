@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -21,185 +22,246 @@ export class AdminService {
   ) {}
 
   async create(payload: CreateAdminDto) {
-    const hashedPassword = await hashPassword(payload.password);
-    payload.password = hashedPassword;
+    try {
+      const hashedPassword = await hashPassword(payload.password);
+      payload.password = hashedPassword;
 
-    const result = await this.adminRepo.save(payload);
+      const result = await this.adminRepo.save(payload);
 
-    delete result.password;
-    return result;
+      delete result.password;
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+    try {
+      const { email, password } = loginDto;
 
-    const admin = await this.adminRepo.findOne({
-      where: { email },
+      const admin = await this.adminRepo.findOne({
+        where: { email },
 
-      select: [
-        'first_name',
-        'last_name',
-        'user_type',
-        'id',
-        'profile_picture',
-        'email',
-        'password',
-        'is_active',
-      ],
-    });
+        select: [
+          'first_name',
+          'last_name',
+          'user_type',
+          'id',
+          'profile_picture',
+          'email',
+          'password',
+          'is_active',
+        ],
+      });
 
-    if (!admin) {
-      throw new UnauthorizedException('Invalid email or password');
+      if (!admin) {
+        throw new UnauthorizedException('Invalid email or password');
+      }
+
+      const isPasswordValid = await compare(password, admin.password);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid email or password');
+      }
+
+      const access_token = generateAccessToken(
+        {
+          id: admin.id,
+          first_name: admin.first_name,
+          last_name: admin.last_name,
+          user_type: admin.user_type,
+          is_active: admin.is_active,
+        },
+        'user_access_key',
+      );
+
+      return {
+        access_token,
+        admin: {
+          id: admin.id,
+          email: admin.email,
+          first_name: admin.first_name,
+          last_name: admin.last_name,
+          user_type: admin.user_type,
+        },
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const isPasswordValid = await compare(password, admin.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
-    const access_token = generateAccessToken(
-      {
-        id: admin.id,
-        first_name: admin.first_name,
-        last_name: admin.last_name,
-        user_type: admin.user_type,
-        is_active: admin.is_active,
-      },
-      'user_access_key',
-    );
-
-    return {
-      access_token,
-      admin: {
-        id: admin.id,
-        email: admin.email,
-        first_name: admin.first_name,
-        last_name: admin.last_name,
-        user_type: admin.user_type,
-      },
-    };
   }
 
   async uploadProfilePicture(adminId: string, file: Express.Multer.File) {
-    const admin = await this.adminRepo.findOne({
-      where: { id: adminId },
-    });
+    try {
+      const admin = await this.adminRepo.findOne({
+        where: { id: adminId },
+      });
 
-    if (!admin) {
-      throw new NotFoundException('User not found');
+      if (!admin) {
+        throw new NotFoundException('User not found');
+      }
+
+      const uploadedFile = await this.uploadImage(file);
+      admin.profile_picture = uploadedFile.url;
+
+      await this.adminRepo.save(admin);
+
+      return {
+        message: 'Profile picture uploaded successfully',
+        profile_picture: uploadedFile.url,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const uploadedFile = await this.uploadImage(file);
-    admin.profile_picture = uploadedFile.url;
-
-    await this.adminRepo.save(admin);
-
-    return {
-      message: 'Profile picture uploaded successfully',
-      profile_picture: uploadedFile.url,
-    };
   }
 
   async getCurrentAdmin(adminId: string): Promise<Admin | undefined> {
-    const admin = await this.adminRepo.findOne({
-      where: { id: adminId },
-      select: [
-        'first_name',
-        'last_name',
-        'phone',
-        'id',
-        'profile_picture',
-        'is_active',
-        'email',
-        'sex',
-        'country',
-        'date_of_birth',
-        'is_active',
-        'phone',
-        'state',
-        'username',
-        'user_type',
-      ],
-    });
-    if (!admin) throw new NotFoundException('Admin not found');
+    try {
+      const admin = await this.adminRepo.findOne({
+        where: { id: adminId },
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'email',
+          'sex',
+          'country',
+          'date_of_birth',
+          'is_active',
+          'phone',
+          'state',
+          'username',
+          'user_type',
+        ],
+      });
+      if (!admin) throw new NotFoundException('Admin not found');
 
-    return admin;
+      return admin;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async changePassword(adminId: string, changePasswordDto: ChangePasswordDto) {
-    const { currentPassword, newPassword } = changePasswordDto;
+    try {
+      const { currentPassword, newPassword } = changePasswordDto;
 
-    const admin = await this.adminRepo.findOne({ where: { id: adminId } });
+      const admin = await this.adminRepo.findOne({ where: { id: adminId } });
 
-    if (!admin) {
-      throw new NotFoundException('Admin not found');
+      if (!admin) {
+        throw new NotFoundException('Admin not found');
+      }
+
+      const isPasswordValid = await compare(currentPassword, admin.password);
+      if (!isPasswordValid) {
+        throw new BadRequestException('Current password is incorrect');
+      }
+
+      admin.password = await hashPassword(newPassword);
+      await this.adminRepo.save(admin);
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const isPasswordValid = await compare(currentPassword, admin.password);
-    if (!isPasswordValid) {
-      throw new BadRequestException('Current password is incorrect');
-    }
-
-    admin.password = await hashPassword(newPassword);
-    await this.adminRepo.save(admin);
   }
 
   async getAdmins(filters: { email?: string; username?: string }) {
-    const { email, username } = filters;
+    try {
+      const { email, username } = filters;
 
-    const query = this.adminRepo.createQueryBuilder('admin');
+      const query = this.adminRepo.createQueryBuilder('admin');
 
-    if (email) {
-      query.andWhere('admin.email = :email', { email });
-    }
+      if (email) {
+        query.andWhere('admin.email = :email', { email });
+      }
 
-    if (username) {
-      query.andWhere('admin.username = :username', { username });
-    }
+      if (username) {
+        query.andWhere('admin.username = :username', { username });
+      }
 
-    const admins = await query.getMany();
-    if (!admins.length) {
-      throw new NotFoundException(
-        'No admin(s) found with the provided criteria',
+      const admins = await query.getMany();
+      if (!admins.length) {
+        throw new NotFoundException(
+          'No admin(s) found with the provided criteria',
+        );
+      }
+
+      return admins;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
     }
-
-    return admins;
   }
 
   private async uploadImage(file: Express.Multer.File | undefined) {
-    if (!file) {
-      return null;
+    try {
+      if (!file) {
+        return null;
+      }
+      const uploadedFile = await this.cloudinaryService.uploadFile(
+        file,
+        'profile_pictures',
+      );
+      return uploadedFile.url;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-    const uploadedFile = await this.cloudinaryService.uploadFile(
-      file,
-      'profile_pictures',
-    );
-    return uploadedFile.url;
   }
 
   async updateAdmin(id: string, updateAdminDto: any): Promise<Admin> {
-    const admin = await this.adminRepo.findOne({ where: { id } });
-
-    if (!admin) {
-      throw new NotFoundException('Admin not found');
-    }
-
     try {
-      Object.assign(admin, updateAdminDto);
-      return await this.adminRepo.save(admin);
+      const admin = await this.adminRepo.findOne({ where: { id } });
+
+      if (!admin) {
+        throw new NotFoundException('Admin not found');
+      }
+
+      try {
+        Object.assign(admin, updateAdminDto);
+        return await this.adminRepo.save(admin);
+      } catch (error) {
+        throw new BadRequestException('Failed to update admin');
+      }
     } catch (error) {
-      throw new BadRequestException('Failed to update admin');
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
   async deleteAdmin(id: string): Promise<void> {
-    const admin = await this.adminRepo.findOne({ where: { id } });
-
-    if (!admin) {
-      throw new NotFoundException('Admin not found');
+    try {
+      const admin = await this.adminRepo.findOne({ where: { id } });
+      if (!admin) {
+        throw new NotFoundException('Admin not found');
+      }
+      await this.adminRepo.delete(id);
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    await this.adminRepo.delete(id);
   }
 }

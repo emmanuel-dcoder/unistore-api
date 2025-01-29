@@ -113,9 +113,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
 
     if (receiverSocketId) {
-      return await this.server
-        .to(receiverSocketId)
-        .emit('receiveMessage', savedMessage);
+      return await this.server.emit(`${receiver}`, savedMessage);
     }
   }
 
@@ -183,9 +181,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
 
     if (receiverSocketId) {
-      return await this.server
-        .to(receiverSocketId)
-        .emit('receiveMessage', savedMessage);
+      return await this.server.emit(`${receiver}`, savedMessage);
     }
   }
 
