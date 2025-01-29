@@ -18,6 +18,10 @@ export class InvoiceService {
     private readonly productRepo: Repository<Product>,
   ) {}
 
+  async getInvoiceById(invoiceId: string): Promise<Invoice | null> {
+    return this.invoiceRepo.findOne({ where: { invoice_id: invoiceId } });
+  }
+
   async getMerchantAnalysis(userId: string): Promise<any> {
     const totalInvoice = await this.invoiceRepo.count({
       where: { product_owner: { id: userId } },

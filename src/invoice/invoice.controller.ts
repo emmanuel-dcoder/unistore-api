@@ -11,7 +11,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
 import { InvoiceService } from './service/invoice.service';
 import { MerchantGuard } from 'src/core/guards/merchant.guard';
@@ -22,6 +28,37 @@ import { InvoicePayloadDto } from './dto/create-invoice.dto';
 export class OrderInvoiceController {
   private readonly logger = new Logger(OrderInvoiceController.name);
   constructor(private readonly invoiceService: InvoiceService) {}
+
+  @Get()
+  @ApiOperation({
+    summary: 'Get an invoice by invoice_id',
+  })
+  @ApiResponse({ status: 200, description: 'Invoice retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Invoice not found' })
+  @UseGuards(MerchantGuard)
+  async getInvoiceById(@Query('invoice_id') invoiceId: string) {
+    try {
+      if (!invoiceId) {
+        throw new NotFoundException('Invoice ID is required');
+      }
+
+      const invoice = await this.invoiceService.getInvoiceById(invoiceId);
+
+      if (!invoice) {
+        throw new NotFoundException('Invoice not found');
+      }
+
+      return successResponse({
+        message: 'Invoice retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: invoice,
+      });
+    } catch (error) {
+      this.logger.error(`Error retrieving invoice: ${invoiceId}`, error.stack);
+      throw error;
+    }
+  }
 
   @Get('merchant-dashboard-analysis')
   @ApiOperation({
@@ -89,6 +126,12 @@ export class OrderInvoiceController {
   @ApiOperation({
     summary: 'Get invoices by merchant with optional search',
   })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search is optional',
+  })
   @ApiResponse({ status: 200, description: 'Invoices retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'No invoices found for this owner' })
@@ -106,12 +149,11 @@ export class OrderInvoiceController {
           search,
         );
 
-      if (!invoices || invoices.length === 0) {
-        throw new NotFoundException('No invoices found for this owner');
-      }
-
       return successResponse({
-        message: 'Invoices retrieved successfully',
+        message:
+          invoices.length === 0
+            ? 'Currently no invoice'
+            : 'Invoices retrieved successfully',
         code: HttpStatus.OK,
         status: 'success',
         data: invoices,
