@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Between,
@@ -39,118 +39,146 @@ export class AdminUserDashboardService {
     user_type: string;
     description?: string;
   }): Promise<User> {
-    const generatedPassword = randomBytes(3).toString('hex');
+    try {
+      const generatedPassword = randomBytes(3).toString('hex');
 
-    const hashedPassword = await hashPassword(generatedPassword);
+      const hashedPassword = await hashPassword(generatedPassword);
 
-    const newUser = this.userRepo.create({
-      ...payload,
-      password: hashedPassword,
-      is_active: true,
-    });
+      const newUser = this.userRepo.create({
+        ...payload,
+        password: hashedPassword,
+        is_active: true,
+      });
 
-    const savedUser = await this.userRepo.save(newUser);
+      const savedUser = await this.userRepo.save(newUser);
 
-    delete savedUser.password;
+      delete savedUser.password;
 
-    return { ...savedUser };
+      return { ...savedUser };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async getUserAndOInvoiceCounts(): Promise<any> {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-    const currentDay = currentDate.getDate();
+    try {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth();
+      const currentDay = currentDate.getDate();
 
-    const sevenDaysAgo = new Date(currentYear, currentMonth, currentDay - 7);
+      const sevenDaysAgo = new Date(currentYear, currentMonth, currentDay - 7);
 
-    const fourteenDaysAgo = new Date(
-      currentYear,
-      currentMonth,
-      currentDay - 14,
-    );
+      const fourteenDaysAgo = new Date(
+        currentYear,
+        currentMonth,
+        currentDay - 14,
+      );
 
-    const currentInvoice = await this.invoiceRepo.count({
-      where: {
-        created_at: Between(sevenDaysAgo, currentDate),
-      },
-    });
+      const currentInvoice = await this.invoiceRepo.count({
+        where: {
+          created_at: Between(sevenDaysAgo, currentDate),
+        },
+      });
 
-    const previousInvoice = await this.invoiceRepo.count({
-      where: {
-        created_at: Between(fourteenDaysAgo, sevenDaysAgo),
-      },
-    });
+      const previousInvoice = await this.invoiceRepo.count({
+        where: {
+          created_at: Between(fourteenDaysAgo, sevenDaysAgo),
+        },
+      });
 
-    const currentMerchantUsers = await this.userRepo.count({
-      where: {
-        user_type: 'merchant',
-        created_at: Between(sevenDaysAgo, currentDate),
-      },
-    });
+      const currentMerchantUsers = await this.userRepo.count({
+        where: {
+          user_type: 'merchant',
+          created_at: Between(sevenDaysAgo, currentDate),
+        },
+      });
 
-    const previousMerchantUsers = await this.userRepo.count({
-      where: {
-        user_type: 'merchant',
-        created_at: Between(fourteenDaysAgo, sevenDaysAgo),
-      },
-    });
+      const previousMerchantUsers = await this.userRepo.count({
+        where: {
+          user_type: 'merchant',
+          created_at: Between(fourteenDaysAgo, sevenDaysAgo),
+        },
+      });
 
-    const currentUserUsers = await this.userRepo.count({
-      where: {
-        user_type: 'user',
-        created_at: Between(sevenDaysAgo, currentDate),
-      },
-    });
+      const currentUserUsers = await this.userRepo.count({
+        where: {
+          user_type: 'user',
+          created_at: Between(sevenDaysAgo, currentDate),
+        },
+      });
 
-    const previousUserUsers = await this.userRepo.count({
-      where: {
-        user_type: 'user',
-        created_at: Between(fourteenDaysAgo, sevenDaysAgo),
-      },
-    });
+      const previousUserUsers = await this.userRepo.count({
+        where: {
+          user_type: 'user',
+          created_at: Between(fourteenDaysAgo, sevenDaysAgo),
+        },
+      });
 
-    const orderPercentageChange =
-      currentInvoice > 0
-        ? this.calculatePercentageChange(currentInvoice, previousInvoice)
-        : 0;
-    const merchantPercentageChange =
-      currentMerchantUsers > 0
-        ? this.calculatePercentageChange(
-            currentMerchantUsers,
-            previousMerchantUsers,
-          )
-        : 0;
-    const userPercentageChange =
-      currentUserUsers > 0
-        ? this.calculatePercentageChange(currentUserUsers, previousUserUsers)
-        : 0;
+      const orderPercentageChange =
+        currentInvoice > 0
+          ? this.calculatePercentageChange(currentInvoice, previousInvoice)
+          : 0;
+      const merchantPercentageChange =
+        currentMerchantUsers > 0
+          ? this.calculatePercentageChange(
+              currentMerchantUsers,
+              previousMerchantUsers,
+            )
+          : 0;
+      const userPercentageChange =
+        currentUserUsers > 0
+          ? this.calculatePercentageChange(currentUserUsers, previousUserUsers)
+          : 0;
 
-    return {
-      orderCount: currentInvoice,
-      orderPercentageChange,
-      merchantCount: currentMerchantUsers,
-      merchantPercentageChange,
-      userCount: currentUserUsers,
-      userPercentageChange,
-    };
+      return {
+        orderCount: currentInvoice,
+        orderPercentageChange,
+        merchantCount: currentMerchantUsers,
+        merchantPercentageChange,
+        userCount: currentUserUsers,
+        userPercentageChange,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   private calculatePercentageChange(
     currentCount: number,
     previousCount: number,
   ): number {
-    if (previousCount === 0) {
-      return currentCount === 0 ? 0 : 100;
+    try {
+      if (previousCount === 0) {
+        return currentCount === 0 ? 0 : 100;
+      }
+      return ((currentCount - previousCount) / previousCount) * 100;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-    return ((currentCount - previousCount) / previousCount) * 100;
   }
 
   async getHighestPriceProduct(): Promise<Product[]> {
-    return await this.productRepo.find({
-      order: { price: 'DESC' },
-      take: 5,
-    });
+    try {
+      return await this.productRepo.find({
+        order: { price: 'DESC' },
+        take: 5,
+      });
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async getUsersByUserType(
@@ -158,13 +186,20 @@ export class AdminUserDashboardService {
     page: number,
     limit: number,
   ): Promise<User[]> {
-    const skip = (page - 1) * limit;
-    return await this.userRepo.find({
-      where: { user_type: userType },
-      skip: skip,
-      take: limit,
-      order: { created_at: 'DESC' },
-    });
+    try {
+      const skip = (page - 1) * limit;
+      return await this.userRepo.find({
+        where: { user_type: userType },
+        skip: skip,
+        take: limit,
+        order: { created_at: 'DESC' },
+      });
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async getInvoiceWithPagination(
@@ -173,123 +208,151 @@ export class AdminUserDashboardService {
     startDate: string,
     endDate: string,
   ): Promise<any> {
-    const skip = (page - 1) * limit;
+    try {
+      const skip = (page - 1) * limit;
 
-    const start = startDate ? new Date(startDate) : new Date();
-    const end = endDate ? new Date(endDate) : new Date();
+      const start = startDate ? new Date(startDate) : new Date();
+      const end = endDate ? new Date(endDate) : new Date();
 
-    const invoice = await this.invoiceRepo.find({
-      where: {
-        created_at: Between(start, end),
-      },
-      relations: ['product_owner'],
-      order: { created_at: 'DESC' },
-      select: {
-        product_owner: {
-          id: true,
-          first_name: true,
-          last_name: true,
-          profile_picture: true,
+      const invoice = await this.invoiceRepo.find({
+        where: {
+          created_at: Between(start, end),
         },
-      },
-      skip,
-      take: limit,
-    });
+        relations: ['product_owner'],
+        order: { created_at: 'DESC' },
+        select: {
+          product_owner: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            profile_picture: true,
+          },
+        },
+        skip,
+        take: limit,
+      });
 
-    const totalInvoice = await this.invoiceRepo.count({
-      where: {
-        created_at: Between(start, end),
-      },
-    });
+      const totalInvoice = await this.invoiceRepo.count({
+        where: {
+          created_at: Between(start, end),
+        },
+      });
 
-    return {
-      invoice,
-      totalInvoice,
-      page,
-      totalPages: Math.ceil(totalInvoice / limit),
-    };
+      return {
+        invoice,
+        totalInvoice,
+        page,
+        totalPages: Math.ceil(totalInvoice / limit),
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async getAllSchoolsWithUserCounts(paginationDto: PaginationDto) {
-    const { page, limit, searchQuery } = paginationDto;
+    try {
+      const { page, limit, searchQuery } = paginationDto;
 
-    const searchFilter = searchQuery
-      ? {
-          where: [
-            { name: Like(`%${searchQuery}%`) },
-            { school_id: Like(`%${searchQuery}%`) },
-          ],
-        }
-      : {};
+      const searchFilter = searchQuery
+        ? {
+            where: [
+              { name: Like(`%${searchQuery}%`) },
+              { school_id: Like(`%${searchQuery}%`) },
+            ],
+          }
+        : {};
 
-    const [schools, totalSchools] = await this.schoolRepo.findAndCount({
-      ...searchFilter,
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-
-    const schoolsWithCounts = [];
-
-    for (const school of schools) {
-      const merchantCount = await this.userRepo.count({
-        where: {
-          school: { id: school.id },
-          user_type: 'merchant',
-        },
+      const [schools, totalSchools] = await this.schoolRepo.findAndCount({
+        ...searchFilter,
+        skip: (page - 1) * limit,
+        take: limit,
       });
 
-      const userCount = await this.userRepo.count({
-        where: {
-          school: { id: school.id },
-          user_type: 'user',
-        },
-      });
+      const schoolsWithCounts = [];
 
-      schoolsWithCounts.push({
-        school,
-        userCounts: {
-          merchant: merchantCount,
-          user: userCount,
-        },
-      });
+      for (const school of schools) {
+        const merchantCount = await this.userRepo.count({
+          where: {
+            school: { id: school.id },
+            user_type: 'merchant',
+          },
+        });
+
+        const userCount = await this.userRepo.count({
+          where: {
+            school: { id: school.id },
+            user_type: 'user',
+          },
+        });
+
+        schoolsWithCounts.push({
+          school,
+          userCounts: {
+            merchant: merchantCount,
+            user: userCount,
+          },
+        });
+      }
+
+      return {
+        schools: schoolsWithCounts,
+        totalSchools,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    return {
-      schools: schoolsWithCounts,
-      totalSchools,
-    };
   }
 
   async getUnverifiedMerchants(page: number, limit: number): Promise<User[]> {
-    const skip = (page - 1) * limit;
-    return await this.userRepo.find({
-      where: { is_merchant_verified: false },
-      skip: skip,
-      take: limit,
-      order: { created_at: 'DESC' },
-    });
+    try {
+      const skip = (page - 1) * limit;
+      return await this.userRepo.find({
+        where: { is_merchant_verified: false },
+        skip: skip,
+        take: limit,
+        order: { created_at: 'DESC' },
+      });
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async getUserCountsBySchool(schoolId: string) {
-    const merchantCount = await this.userRepo
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.school', 'school')
-      .where('school.id = :schoolId', { schoolId })
-      .andWhere('user.user_type = :userType', { userType: 'merchant' })
-      .getCount();
+    try {
+      const merchantCount = await this.userRepo
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.school', 'school')
+        .where('school.id = :schoolId', { schoolId })
+        .andWhere('user.user_type = :userType', { userType: 'merchant' })
+        .getCount();
 
-    // Count users with 'user' user_type
-    const userCount = await this.userRepo
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.school', 'school')
-      .where('school.id = :schoolId', { schoolId })
-      .andWhere('user.user_type = :userType', { userType: 'user' })
-      .getCount();
+      // Count users with 'user' user_type
+      const userCount = await this.userRepo
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.school', 'school')
+        .where('school.id = :schoolId', { schoolId })
+        .andWhere('user.user_type = :userType', { userType: 'user' })
+        .getCount();
 
-    return {
-      merchantCount,
-      userCount,
-    };
+      return {
+        merchantCount,
+        userCount,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async findUsersBySchoolAndType(
@@ -300,41 +363,48 @@ export class AdminUserDashboardService {
     page: number = 1,
     limit: number = 10,
   ) {
-    page = isNaN(page) ? 1 : Math.max(1, page);
-    limit = isNaN(limit) ? 10 : Math.max(1, limit);
-
-    const queryBuilder = this.userRepo.createQueryBuilder('user');
-
-    queryBuilder
-      .leftJoinAndSelect('user.school', 'school')
-      .where('school.id = :schoolId', { schoolId })
-      .andWhere('user.user_type IN (:...userTypes)', {
-        userTypes: ['merchant', 'user'].includes(userType)
-          ? [userType]
-          : ['merchant', 'user'],
-      })
-      .orderBy('user.created_at', 'DESC');
-
-    if (startDate) {
-      queryBuilder.andWhere('user.created_at >= :startDate', { startDate });
-    }
-    if (endDate) {
-      queryBuilder.andWhere('user.created_at <= :endDate', { endDate });
-    }
-
-    queryBuilder.skip((page - 1) * limit).take(limit);
-
     try {
-      const [users, total] = await queryBuilder.getManyAndCount();
-      return {
-        data: users,
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      };
+      page = isNaN(page) ? 1 : Math.max(1, page);
+      limit = isNaN(limit) ? 10 : Math.max(1, limit);
+
+      const queryBuilder = this.userRepo.createQueryBuilder('user');
+
+      queryBuilder
+        .leftJoinAndSelect('user.school', 'school')
+        .where('school.id = :schoolId', { schoolId })
+        .andWhere('user.user_type IN (:...userTypes)', {
+          userTypes: ['merchant', 'user'].includes(userType)
+            ? [userType]
+            : ['merchant', 'user'],
+        })
+        .orderBy('user.created_at', 'DESC');
+
+      if (startDate) {
+        queryBuilder.andWhere('user.created_at >= :startDate', { startDate });
+      }
+      if (endDate) {
+        queryBuilder.andWhere('user.created_at <= :endDate', { endDate });
+      }
+
+      queryBuilder.skip((page - 1) * limit).take(limit);
+
+      try {
+        const [users, total] = await queryBuilder.getManyAndCount();
+        return {
+          data: users,
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        };
+      } catch (error) {
+        throw new BadRequestException('Unable to fetch users');
+      }
     } catch (error) {
-      throw new BadRequestException('Unable to fetch users');
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -342,187 +412,208 @@ export class AdminUserDashboardService {
     merchantPaginationDto: MerchantPaginationDto,
     school_id: string,
   ) {
-    const { page = 1, limit = 10, searchQuery } = merchantPaginationDto;
+    try {
+      const { page = 1, limit = 10, searchQuery } = merchantPaginationDto;
 
-    // Define the search filter
-    const searchFilter = searchQuery
-      ? {
-          where: [
-            { first_name: Like(`%${searchQuery}%`) },
-            { last_name: Like(`%${searchQuery}%`) },
-            { email: Like(`%${searchQuery}%`) },
-          ],
-        }
-      : {};
+      // Define the search filter
+      const searchFilter = searchQuery
+        ? {
+            where: [
+              { first_name: Like(`%${searchQuery}%`) },
+              { last_name: Like(`%${searchQuery}%`) },
+              { email: Like(`%${searchQuery}%`) },
+            ],
+          }
+        : {};
 
-    // Add school filter
-    const schoolFilter = school_id ? { school: { id: school_id } } : {};
+      // Add school filter
+      const schoolFilter = school_id ? { school: { id: school_id } } : {};
 
-    // Fetch merchants based on the search filter, 'is_active', and school filter
-    const [merchants, totalMerchants] = await this.userRepo.findAndCount({
-      ...searchFilter,
-      where: {
-        user_type: 'merchant',
-        ...schoolFilter,
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-      select: [
-        'id',
-        'first_name',
-        'last_name',
-        'email',
-        'profile_picture',
-        'user_type',
-        'is_active',
-        'is_merchant_verified',
-        'created_at',
-        'updated_at',
-      ], // Exclude 'password'
-    });
-
-    const merchantsWithCounts = [];
-
-    // Iterate through each merchant and count related products and invoices
-    for (const merchant of merchants) {
-      const productCount = await this.productRepo.count({
-        where: { user: { id: merchant.id } },
-      });
-
-      const invoiceCount = await this.invoiceRepo.count({
-        where: { product_owner: { id: merchant.id } },
-      });
-
-      merchantsWithCounts.push({
-        merchant,
-        counts: {
-          products: productCount,
-          invoices: invoiceCount,
+      // Fetch merchants based on the search filter, 'is_active', and school filter
+      const [merchants, totalMerchants] = await this.userRepo.findAndCount({
+        ...searchFilter,
+        where: {
+          user_type: 'merchant',
+          ...schoolFilter,
         },
+        skip: (page - 1) * limit,
+        take: limit,
+        select: [
+          'id',
+          'first_name',
+          'last_name',
+          'email',
+          'profile_picture',
+          'user_type',
+          'is_active',
+          'is_merchant_verified',
+          'created_at',
+          'updated_at',
+        ], // Exclude 'password'
       });
-    }
 
-    return {
-      merchants: merchantsWithCounts,
-      totalMerchants,
-      currentPage: page,
-      totalPages: Math.ceil(totalMerchants / limit),
-    };
+      const merchantsWithCounts = [];
+
+      // Iterate through each merchant and count related products and invoices
+      for (const merchant of merchants) {
+        const productCount = await this.productRepo.count({
+          where: { user: { id: merchant.id } },
+        });
+
+        const invoiceCount = await this.invoiceRepo.count({
+          where: { product_owner: { id: merchant.id } },
+        });
+
+        merchantsWithCounts.push({
+          merchant,
+          counts: {
+            products: productCount,
+            invoices: invoiceCount,
+          },
+        });
+      }
+
+      return {
+        merchants: merchantsWithCounts,
+        totalMerchants,
+        currentPage: page,
+        totalPages: Math.ceil(totalMerchants / limit),
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async getAllSchoolUser(
     merchantPaginationDto: MerchantPaginationDto,
     school_id: string,
   ) {
-    const { page = 1, limit = 10, searchQuery } = merchantPaginationDto;
+    try {
+      const { page = 1, limit = 10, searchQuery } = merchantPaginationDto;
 
-    const searchFilter = searchQuery
-      ? {
-          where: [
-            { first_name: Like(`%${searchQuery}%`) },
-            { last_name: Like(`%${searchQuery}%`) },
-            { email: Like(`%${searchQuery}%`) },
-          ],
-        }
-      : {};
+      const searchFilter = searchQuery
+        ? {
+            where: [
+              { first_name: Like(`%${searchQuery}%`) },
+              { last_name: Like(`%${searchQuery}%`) },
+              { email: Like(`%${searchQuery}%`) },
+            ],
+          }
+        : {};
 
-    const schoolFilter = school_id ? { school: { id: school_id } } : {};
+      const schoolFilter = school_id ? { school: { id: school_id } } : {};
 
-    const [users, totalUsers] = await this.userRepo.findAndCount({
-      ...searchFilter,
-      where: {
-        user_type: 'merchant',
-        ...schoolFilter,
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-      select: [
-        'id',
-        'first_name',
-        'last_name',
-        'email',
-        'profile_picture',
-        'user_type',
-        'is_active',
-        'is_merchant_verified',
-        'created_at',
-        'updated_at',
-      ],
-    });
+      const [users, totalUsers] = await this.userRepo.findAndCount({
+        ...searchFilter,
+        where: {
+          user_type: 'merchant',
+          ...schoolFilter,
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        select: [
+          'id',
+          'first_name',
+          'last_name',
+          'email',
+          'profile_picture',
+          'user_type',
+          'is_active',
+          'is_merchant_verified',
+          'created_at',
+          'updated_at',
+        ],
+      });
 
-    return {
-      users,
-      totalUsers,
-      currentPage: page,
-      totalPages: Math.ceil(totalUsers / limit),
-    };
+      return {
+        users,
+        totalUsers,
+        currentPage: page,
+        totalPages: Math.ceil(totalUsers / limit),
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async getAllMerchantsWithCounts(
     merchantPaginationDto: MerchantPaginationDto,
   ) {
-    const { page = 1, limit = 10, searchQuery } = merchantPaginationDto;
+    try {
+      const { page = 1, limit = 10, searchQuery } = merchantPaginationDto;
 
-    // Define the search filter
-    const searchFilter = searchQuery
-      ? {
-          where: [
-            { first_name: Like(`%${searchQuery}%`) },
-            { last_name: Like(`%${searchQuery}%`) },
-            { email: Like(`%${searchQuery}%`) },
-          ],
-        }
-      : {};
+      // Define the search filter
+      const searchFilter = searchQuery
+        ? {
+            where: [
+              { first_name: Like(`%${searchQuery}%`) },
+              { last_name: Like(`%${searchQuery}%`) },
+              { email: Like(`%${searchQuery}%`) },
+            ],
+          }
+        : {};
 
-    // Fetch merchants based on the search filter, 'is_active', and school filter
-    const [merchants, totalMerchants] = await this.userRepo.findAndCount({
-      ...searchFilter,
-      where: {
-        user_type: 'merchant',
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-      select: [
-        'id',
-        'first_name',
-        'last_name',
-        'email',
-        'profile_picture',
-        'user_type',
-        'is_active',
-        'is_merchant_verified',
-        'created_at',
-        'updated_at',
-      ], // Exclude 'password'
-    });
-
-    const merchantsWithCounts = [];
-
-    // Iterate through each merchant and count related products and invoices
-    for (const merchant of merchants) {
-      const productCount = await this.productRepo.count({
-        where: { user: { id: merchant.id } },
-      });
-
-      const invoiceCount = await this.invoiceRepo.count({
-        where: { product_owner: { id: merchant.id } },
-      });
-
-      merchantsWithCounts.push({
-        merchant,
-        counts: {
-          products: productCount,
-          invoices: invoiceCount,
+      // Fetch merchants based on the search filter, 'is_active', and school filter
+      const [merchants, totalMerchants] = await this.userRepo.findAndCount({
+        ...searchFilter,
+        where: {
+          user_type: 'merchant',
         },
+        skip: (page - 1) * limit,
+        take: limit,
+        select: [
+          'id',
+          'first_name',
+          'last_name',
+          'email',
+          'profile_picture',
+          'user_type',
+          'is_active',
+          'is_merchant_verified',
+          'created_at',
+          'updated_at',
+        ], // Exclude 'password'
       });
-    }
 
-    return {
-      merchants: merchantsWithCounts,
-      totalMerchants,
-      currentPage: page,
-      totalPages: Math.ceil(totalMerchants / limit),
-    };
+      const merchantsWithCounts = [];
+
+      // Iterate through each merchant and count related products and invoices
+      for (const merchant of merchants) {
+        const productCount = await this.productRepo.count({
+          where: { user: { id: merchant.id } },
+        });
+
+        const invoiceCount = await this.invoiceRepo.count({
+          where: { product_owner: { id: merchant.id } },
+        });
+
+        merchantsWithCounts.push({
+          merchant,
+          counts: {
+            products: productCount,
+            invoices: invoiceCount,
+          },
+        });
+      }
+
+      return {
+        merchants: merchantsWithCounts,
+        totalMerchants,
+        currentPage: page,
+        totalPages: Math.ceil(totalMerchants / limit),
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async getMerchantProductAndInvoices(
@@ -533,81 +624,103 @@ export class AdminUserDashboardService {
     startDate?: string,
     endDate?: string,
   ) {
-    const validatedPage = Math.max(1, page);
-    const validatedLimit = Math.max(1, limit);
-    const skip = (validatedPage - 1) * validatedLimit;
+    try {
+      const validatedPage = Math.max(1, page);
+      const validatedLimit = Math.max(1, limit);
+      const skip = (validatedPage - 1) * validatedLimit;
 
-    // Get product count for the merchant
-    const productCount = await this.productRepo.count({
-      where: { user: { id: userId } },
-    });
+      // Get product count for the merchant
+      const productCount = await this.productRepo.count({
+        where: { user: { id: userId } },
+      });
 
-    // Count invoices by status
-    const awaitingPaymentInvoiceCount = await this.invoiceRepo.count({
-      where: {
+      // Count invoices by status
+      const awaitingPaymentInvoiceCount = await this.invoiceRepo.count({
+        where: {
+          product_owner: { id: userId },
+          status: 'awaiting_payment',
+        },
+      });
+
+      const paidInvoiceCount = await this.invoiceRepo.count({
+        where: {
+          product_owner: { id: userId },
+          status: 'paid',
+        },
+      });
+
+      // Build the query for filtering invoices
+      const query: any = {
         product_owner: { id: userId },
-        status: 'awaiting_payment',
-      },
-    });
+      };
 
-    const paidInvoiceCount = await this.invoiceRepo.count({
-      where: {
-        product_owner: { id: userId },
-        status: 'paid',
-      },
-    });
+      if (search) {
+        query.invoice_id = Like(`%${search}%`);
+      }
 
-    // Build the query for filtering invoices
-    const query: any = {
-      product_owner: { id: userId },
-    };
+      if (startDate && endDate) {
+        query.created_at = Between(new Date(startDate), new Date(endDate));
+      } else if (startDate) {
+        query.created_at = MoreThanOrEqual(new Date(startDate));
+      } else if (endDate) {
+        query.created_at = LessThanOrEqual(new Date(endDate));
+      }
 
-    if (search) {
-      query.invoice_id = Like(`%${search}%`);
+      // Get invoices with filtering and pagination
+      const invoices = await this.invoiceRepo.find({
+        where: query,
+        skip,
+        take: validatedLimit,
+        order: { created_at: 'DESC' },
+      });
+
+      return {
+        productCount,
+        pendingInvoice: awaitingPaymentInvoiceCount,
+        paidInvoice: paidInvoiceCount,
+        invoices,
+        pagination: {
+          currentPage: validatedPage,
+          pageSize: validatedLimit,
+          totalInvoices: invoices.length,
+        },
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    if (startDate && endDate) {
-      query.created_at = Between(new Date(startDate), new Date(endDate));
-    } else if (startDate) {
-      query.created_at = MoreThanOrEqual(new Date(startDate));
-    } else if (endDate) {
-      query.created_at = LessThanOrEqual(new Date(endDate));
-    }
-
-    // Get invoices with filtering and pagination
-    const invoices = await this.invoiceRepo.find({
-      where: query,
-      skip,
-      take: validatedLimit,
-      order: { created_at: 'DESC' },
-    });
-
-    return {
-      productCount,
-      pendingInvoice: awaitingPaymentInvoiceCount,
-      paidInvoice: paidInvoiceCount,
-      invoices,
-      pagination: {
-        currentPage: validatedPage,
-        pageSize: validatedLimit,
-        totalInvoices: invoices.length,
-      },
-    };
   }
 
   async findCategory(): Promise<Category[]> {
-    const category = this.categoryRepo.find();
-    if (!category) throw new BadRequestException('Unable to fetch categories');
-    return category;
+    try {
+      const category = this.categoryRepo.find();
+      if (!category)
+        throw new BadRequestException('Unable to fetch categories');
+      return category;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async getInactiveUsers(page: number, limit: number): Promise<User[]> {
-    const skip = (page - 1) * limit;
-    return await this.userRepo.find({
-      where: { is_active: false },
-      skip: skip,
-      take: limit,
-      order: { created_at: 'DESC' },
-    });
+    try {
+      const skip = (page - 1) * limit;
+      return await this.userRepo.find({
+        where: { is_active: false },
+        skip: skip,
+        take: limit,
+        order: { created_at: 'DESC' },
+      });
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 }
