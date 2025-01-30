@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
 import { Product } from 'src/product/entities/product.entity';
@@ -23,44 +23,51 @@ export class AdminProductService {
     adminProductDto: AdminProductDto,
     files: Array<Express.Multer.File>,
   ) {
-    const { schoolId, merchantId, category, product_name, ...rest } =
-      adminProductDto;
+    try {
+      const { schoolId, merchantId, category, product_name, ...rest } =
+        adminProductDto;
 
-    await this.categoryService.findOne(category);
-    const existingProduct = await this.productRepo.findOne({
-      where: { product_name },
-    });
-    if (existingProduct) {
-      throw new BadRequestException(
-        'Product already exists with the given name',
+      await this.categoryService.findOne(category);
+      const existingProduct = await this.productRepo.findOne({
+        where: { product_name },
+      });
+      if (existingProduct) {
+        throw new BadRequestException(
+          'Product already exists with the given name',
+        );
+      }
+      const imageUrls = await this.uploadProductImages(files);
+      let productId = RandomSevenDigits();
+      const validateOrder = await this.productRepo.findOne({
+        where: { product_id: productId },
+      });
+
+      do {
+        productId = RandomSevenDigits();
+      } while (validateOrder);
+
+      const product = this.productRepo.create({
+        ...rest,
+        product_name,
+        category: { id: category } as any,
+        product_image: imageUrls,
+        user: { id: merchantId } as any,
+        school: { id: schoolId } as any,
+        product_id: productId,
+      });
+
+      const saveProduct = await this.productRepo.save(product);
+      if (!saveProduct) {
+        throw new BadRequestException('Unable to create product');
+      }
+
+      return saveProduct;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
     }
-    const imageUrls = await this.uploadProductImages(files);
-    let productId = RandomSevenDigits();
-    const validateOrder = await this.productRepo.findOne({
-      where: { product_id: productId },
-    });
-
-    do {
-      productId = RandomSevenDigits();
-    } while (validateOrder);
-
-    const product = this.productRepo.create({
-      ...rest,
-      product_name,
-      category: { id: category } as any,
-      product_image: imageUrls,
-      user: { id: merchantId } as any,
-      school: { id: schoolId } as any,
-      product_id: productId,
-    });
-
-    const saveProduct = await this.productRepo.save(product);
-    if (!saveProduct) {
-      throw new BadRequestException('Unable to create product');
-    }
-
-    return saveProduct;
   }
 
   async update(
@@ -68,64 +75,78 @@ export class AdminProductService {
     adminProductDto: Partial<AdminProductDto>,
     files: Array<Express.Multer.File> | undefined,
   ) {
-    const { category, schoolId, merchantId, ...rest } = adminProductDto;
+    try {
+      const { category, schoolId, merchantId, ...rest } = adminProductDto;
 
-    const product = await this.productRepo.findOne({
-      where: { id: productId },
-    });
+      const product = await this.productRepo.findOne({
+        where: { id: productId },
+      });
 
-    if (!product) {
-      throw new BadRequestException('Product not found');
+      if (!product) {
+        throw new BadRequestException('Product not found');
+      }
+
+      if (category) {
+        product.category = { id: category } as any;
+      }
+      if (schoolId) {
+        product.school = { id: schoolId } as any;
+      }
+      if (merchantId) {
+        product.user = { id: merchantId } as any;
+      }
+
+      if (files && files.length > 0) {
+        const imageUrls = await this.uploadProductImages(files);
+
+        product.product_image = [...product.product_image, ...imageUrls];
+      }
+
+      Object.assign(product, rest);
+
+      const updatedProduct = await this.productRepo.save(product);
+
+      if (!updatedProduct) {
+        throw new BadRequestException('Unable to update product');
+      }
+
+      return updatedProduct;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    if (category) {
-      product.category = { id: category } as any;
-    }
-    if (schoolId) {
-      product.school = { id: schoolId } as any;
-    }
-    if (merchantId) {
-      product.user = { id: merchantId } as any;
-    }
-
-    if (files && files.length > 0) {
-      const imageUrls = await this.uploadProductImages(files);
-
-      product.product_image = [...product.product_image, ...imageUrls];
-    }
-
-    Object.assign(product, rest);
-
-    const updatedProduct = await this.productRepo.save(product);
-
-    if (!updatedProduct) {
-      throw new BadRequestException('Unable to update product');
-    }
-
-    return updatedProduct;
   }
 
   async updateStatus(
     productId: string,
     status: ProductStatus,
   ): Promise<Product> {
-    const product = await this.productRepo.findOne({
-      where: { id: productId },
-    });
+    try {
+      const product = await this.productRepo.findOne({
+        where: { id: productId },
+      });
 
-    if (!product) {
-      throw new BadRequestException('Product not found');
+      if (!product) {
+        throw new BadRequestException('Product not found');
+      }
+
+      product.status = status;
+
+      const updatedProduct = await this.productRepo.save(product);
+
+      if (!updatedProduct) {
+        throw new BadRequestException('Unable to update product status');
+      }
+
+      return updatedProduct;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    product.status = status;
-
-    const updatedProduct = await this.productRepo.save(product);
-
-    if (!updatedProduct) {
-      throw new BadRequestException('Unable to update product status');
-    }
-
-    return updatedProduct;
   }
 
   async findProducts(filters: {
@@ -134,81 +155,104 @@ export class AdminProductService {
     limit?: number;
     page?: number;
   }) {
-    const queryBuilder = this.productRepo.createQueryBuilder('product');
+    try {
+      const queryBuilder = this.productRepo.createQueryBuilder('product');
 
-    queryBuilder.leftJoinAndSelect('product.category', 'category');
+      queryBuilder.leftJoinAndSelect('product.category', 'category');
 
-    if (filters.status) {
-      queryBuilder.andWhere('product.status = :status', {
-        status: filters.status,
-      });
-    }
+      if (filters.status) {
+        queryBuilder.andWhere('product.status = :status', {
+          status: filters.status,
+        });
+      }
 
-    if (filters.search) {
-      queryBuilder.andWhere(
-        new Brackets((qb) => {
-          qb.where('product.product_id LIKE :search', {
-            search: `%${filters.search}%`,
-          })
-            .orWhere('product.product_name LIKE :search', {
+      if (filters.search) {
+        queryBuilder.andWhere(
+          new Brackets((qb) => {
+            qb.where('product.product_id LIKE :search', {
               search: `%${filters.search}%`,
             })
-            .orWhere('category.name LIKE :search', {
-              search: `%${filters.search}%`,
-            })
-            .orWhere('product.price LIKE :search', {
-              search: `%${filters.search}%`,
-            });
-        }),
+              .orWhere('product.product_name LIKE :search', {
+                search: `%${filters.search}%`,
+              })
+              .orWhere('category.name LIKE :search', {
+                search: `%${filters.search}%`,
+              })
+              .orWhere('product.price LIKE :search', {
+                search: `%${filters.search}%`,
+              });
+          }),
+        );
+      }
+
+      queryBuilder.orderBy('product.created_at', 'DESC');
+
+      if (filters.limit) {
+        queryBuilder.take(filters.limit);
+      }
+
+      if (filters.page && filters.limit) {
+        queryBuilder.skip((filters.page - 1) * filters.limit);
+      }
+
+      const products = await queryBuilder.getMany();
+
+      const total = await queryBuilder.getCount();
+
+      return { products, total };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
     }
-
-    queryBuilder.orderBy('product.created_at', 'DESC');
-
-    if (filters.limit) {
-      queryBuilder.take(filters.limit);
-    }
-
-    if (filters.page && filters.limit) {
-      queryBuilder.skip((filters.page - 1) * filters.limit);
-    }
-
-    const products = await queryBuilder.getMany();
-
-    const total = await queryBuilder.getCount();
-
-    return { products, total };
   }
 
   async deleteProduct(id: string) {
-    const product = await this.productRepo.findOne({
-      where: { id },
-    });
+    try {
+      const product = await this.productRepo.findOne({
+        where: { id },
+      });
 
-    if (!product) {
-      throw new BadRequestException('Product not found');
+      if (!product) {
+        throw new BadRequestException('Product not found');
+      }
+
+      const result = await this.productRepo.remove(product);
+
+      if (!result) {
+        throw new BadRequestException('Unable to delete product');
+      }
+
+      return { message: 'Product deleted successfully' };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const result = await this.productRepo.remove(product);
-
-    if (!result) {
-      throw new BadRequestException('Unable to delete product');
-    }
-
-    return { message: 'Product deleted successfully' };
   }
 
   private async uploadProductImages(
     files: Array<Express.Multer.File> | undefined,
   ): Promise<string[]> {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('No files were provided for upload.');
+    try {
+      if (!files || files.length === 0) {
+        throw new BadRequestException('No files were provided for upload.');
+      }
+
+      const uploadedFiles = await Promise.all(
+        files.map((file) =>
+          this.cloudinaryService.uploadFile(file, 'products'),
+        ),
+      );
+
+      return uploadedFiles.map((uploadResult) => uploadResult.url);
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const uploadedFiles = await Promise.all(
-      files.map((file) => this.cloudinaryService.uploadFile(file, 'products')),
-    );
-
-    return uploadedFiles.map((uploadResult) => uploadResult.url);
   }
 }

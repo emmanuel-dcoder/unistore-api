@@ -65,6 +65,18 @@ export class CreateProductDto {
   @ApiPropertyOptional()
   @IsString()
   avg_rating: number;
+
+  @ApiPropertyOptional()
+  @IsString()
+  fixed_price: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  price_range: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  custom_range: string;
 }
 
 export class AdminProductDto {

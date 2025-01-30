@@ -48,7 +48,7 @@ export class ProductService {
     } while (validateOrder);
 
     // Create the product with user and school
-    const product = this.productRepo.create({
+    const product = await this.productRepo.create({
       ...rest,
       product_name,
       category: { id: category } as any,

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
 import { Repository } from 'typeorm';
@@ -55,5 +55,12 @@ export class AdminInvoiceService {
 
     const invoice = await queryBuilder.getMany();
     return invoice;
+    try {
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 }

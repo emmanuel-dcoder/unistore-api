@@ -50,6 +50,15 @@ export class Product {
   @Column({ type: 'decimal', nullable: true })
   price: number;
 
+  @Column({ nullable: true })
+  fixed_price: string;
+
+  @Column({ nullable: true })
+  price_range: string;
+
+  @Column({ nullable: true })
+  custom_range: string;
+
   @Column({ type: 'decimal', nullable: true })
   discount: number;
 
