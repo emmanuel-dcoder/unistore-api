@@ -52,10 +52,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('sendMessage')
-  async handleMessage(@MessageBody() payload: SendMessageDto) {
+  async handleMessage(client: Socket, @MessageBody() payload: SendMessageDto) {
     const { sender, receiver, message, user_type, attachment } = payload;
-
-    const receiverSocketId = this.connectedUsers.get(receiver);
 
     if (!sender || !receiver || message || user_type) {
       return await this.server.emit(
@@ -110,16 +108,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       imageString,
     );
 
-    if (receiverSocketId) {
+    if (receiver) {
       return await this.server.emit(`${receiver}`, savedMessage);
     }
   }
 
   @SubscribeMessage('sendAdminMessage')
-  async handleAdminMessage(@MessageBody() payload: SendMessageDto) {
+  async handleAdminMessage(
+    client: Socket,
+    @MessageBody() payload: SendMessageDto,
+  ) {
     const { sender, receiver, message, user_type, attachment } = payload;
 
-    const receiverSocketId = this.connectedUsers.get(receiver);
+    // const receiverSocketId = this.connectedUsers.get(receiver);
 
     if (!sender || !receiver || message || user_type) {
       return await this.server.emit(
@@ -176,7 +177,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       imageString,
     );
 
-    if (receiverSocketId) {
+    if (receiver) {
       return await this.server.emit(`${receiver}`, savedMessage);
     }
   }
