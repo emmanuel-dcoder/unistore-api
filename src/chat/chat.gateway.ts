@@ -58,12 +58,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const receiverSocketId = this.connectedUsers.get(receiver);
 
     if (!sender || !receiver || message || user_type) {
-      return await this.server
-        .to(sender)
-        .emit(
-          'receiveMessage',
-          'Sender, receiver, message and user_type are required',
-        );
+      return await this.server.emit(
+        `${receiver}`,
+        'Sender, receiver, message and user_type are required',
+      );
     }
 
     let user;
@@ -124,12 +122,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const receiverSocketId = this.connectedUsers.get(receiver);
 
     if (!sender || !receiver || message || user_type) {
-      return await this.server
-        .to(sender)
-        .emit(
-          'receiveMessage',
-          'Sender, receiver, message and user_type are required',
-        );
+      return await this.server.emit(
+        `${receiver}`,
+        'Sender, receiver, message and user_type are required',
+      );
     }
 
     let admin;
