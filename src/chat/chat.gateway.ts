@@ -55,7 +55,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleMessage(client: Socket, @MessageBody() payload: SendMessageDto) {
     const { sender, receiver, message, user_type, attachment } = payload;
 
-    if (!sender || !receiver || message || user_type) {
+    if (!sender || !receiver || !message || !user_type) {
       return await this.server.emit(
         `${receiver}`,
         'Sender, receiver, message and user_type are required',
@@ -122,7 +122,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // const receiverSocketId = this.connectedUsers.get(receiver);
 
-    if (!sender || !receiver || message || user_type) {
+    if (!sender || !receiver || !message || !user_type) {
       return await this.server.emit(
         `${receiver}`,
         'Sender, receiver, message and user_type are required',
