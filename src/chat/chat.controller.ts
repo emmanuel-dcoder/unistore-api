@@ -31,7 +31,7 @@ export class ChatController {
      - \`message\`: Text content of the chat
      - \`user_type\`: Can be \`merchant\` or \`user\`
      - \`attachment\` (optional): File or attachment
-   - **Listen**: \`reciever id\` for real-time updates.
+   - **Listen**: \`receiver id\` for real-time updates.
 
 2. **Chat History**:
    - **Emit**: \`getMessages\`
