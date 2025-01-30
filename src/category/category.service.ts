@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -17,56 +18,98 @@ export class CategoryService {
   ) {}
 
   async create(createCategoryDto: CreateCategoryDto) {
-    const { name } = createCategoryDto;
-    const validate = await this.categoryRepo.findOne({
-      where: {
-        name,
-      },
-    });
-    if (validate) throw new BadRequestException('Category already exists');
-    const result = await this.categoryRepo.save(createCategoryDto);
-    if (!result) throw new BadRequestException('Unable to create category');
-    return result;
+    try {
+      const { name } = createCategoryDto;
+      const validate = await this.categoryRepo.findOne({
+        where: {
+          name,
+        },
+      });
+      if (validate) throw new BadRequestException('Category already exists');
+      const result = await this.categoryRepo.save(createCategoryDto);
+      if (!result) throw new BadRequestException('Unable to create category');
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async findAll(search?: string): Promise<Category[]> {
-    const queryBuilder = this.categoryRepo.createQueryBuilder('category');
-    if (search) {
-      queryBuilder.where('LOWER(category.name) LIKE :search', {
-        search: `%${search.toLowerCase()}%`,
-      });
+    try {
+      const queryBuilder = this.categoryRepo.createQueryBuilder('category');
+      if (search) {
+        queryBuilder.where('LOWER(category.name) LIKE :search', {
+          search: `%${search.toLowerCase()}%`,
+        });
+      }
+      return await queryBuilder.getMany();
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-    return await queryBuilder.getMany();
   }
 
   async findOne(id: string) {
-    const category = await this.categoryRepo.findOne({ where: { id } });
-    if (!category)
-      throw new NotFoundException(`Category with id ${id} not found`);
-    return category;
+    try {
+      const category = await this.categoryRepo.findOne({ where: { id } });
+      if (!category)
+        throw new NotFoundException(`Category with id ${id} not found`);
+      return category;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async findOneByName(name: string) {
-    const category = await this.categoryRepo.findOne({ where: { name } });
-    if (!category)
-      throw new NotFoundException(`Category with name: ${name} not found`);
-    return category;
+    try {
+      const category = await this.categoryRepo.findOne({ where: { name } });
+      if (!category)
+        throw new NotFoundException(`Category with name: ${name} not found`);
+      return category;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async update(id: string, updateCategoryDto: Partial<UpdateCategoryDto>) {
-    const category = await this.categoryRepo.findOne({ where: { id } });
-    if (!category) {
-      throw new NotFoundException('Category not found');
+    try {
+      const category = await this.categoryRepo.findOne({ where: { id } });
+      if (!category) {
+        throw new NotFoundException('Category not found');
+      }
+      Object.assign(category, updateCategoryDto);
+      return await this.categoryRepo.save(category);
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-    Object.assign(category, updateCategoryDto);
-    return await this.categoryRepo.save(category);
   }
 
   async delete(id: string): Promise<void> {
-    const category = await this.categoryRepo.findOne({ where: { id } });
-    if (!category) {
-      throw new NotFoundException(`Category with id ${id} not found`);
+    try {
+      const category = await this.categoryRepo.findOne({ where: { id } });
+      if (!category) {
+        throw new NotFoundException(`Category with id ${id} not found`);
+      }
+      await this.categoryRepo.delete(id);
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-    await this.categoryRepo.delete(id);
   }
 }
