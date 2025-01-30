@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -26,44 +27,51 @@ export class ProductService {
     user: string,
     school: string,
   ) {
-    const { product_name, category, ...rest } = createProductDto;
-    await this.categoryService.findOne(category);
-    const existingProduct = await this.productRepo.findOne({
-      where: { product_name },
-    });
-    if (existingProduct) {
-      throw new BadRequestException(
-        'Product already exists with the given name',
+    try {
+      const { product_name, category, ...rest } = createProductDto;
+      await this.categoryService.findOne(category);
+      const existingProduct = await this.productRepo.findOne({
+        where: { product_name },
+      });
+      if (existingProduct) {
+        throw new BadRequestException(
+          'Product already exists with the given name',
+        );
+      }
+      const imageUrls = await this.uploadProductImages(files);
+
+      let productId = RandomSevenDigits();
+      const validateOrder = await this.productRepo.findOne({
+        where: { product_id: productId },
+      });
+
+      do {
+        productId = RandomSevenDigits();
+      } while (validateOrder);
+
+      // Create the product with user and school
+      const product = await this.productRepo.create({
+        ...rest,
+        product_name,
+        category: { id: category } as any,
+        product_image: imageUrls,
+        user: { id: user } as any,
+        school: { id: school } as any,
+        product_id: productId,
+      });
+
+      const saveProduct = await this.productRepo.save(product);
+      if (!saveProduct) {
+        throw new BadRequestException('Unable to create product');
+      }
+
+      return saveProduct;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
     }
-    const imageUrls = await this.uploadProductImages(files);
-
-    let productId = RandomSevenDigits();
-    const validateOrder = await this.productRepo.findOne({
-      where: { product_id: productId },
-    });
-
-    do {
-      productId = RandomSevenDigits();
-    } while (validateOrder);
-
-    // Create the product with user and school
-    const product = await this.productRepo.create({
-      ...rest,
-      product_name,
-      category: { id: category } as any,
-      product_image: imageUrls,
-      user: { id: user } as any,
-      school: { id: school } as any,
-      product_id: productId,
-    });
-
-    const saveProduct = await this.productRepo.save(product);
-    if (!saveProduct) {
-      throw new BadRequestException('Unable to create product');
-    }
-
-    return saveProduct;
   }
 
   async update(
@@ -74,137 +82,172 @@ export class ProductService {
     },
     files: Array<Express.Multer.File> | undefined,
   ) {
-    const { category, school, user, ...rest } = updateProductDto;
+    try {
+      const { category, school, user, ...rest } = updateProductDto;
 
-    const product = await this.productRepo.findOne({
-      where: { id: productId },
-    });
+      const product = await this.productRepo.findOne({
+        where: { id: productId },
+      });
 
-    if (!product) {
-      throw new BadRequestException('Product not found');
+      if (!product) {
+        throw new BadRequestException('Product not found');
+      }
+
+      if (category) {
+        product.category = { id: category } as any;
+      }
+      if (school) {
+        product.school = { id: school } as any;
+      }
+      if (user) {
+        product.user = { id: user } as any;
+      }
+
+      if (files && files.length > 0) {
+        const imageUrls = await this.uploadProductImages(files);
+
+        product.product_image = [...product.product_image, ...imageUrls];
+      }
+
+      Object.assign(product, rest);
+
+      const updatedProduct = await this.productRepo.save(product);
+
+      if (!updatedProduct) {
+        throw new BadRequestException('Unable to update product');
+      }
+
+      return updatedProduct;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    if (category) {
-      product.category = { id: category } as any;
-    }
-    if (school) {
-      product.school = { id: school } as any;
-    }
-    if (user) {
-      product.user = { id: user } as any;
-    }
-
-    if (files && files.length > 0) {
-      const imageUrls = await this.uploadProductImages(files);
-
-      product.product_image = [...product.product_image, ...imageUrls];
-    }
-
-    Object.assign(product, rest);
-
-    const updatedProduct = await this.productRepo.save(product);
-
-    if (!updatedProduct) {
-      throw new BadRequestException('Unable to update product');
-    }
-
-    return updatedProduct;
   }
 
   async updateWithoutImage(
     productId: string,
     updateData: Partial<CreateProductDto>,
   ): Promise<Product> {
-    const product = await this.productRepo.findOne({
-      where: { id: productId },
-    });
-    if (!product) {
-      throw new NotFoundException(`Product with ID ${productId} not found`);
-    }
+    try {
+      const product = await this.productRepo.findOne({
+        where: { id: productId },
+      });
+      if (!product) {
+        throw new NotFoundException(`Product with ID ${productId} not found`);
+      }
 
-    Object.assign(product, updateData);
-    return this.productRepo.save(product);
+      Object.assign(product, updateData);
+      return this.productRepo.save(product);
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async findByUser(userId: string, search: string, schoolId: string) {
-    const queryBuilder = this.productRepo.createQueryBuilder('product');
+    try {
+      const queryBuilder = this.productRepo.createQueryBuilder('product');
 
-    queryBuilder
-      .where('product.user = :userId', { userId })
-      .andWhere('product.school = :schoolId', { schoolId })
-      .leftJoinAndSelect('product.user', 'user')
-      .addSelect([
-        'user.id',
-        'user.first_name',
-        'user.last_name',
-        'user.profile_picture',
-      ])
-      .leftJoinAndSelect('product.school', 'school');
+      queryBuilder
+        .where('product.user = :userId', { userId })
+        .andWhere('product.school = :schoolId', { schoolId })
+        .leftJoinAndSelect('product.user', 'user')
+        .addSelect([
+          'user.id',
+          'user.first_name',
+          'user.last_name',
+          'user.profile_picture',
+        ])
+        .leftJoinAndSelect('product.school', 'school');
 
-    if (search) {
-      queryBuilder.andWhere(
-        '(product.product_name ILIKE :search OR product.product_description ILIKE :search)',
-        { search: `%${search}%` },
+      if (search) {
+        queryBuilder.andWhere(
+          '(product.product_name ILIKE :search OR product.product_description ILIKE :search)',
+          { search: `%${search}%` },
+        );
+      }
+
+      const products = await queryBuilder.getMany();
+
+      return products;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
     }
-
-    const products = await queryBuilder.getMany();
-
-    return products;
   }
 
   async findById(productId: string) {
-    const product = await this.productRepo.findOne({
-      where: { id: productId },
-      relations: ['user', 'school'],
-      select: {
-        user: {
-          id: true,
-          first_name: true,
-          last_name: true,
-          email: true,
-          phone: true,
-          profile_picture: true,
+    try {
+      const product = await this.productRepo.findOne({
+        where: { id: productId },
+        relations: ['user', 'school'],
+        select: {
+          user: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            email: true,
+            phone: true,
+            profile_picture: true,
+          },
+          school: {
+            id: true,
+            name: true,
+            image: true,
+            abbreviation: true,
+            school_id: true,
+          },
         },
-        school: {
-          id: true,
-          name: true,
-          image: true,
-          abbreviation: true,
-          school_id: true,
-        },
-      },
-    });
+      });
 
-    if (!product) {
-      throw new NotFoundException('Product not found');
+      if (!product) {
+        throw new NotFoundException('Product not found');
+      }
+
+      return product;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    return product;
   }
   async findAll(schoolId: string, productName?: string): Promise<Product[]> {
-    const queryBuilder = this.productRepo.createQueryBuilder('product');
+    try {
+      const queryBuilder = this.productRepo.createQueryBuilder('product');
 
-    // Add search filter if productName is provided
-    if (productName) {
-      queryBuilder.where('product.product_name ILIKE :search', {
-        search: `%${productName}%`,
-      });
+      // Add search filter if productName is provided
+      if (productName) {
+        queryBuilder.where('product.product_name ILIKE :search', {
+          search: `%${productName}%`,
+        });
+      }
+
+      queryBuilder
+        .where('product.school = :schoolId', { schoolId })
+        .leftJoinAndSelect('product.user', 'user') // Join the user relationship
+        .addSelect([
+          'user.id', // Include the specific fields from the user
+          'user.first_name',
+          'user.last_name',
+          'user.profile_picture',
+        ])
+        .leftJoinAndSelect('product.school', 'school'); // Join the school relationship
+
+      const products = await queryBuilder.getMany();
+      return products;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    queryBuilder
-      .where('product.school = :schoolId', { schoolId })
-      .leftJoinAndSelect('product.user', 'user') // Join the user relationship
-      .addSelect([
-        'user.id', // Include the specific fields from the user
-        'user.first_name',
-        'user.last_name',
-        'user.profile_picture',
-      ])
-      .leftJoinAndSelect('product.school', 'school'); // Join the school relationship
-
-    const products = await queryBuilder.getMany();
-    return products;
   }
 
   async findByCategoryAndPrice(
@@ -217,53 +260,67 @@ export class ProductService {
     },
     schoolId?: string,
   ) {
-    const { minPrice, maxPrice, minRating, maxRating } = filters;
+    try {
+      const { minPrice, maxPrice, minRating, maxRating } = filters;
 
-    const query: any = {
-      categoryName,
-      school: schoolId ? schoolId : null,
-    };
+      const query: any = {
+        categoryName,
+        school: schoolId ? schoolId : null,
+      };
 
-    // Add price range filters if provided
-    if (minPrice !== undefined || maxPrice !== undefined) {
-      query.price = {};
-      if (minPrice !== undefined) {
-        query.price.$gte = minPrice;
+      // Add price range filters if provided
+      if (minPrice !== undefined || maxPrice !== undefined) {
+        query.price = {};
+        if (minPrice !== undefined) {
+          query.price.$gte = minPrice;
+        }
+        if (maxPrice !== undefined) {
+          query.price.$lte = maxPrice;
+        }
       }
-      if (maxPrice !== undefined) {
-        query.price.$lte = maxPrice;
+
+      // Add rating range filters if provided
+      if (minRating !== undefined || maxRating !== undefined) {
+        query.avgRating = {};
+        if (minRating !== undefined) {
+          query.avgRating.$gte = minRating;
+        }
+        if (maxRating !== undefined) {
+          query.avgRating.$lte = maxRating;
+        }
       }
+
+      // Fetch products based on the query
+      const products = await this.productRepo.find(query);
+
+      if (!products || products.length === 0) {
+        throw new NotFoundException('No products found matching the criteria');
+      }
+
+      return products;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    // Add rating range filters if provided
-    if (minRating !== undefined || maxRating !== undefined) {
-      query.avgRating = {};
-      if (minRating !== undefined) {
-        query.avgRating.$gte = minRating;
-      }
-      if (maxRating !== undefined) {
-        query.avgRating.$lte = maxRating;
-      }
-    }
-
-    // Fetch products based on the query
-    const products = await this.productRepo.find(query);
-
-    if (!products || products.length === 0) {
-      throw new NotFoundException('No products found matching the criteria');
-    }
-
-    return products;
   }
 
   async delete(productId: string): Promise<void> {
-    const product = await this.productRepo.findOne({
-      where: { id: productId },
-    });
-    if (!product) {
-      throw new BadRequestException('Product not found');
+    try {
+      const product = await this.productRepo.findOne({
+        where: { id: productId },
+      });
+      if (!product) {
+        throw new BadRequestException('Product not found');
+      }
+      await this.productRepo.delete(productId);
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-    await this.productRepo.delete(productId);
   }
 
   async deleteAll() {
@@ -276,9 +333,9 @@ export class ProductService {
         message: 'All products have been deleted successfully.',
       };
     } catch (error) {
-      throw new BadRequestException(
-        'Unable to delete products.',
-        error.message,
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
     }
   }
@@ -286,14 +343,23 @@ export class ProductService {
   private async uploadProductImages(
     files: Array<Express.Multer.File> | undefined,
   ): Promise<string[]> {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('No files were provided for upload.');
+    try {
+      if (!files || files.length === 0) {
+        throw new BadRequestException('No files were provided for upload.');
+      }
+
+      const uploadedFiles = await Promise.all(
+        files.map((file) =>
+          this.cloudinaryService.uploadFile(file, 'products'),
+        ),
+      );
+
+      return uploadedFiles.map((uploadResult) => uploadResult.url);
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const uploadedFiles = await Promise.all(
-      files.map((file) => this.cloudinaryService.uploadFile(file, 'products')),
-    );
-
-    return uploadedFiles.map((uploadResult) => uploadResult.url);
   }
 }

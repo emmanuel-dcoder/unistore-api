@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
@@ -13,33 +13,53 @@ export class NotificationService {
   ) {}
 
   async create(createNotificationDto: CreateNotificationDto, user: string) {
-    const notification = await this.notificationRepo.create({
-      ...createNotificationDto,
-      user: { id: user } as any,
-    });
+    try {
+      const notification = await this.notificationRepo.create({
+        ...createNotificationDto,
+        user: { id: user } as any,
+      });
 
-    const result = await this.notificationRepo.save(notification);
+      const result = await this.notificationRepo.save(notification);
 
-    if (!result) {
-      throw new BadRequestErrorException('Unable to create notification');
+      if (!result) {
+        throw new BadRequestErrorException('Unable to create notification');
+      }
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-    return result;
   }
 
   async fetch(userId: string) {
-    const notification = await this.notificationRepo.find({
-      where: { user: { id: userId } },
-      order: { created_at: 'DESC' },
-    });
-
-    return notification;
+    try {
+      const notification = await this.notificationRepo.find({
+        where: { user: { id: userId } },
+        order: { created_at: 'DESC' },
+      });
+      return notification;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async fetchAll() {
-    const notification = await this.notificationRepo.find({
-      order: { created_at: 'DESC' },
-    });
+    try {
+      const notification = await this.notificationRepo.find({
+        order: { created_at: 'DESC' },
+      });
 
-    return notification;
+      return notification;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 }
