@@ -2,6 +2,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -52,539 +53,661 @@ export class UserService {
   /**user dashboard and analysis */
   // Fetch all users with 'merchant' user_type
   async findUsersByType(userType: string): Promise<User[]> {
-    return await this.userRepo.find({
-      where: { user_type: userType },
-      select: [
-        'first_name',
-        'last_name',
-        'user_type',
-        'phone',
-        'id',
-        'profile_picture',
-        'is_active',
-        'is_merchant_verified',
-        'email',
-        'identification',
-        'user_status',
-      ],
-    });
+    try {
+      return await this.userRepo.find({
+        where: { user_type: userType },
+        select: [
+          'first_name',
+          'last_name',
+          'user_type',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+        ],
+      });
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   // Fetch all products where 'featured' is true
   async findFeaturedProducts(schoolId: string): Promise<Product[]> {
-    return await this.productRepo.find({
-      where: { featured: true, school: { id: schoolId } },
-    });
+    try {
+      return await this.productRepo.find({
+        where: { featured: true, school: { id: schoolId } },
+      });
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   // Fetch all products
   async findAll(schoolId: string): Promise<Product[]> {
-    return await this.productRepo.find({
-      where: { school: { id: schoolId } },
-    });
+    try {
+      return await this.productRepo.find({
+        where: { school: { id: schoolId } },
+      });
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   // Fetch categories in descending order by created_at
   async findAllDesc(): Promise<Category[]> {
-    return await this.categoryRepo.find({
-      order: { created_at: 'DESC' },
-    });
+    try {
+      return await this.categoryRepo.find({
+        order: { created_at: 'DESC' },
+      });
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
   /**end of user dashboard analysis */
 
   async create(payload: CreateUserDto) {
-    const userRecord = await this.userRepo.findOne({
-      where: { email: payload.email },
-      select: [
-        'first_name',
-        'last_name',
-        'phone',
-        'id',
-        'profile_picture',
-        'is_active',
-        'is_merchant_verified',
-        'email',
-        'identification',
-        'user_status',
-      ],
-    });
-
-    if (userRecord) {
-      throw new ConflictErrorException('Account with email already exists');
-    }
-    const otp = RandomFourDigits();
-    const hashedPassword = await hashPassword(payload.password);
-    payload.password = hashedPassword;
-    payload.verification_otp = otp;
-
-    const result = await this.userRepo.save(payload);
-
     try {
-      await this.mailService.sendMailNotification(
-        result.email,
-        'Welcome to UniStore',
-        { name: result.first_name, otp },
-        'welcome',
-      );
+      const userRecord = await this.userRepo.findOne({
+        where: { email: payload.email },
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+        ],
+      });
 
-      await this.notificationService.create(
-        {
-          title: 'Welcome to Unistore',
-          message: 'Hello, you welcome to Unistore. Glad to have you here',
-        },
-        result.id,
-      );
+      if (userRecord) {
+        throw new ConflictErrorException('Account with email already exists');
+      }
+      const otp = RandomFourDigits();
+      const hashedPassword = await hashPassword(payload.password);
+      payload.password = hashedPassword;
+      payload.verification_otp = otp;
+
+      const result = await this.userRepo.save(payload);
+
+      try {
+        await this.mailService.sendMailNotification(
+          result.email,
+          'Welcome to UniStore',
+          { name: result.first_name, otp },
+          'welcome',
+        );
+
+        await this.notificationService.create(
+          {
+            title: 'Welcome to Unistore',
+            message: 'Hello, you welcome to Unistore. Glad to have you here',
+          },
+          result.id,
+        );
+      } catch (error) {
+        console.log('error:', error);
+      }
+      delete result.password;
+      return result;
     } catch (error) {
-      console.log('error:', error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-    delete result.password;
-    return result;
   }
 
   async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+    try {
+      const { email, password } = loginDto;
 
-    const user = await this.userRepo.findOne({
-      where: { email },
-      relations: ['school'],
-      select: [
-        'first_name',
-        'last_name',
-        'phone',
-        'id',
-        'profile_picture',
-        'is_active',
-        'is_merchant_verified',
-        'email',
-        'identification',
-        'user_status',
-        'password',
-        'user_type',
-      ],
-    });
+      const user = await this.userRepo.findOne({
+        where: { email },
+        relations: ['school'],
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+          'password',
+          'user_type',
+        ],
+      });
 
-    if (!user) {
-      throw new UnauthorizedErrorException('Invalid email or password');
-    }
+      if (!user) {
+        throw new UnauthorizedErrorException('Invalid email or password');
+      }
 
-    if (!user.is_active) {
-      throw new UnauthorizedErrorException(
-        'User not currently active, kindly verify your account',
+      if (!user.is_active) {
+        throw new UnauthorizedErrorException(
+          'User not currently active, kindly verify your account',
+        );
+      }
+
+      // Compare the provided password with the stored hashed password
+      const isPasswordValid = await compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid email or password');
+      }
+
+      const schoolPayload = user.school
+        ? { id: user.school.id, name: user.school.name }
+        : null;
+
+      const access_token = generateAccessToken(
+        {
+          id: user.id,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          user_type: user.user_type,
+          is_active: user.is_active,
+          is_merchant_verified: user.is_merchant_verified,
+          school: schoolPayload,
+          profile_picture: user.profile_picture,
+          user_status: user.user_status,
+        },
+        'user_access_key',
+      );
+
+      return {
+        access_token,
+        user: {
+          id: user.id,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          email: user.email,
+          phone: user.phone,
+          profile_picture: user.profile_picture,
+          identification: user.identification,
+          user_type: user.user_type,
+          is_active: user.is_active,
+          is_merchant_verified: user.is_merchant_verified,
+          school: schoolPayload,
+          user_status: user.user_status,
+          featured: user.featured,
+        },
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
     }
-
-    // Compare the provided password with the stored hashed password
-    const isPasswordValid = await compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
-    const schoolPayload = user.school
-      ? { id: user.school.id, name: user.school.name }
-      : null;
-
-    const access_token = generateAccessToken(
-      {
-        id: user.id,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        user_type: user.user_type,
-        is_active: user.is_active,
-        is_merchant_verified: user.is_merchant_verified,
-        school: schoolPayload,
-        profile_picture: user.profile_picture,
-        user_status: user.user_status,
-      },
-      'user_access_key',
-    );
-
-    return {
-      access_token,
-      user: {
-        id: user.id,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        email: user.email,
-        phone: user.phone,
-        profile_picture: user.profile_picture,
-        identification: user.identification,
-        user_type: user.user_type,
-        is_active: user.is_active,
-        is_merchant_verified: user.is_merchant_verified,
-        school: schoolPayload,
-        user_status: user.user_status,
-        featured: user.featured,
-      },
-    };
   }
 
   async findMerchants(search?: string, schoolId?: string): Promise<any[]> {
-    const queryBuilder = this.userRepo.createQueryBuilder('user');
+    try {
+      const queryBuilder = this.userRepo.createQueryBuilder('user');
 
-    queryBuilder
-      .select([
-        'user.id',
-        'user.first_name',
-        'user.last_name',
-        'user.email',
-        'user.phone',
-        'user.profile_picture',
-        'user.is_active',
-        'user.featured',
-        'user.is_merchant_verified',
-        'user.user_type',
-        'user.created_at',
-      ])
-      .where('user.user_type = :userType', { userType: Role.MERCHANT });
+      queryBuilder
+        .select([
+          'user.id',
+          'user.first_name',
+          'user.last_name',
+          'user.email',
+          'user.phone',
+          'user.profile_picture',
+          'user.is_active',
+          'user.featured',
+          'user.is_merchant_verified',
+          'user.user_type',
+          'user.created_at',
+        ])
+        .where('user.user_type = :userType', { userType: Role.MERCHANT });
 
-    queryBuilder.andWhere('user.school = :schoolId', { schoolId });
+      queryBuilder.andWhere('user.school = :schoolId', { schoolId });
 
-    if (search) {
-      queryBuilder.andWhere(
-        '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search)',
-        { search: `%${search}%` },
+      if (search) {
+        queryBuilder.andWhere(
+          '(user.first_name ILIKE :search OR user.last_name ILIKE :search OR user.email ILIKE :search)',
+          { search: `%${search}%` },
+        );
+      }
+
+      queryBuilder.orderBy('user.created_at', 'DESC');
+
+      const merchants = await queryBuilder.getMany();
+
+      if (!merchants || merchants.length === 0) {
+        throw new NotFoundException('No merchants found.');
+      }
+
+      return merchants;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
     }
-
-    queryBuilder.orderBy('user.created_at', 'DESC');
-
-    const merchants = await queryBuilder.getMany();
-
-    if (!merchants || merchants.length === 0) {
-      throw new NotFoundException('No merchants found.');
-    }
-
-    return merchants;
   }
   async verifyOtp(payload: { email: string; otp: string }) {
-    const { email, otp } = payload;
-    const user = await this.userRepo.findOne({
-      where: { email },
-      select: [
-        'first_name',
-        'last_name',
-        'phone',
-        'id',
-        'profile_picture',
-        'is_active',
-        'is_merchant_verified',
-        'email',
-        'identification',
-        'user_status',
-        'verification_otp',
-        'created_at',
-      ],
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const otpExpiryLimit = 60 * 5000;
-    const otpCreationTime = user.created_at.getTime();
-    const currentTime = Date.now();
-
-    if (currentTime - otpCreationTime > otpExpiryLimit) {
-      throw new BadRequestException('OTP has expired');
-    }
-
-    if (user.verification_otp !== otp) {
-      throw new BadRequestException('Invalid OTP');
-    }
-
-    user.is_active = true;
-    await this.userRepo.save(user);
-
     try {
-      await this.mailService.sendMailNotification(
-        user.email,
-        'OTP Verification',
-        { name: user.first_name },
-        'otp_verified',
-      );
+      const { email, otp } = payload;
+      const user = await this.userRepo.findOne({
+        where: { email },
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+          'verification_otp',
+          'created_at',
+        ],
+      });
 
-      await this.notificationService.create(
-        {
-          title: 'OTP Verification',
-          message: 'Hi, your account is now verified',
-        },
-        user.id,
-      );
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const otpExpiryLimit = 60 * 5000;
+      const otpCreationTime = user.created_at.getTime();
+      const currentTime = Date.now();
+
+      if (currentTime - otpCreationTime > otpExpiryLimit) {
+        throw new BadRequestException('OTP has expired');
+      }
+
+      if (user.verification_otp !== otp) {
+        throw new BadRequestException('Invalid OTP');
+      }
+
+      user.is_active = true;
+      await this.userRepo.save(user);
+
+      try {
+        await this.mailService.sendMailNotification(
+          user.email,
+          'OTP Verification',
+          { name: user.first_name },
+          'otp_verified',
+        );
+
+        await this.notificationService.create(
+          {
+            title: 'OTP Verification',
+            message: 'Hi, your account is now verified',
+          },
+          user.id,
+        );
+      } catch (error) {
+        console.log('error:', error);
+      }
+
+      return { message: 'OTP verified successfully' };
     } catch (error) {
-      console.log('error:', error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    return { message: 'OTP verified successfully' };
   }
 
   async resendOtp(resendOtpDto: ResendOtpDto) {
-    const { email } = resendOtpDto;
-    const user = await this.userRepo.findOne({
-      where: { email },
-      select: [
-        'first_name',
-        'last_name',
-        'phone',
-        'id',
-        'profile_picture',
-        'is_active',
-        'is_merchant_verified',
-        'email',
-        'identification',
-        'user_status',
-      ],
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const otp = RandomFourDigits();
-    const otpCreationTime = new Date();
-    user.verification_otp = otp;
-    user.created_at = otpCreationTime;
-
-    await this.userRepo.save(user);
-
     try {
-      await this.mailService.sendMailNotification(
-        user.email,
-        'OTP Resent',
-        { otp },
-        'otp_resend',
-      );
-    } catch (error) {
-      console.log('error:', error);
-    }
+      const { email } = resendOtpDto;
+      const user = await this.userRepo.findOne({
+        where: { email },
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+        ],
+      });
 
-    return { message: 'OTP has been resent successfully' };
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const otp = RandomFourDigits();
+      const otpCreationTime = new Date();
+      user.verification_otp = otp;
+      user.created_at = otpCreationTime;
+
+      await this.userRepo.save(user);
+
+      try {
+        await this.mailService.sendMailNotification(
+          user.email,
+          'OTP Resent',
+          { otp },
+          'otp_resend',
+        );
+      } catch (error) {
+        console.log('error:', error);
+      }
+
+      return { message: 'OTP has been resent successfully' };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async update(id: string, updateUserDto: Partial<UpdateUserDto>) {
-    const user = await this.userRepo.findOne({
-      where: { id },
-      select: [
-        'first_name',
-        'last_name',
-        'phone',
-        'id',
-        'profile_picture',
-        'is_active',
-        'is_merchant_verified',
-        'email',
-        'identification',
-        'user_status',
-      ],
-    });
+    try {
+      const user = await this.userRepo.findOne({
+        where: { id },
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+        ],
+      });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const updatedUser = { ...user, ...updateUserDto };
+
+      return await this.userRepo.save(updatedUser);
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const updatedUser = { ...user, ...updateUserDto };
-
-    return await this.userRepo.save(updatedUser);
   }
 
   async updateSchool(id: string, updateUserSchoolDto: UpdateUserSchoolDto) {
-    const existingUser = await this.userRepo.findOne({
-      where: { id },
-    });
+    try {
+      const existingUser = await this.userRepo.findOne({
+        where: { id },
+      });
 
-    if (existingUser && existingUser.id !== id) {
-      throw new BadRequestException('Email is already in use by another user.');
+      if (existingUser && existingUser.id !== id) {
+        throw new BadRequestException(
+          'Email is already in use by another user.',
+        );
+      }
+
+      const user = await this.userRepo.findOne({
+        where: { id },
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+        ],
+        relations: ['school'],
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      Object.assign(user, updateUserSchoolDto);
+
+      return await this.userRepo.save(user);
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const user = await this.userRepo.findOne({
-      where: { id },
-      select: [
-        'first_name',
-        'last_name',
-        'phone',
-        'id',
-        'profile_picture',
-        'is_active',
-        'is_merchant_verified',
-        'email',
-        'identification',
-        'user_status',
-      ],
-      relations: ['school'],
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    Object.assign(user, updateUserSchoolDto);
-
-    return await this.userRepo.save(user);
   }
 
   async uploadProfilePicture(userId: string, file: Express.Multer.File) {
-    const user = await this.userRepo.findOne({
-      where: { id: userId },
-      select: [
-        'first_name',
-        'last_name',
-        'phone',
-        'id',
-        'profile_picture',
-        'is_active',
-        'is_merchant_verified',
-        'email',
-        'identification',
-        'user_status',
-      ],
-    });
+    try {
+      const user = await this.userRepo.findOne({
+        where: { id: userId },
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+        ],
+      });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const uploadedFile = await this.uploadUserImage(file);
+      user.profile_picture = uploadedFile;
+
+      await this.userRepo.save(user);
+
+      return {
+        message: 'Profile picture uploaded successfully',
+        profile_picture: uploadedFile,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const uploadedFile = await this.uploadUserImage(file);
-    user.profile_picture = uploadedFile;
-
-    await this.userRepo.save(user);
-
-    return {
-      message: 'Profile picture uploaded successfully',
-      profile_picture: uploadedFile,
-    };
   }
 
   async photoIdentification(userId: string, file: Express.Multer.File) {
-    const user = await this.userRepo.findOne({
-      where: { id: userId },
-      select: [
-        'first_name',
-        'last_name',
-        'phone',
-        'id',
-        'profile_picture',
-        'is_active',
-        'is_merchant_verified',
-        'email',
-        'identification',
-        'user_status',
-      ],
-    });
+    try {
+      const user = await this.userRepo.findOne({
+        where: { id: userId },
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+        ],
+      });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const uploadedFile = await this.uploadUserImage(file);
+      user.identification = uploadedFile;
+
+      await this.userRepo.save(user);
+
+      return {
+        message: 'Photo-identification uploaded successfully',
+        identification: uploadedFile,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const uploadedFile = await this.uploadUserImage(file);
-    user.identification = uploadedFile;
-
-    await this.userRepo.save(user);
-
-    return {
-      message: 'Photo-identification uploaded successfully',
-      identification: uploadedFile,
-    };
   }
 
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
-    const user = await this.userRepo.findOne({
-      where: { email: forgotPasswordDto.email },
-    });
+    try {
+      const user = await this.userRepo.findOne({
+        where: { email: forgotPasswordDto.email },
+      });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const resetToken = RandomFourDigits();
+      user.reset_token = resetToken;
+      user.reset_token_created_at = new Date();
+
+      await this.userRepo.save(user);
+
+      await this.mailService.sendMailNotification(
+        user.email,
+        'Password Reset Request',
+        { name: user.first_name, reset_token: resetToken },
+        'reset-password', // Email template
+      );
+
+      return { message: 'Password reset link sent to email' };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const resetToken = RandomFourDigits();
-    user.reset_token = resetToken;
-    user.reset_token_created_at = new Date();
-
-    await this.userRepo.save(user);
-
-    await this.mailService.sendMailNotification(
-      user.email,
-      'Password Reset Request',
-      { name: user.first_name, reset_token: resetToken },
-      'reset-password', // Email template
-    );
-
-    return { message: 'Password reset link sent to email' };
   }
 
   async verifyPasswordOtp(resetPasswordDto: VerifyPasswordOtpDto) {
-    const { reset_token, email } = resetPasswordDto;
+    try {
+      const { reset_token, email } = resetPasswordDto;
 
-    // Find user by reset token
-    const user = await this.userRepo.findOne({
-      where: { reset_token, email },
-    });
+      // Find user by reset token
+      const user = await this.userRepo.findOne({
+        where: { reset_token, email },
+      });
 
-    if (!user) {
-      throw new NotFoundException('Invalid reset token');
+      if (!user) {
+        throw new NotFoundException('Invalid reset token');
+      }
+
+      const tokenAge =
+        (new Date().getTime() -
+          new Date(user.reset_token_created_at).getTime()) /
+        5000;
+
+      // Check if token expired (1 minute)
+      if (tokenAge > 60) {
+        throw new ConflictException('Reset token expired');
+      }
+
+      user.reset_token = null;
+
+      await this.userRepo.save(user);
+
+      return { message: 'Otp verification successful' };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const tokenAge =
-      (new Date().getTime() - new Date(user.reset_token_created_at).getTime()) /
-      5000;
-
-    // Check if token expired (1 minute)
-    if (tokenAge > 60) {
-      throw new ConflictException('Reset token expired');
-    }
-
-    user.reset_token = null;
-
-    await this.userRepo.save(user);
-
-    return { message: 'Otp verification successful' };
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
-    const { email, new_password } = resetPasswordDto;
+    try {
+      const { email, new_password } = resetPasswordDto;
 
-    const user = await this.userRepo.findOne({
-      where: { email, reset_token: null },
-    });
+      const user = await this.userRepo.findOne({
+        where: { email, reset_token: null },
+      });
 
-    if (!user) {
-      throw new NotFoundException(
-        'User not found or token likely not verified',
+      if (!user) {
+        throw new NotFoundException(
+          'User not found or token likely not verified',
+        );
+      }
+
+      const hashedPassword = await hashPassword(new_password);
+      user.password = hashedPassword;
+
+      await this.userRepo.save(user);
+
+      return { message: 'Password successfully reset' };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
     }
-
-    const hashedPassword = await hashPassword(new_password);
-    user.password = hashedPassword;
-
-    await this.userRepo.save(user);
-
-    return { message: 'Password successfully reset' };
   }
 
   async updatePassword(createNewPasswordDto: CreateNewPasswordDto) {
-    const { old_password, new_password } = createNewPasswordDto;
+    try {
+      const { old_password, new_password } = createNewPasswordDto;
 
-    const user = await this.userRepo.findOne({
-      where: { email: 'user@example.com' },
-    });
+      const user = await this.userRepo.findOne({
+        where: { email: 'user@example.com' },
+      });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const isOldPasswordCorrect = await comparePassword(
+        old_password,
+        user.password,
+      );
+      if (!isOldPasswordCorrect) {
+        throw new ConflictException('Old password is incorrect');
+      }
+
+      // Hash and update new password
+      const hashedPassword = await hashPassword(new_password);
+      user.password = hashedPassword;
+
+      await this.userRepo.save(user);
+
+      return { message: 'Password successfully updated' };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    const isOldPasswordCorrect = await comparePassword(
-      old_password,
-      user.password,
-    );
-    if (!isOldPasswordCorrect) {
-      throw new ConflictException('Old password is incorrect');
-    }
-
-    // Hash and update new password
-    const hashedPassword = await hashPassword(new_password);
-    user.password = hashedPassword;
-
-    await this.userRepo.save(user);
-
-    return { message: 'Password successfully updated' };
   }
 
   async changePassword(
@@ -592,100 +715,135 @@ export class UserService {
     currentPassword: string,
     newPassword: string,
   ): Promise<any> {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+    try {
+      const user = await this.userRepo.findOne({ where: { id: userId } });
 
-    if (!user) {
-      throw new BadRequestErrorException('User not found');
-    }
+      if (!user) {
+        throw new BadRequestErrorException('User not found');
+      }
 
-    const isCurrentPasswordValid = await compare(
-      currentPassword,
-      user.password,
-    );
+      const isCurrentPasswordValid = await compare(
+        currentPassword,
+        user.password,
+      );
 
-    if (!isCurrentPasswordValid) {
-      throw new BadRequestErrorException('Current password is incorrect');
-    }
+      if (!isCurrentPasswordValid) {
+        throw new BadRequestErrorException('Current password is incorrect');
+      }
 
-    if (newPassword.length < 6) {
-      throw new BadRequestErrorException(
-        'New password must be between 6 and 20 characters',
+      if (newPassword.length < 6) {
+        throw new BadRequestErrorException(
+          'New password must be between 6 and 20 characters',
+        );
+      }
+
+      const hashedPassword = await hashPassword(newPassword);
+
+      user.password = hashedPassword;
+
+      await this.userRepo.save(user);
+
+      return { message: 'Password updated successfully' };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
     }
-
-    const hashedPassword = await hashPassword(newPassword);
-
-    user.password = hashedPassword;
-
-    await this.userRepo.save(user);
-
-    return { message: 'Password updated successfully' };
   }
 
   async getCurrentUser(userId: string): Promise<User | undefined> {
-    const user = await this.userRepo.findOne({
-      where: { id: userId },
-      select: [
-        'first_name',
-        'last_name',
-        'phone',
-        'id',
-        'profile_picture',
-        'is_active',
-        'is_merchant_verified',
-        'email',
-        'identification',
-        'user_status',
-      ],
-    });
-    if (!user) throw new NotFoundErrorException('User not found');
+    try {
+      const user = await this.userRepo.findOne({
+        where: { id: userId },
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+        ],
+      });
+      if (!user) throw new NotFoundErrorException('User not found');
 
-    return user;
+      return user;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
   }
 
   async find() {
-    const user = await this.userRepo.find({
-      select: [
-        'first_name',
-        'last_name',
-        'phone',
-        'id',
-        'profile_picture',
-        'is_active',
-        'is_merchant_verified',
-        'email',
-        'identification',
-        'user_status',
-      ],
-    });
+    try {
+      const user = await this.userRepo.find({
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+        ],
+      });
 
-    if (!user) {
-      throw new NotFoundException('Unable to find user');
+      if (!user) {
+        throw new NotFoundException('Unable to find user');
+      }
+
+      return user;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    return user;
   }
 
   private async uploadUserImage(file: Express.Multer.File | undefined) {
-    if (!file) {
-      return null;
+    try {
+      if (!file) {
+        return null;
+      }
+      const uploadedFile = await this.cloudinaryService.uploadFile(
+        file,
+        'profile_pictures',
+      );
+      return uploadedFile.url;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-    const uploadedFile = await this.cloudinaryService.uploadFile(
-      file,
-      'profile_pictures',
-    );
-    return uploadedFile.url;
   }
 
   async deleteUserByEmail(email: string): Promise<{ message: string }> {
-    const result = await this.userRepo.delete({ email });
+    try {
+      const result = await this.userRepo.delete({ email });
 
-    if (result.affected === 0) {
-      throw new NotFoundException(`User with email ${email} not found.`);
+      if (result.affected === 0) {
+        throw new NotFoundException(`User with email ${email} not found.`);
+      }
+
+      return {
+        message: `User with email ${email} has been deleted successfully.`,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
-
-    return {
-      message: `User with email ${email} has been deleted successfully.`,
-    };
   }
 }
