@@ -172,18 +172,15 @@ export class ProductController {
   @UseGuards(MerchantGuard)
   async getUserProducts(@Req() req: any, @Query('search') search?: string) {
     try {
-      // Extract userId and schoolId from the request
       const userId = req.user?.id;
       const schoolId = req.user?.school?.id;
 
-      // Fetch products with optional search and schoolId
       const products = await this.productService.findByUser(
         userId,
         search,
         schoolId,
       );
 
-      // Return success response
       return successResponse({
         message: 'Products retrieved successfully',
         code: HttpStatus.OK,
@@ -214,7 +211,7 @@ export class ProductController {
   @UseGuards(UserGuard)
   async getProducts(
     @Req() req: any,
-    @Query('search') search?: string, // Optional query parameter
+    @Query('search') search?: string, 
   ) {
     try {
       const schoolId = req.user.school.id;
