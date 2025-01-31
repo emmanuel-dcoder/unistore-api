@@ -261,6 +261,31 @@ export class UserService {
     }
   }
 
+  async findMerchantById(merchantId: string) {
+    try {
+      return await this.userRepo.findOne({
+        where: { id: merchantId },
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+        ],
+      });
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
   async findMerchants(search?: string, schoolId?: string): Promise<any[]> {
     try {
       const queryBuilder = this.userRepo.createQueryBuilder('user');
