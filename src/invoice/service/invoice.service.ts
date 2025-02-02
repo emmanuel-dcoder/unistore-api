@@ -86,14 +86,15 @@ export class InvoiceService {
         throw new BadRequestException('Invalid merchant');
       }
 
-      let invoiceId = RandomSevenDigits();
-      const validateInvoiceId = await this.invoiceRepo.findOne({
-        where: { invoice_id: invoiceId },
-      });
-
       let tx_ref = `order_${Date.now()}`;
+      let invoiceId;
+      let validateInvoiceId;
+
       do {
         invoiceId = RandomSevenDigits();
+        validateInvoiceId = await this.invoiceRepo.findOne({
+          where: { invoice_id: invoiceId },
+        });
       } while (validateInvoiceId);
 
       const paymentResponse = await this.createPaymentRequest(
