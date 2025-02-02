@@ -30,13 +30,14 @@ export class SchoolService {
         imageUrl = await this.storeSchoolImage(file);
       }
 
-      let schoolId = RandomSevenDigits();
-      const confirmSchool = await this.schoolRepo.findOne({
-        where: { school_id: schoolId },
-      });
+      let schoolId;
+      let confirmSchool;
 
       do {
         schoolId = RandomSevenDigits();
+        confirmSchool = await this.schoolRepo.findOne({
+          where: { school_id: schoolId },
+        });
       } while (confirmSchool);
 
       const newSchool = { ...payload, school_id: schoolId, image: imageUrl };
