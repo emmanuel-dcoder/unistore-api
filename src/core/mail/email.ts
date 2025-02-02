@@ -13,7 +13,7 @@ export class MailService {
 
   constructor() {
     // Validate environment variables
-    const requiredVars = ['SMS_HOST', 'SMS_PORT', 'SMS_USER', 'SMS_PASS'];
+    const requiredVars = ['MAIL_HOST', 'MAIL_USER'];
     requiredVars.forEach((variable) => {
       if (!process.env[variable]) {
         this.logger.error(`Missing environment variable: ${variable}`);
