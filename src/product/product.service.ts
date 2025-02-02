@@ -40,13 +40,14 @@ export class ProductService {
       }
       const imageUrls = await this.uploadProductImages(files);
 
-      let productId = RandomSevenDigits();
-      const validateOrder = await this.productRepo.findOne({
-        where: { product_id: productId },
-      });
+      let productId;
+      let validateOrder;
 
       do {
         productId = RandomSevenDigits();
+        validateOrder = await this.productRepo.findOne({
+          where: { product_id: productId },
+        });
       } while (validateOrder);
 
       // Create the product with user and school
