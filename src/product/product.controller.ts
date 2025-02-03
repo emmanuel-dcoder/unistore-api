@@ -176,6 +176,7 @@ export class ProductController {
     status: 200,
     description: 'Merchant products retrieved successfully',
   })
+  @UseGuards(UserGuard)
   async getProductByMerchantId(
     @Req() req: any,
     @Param('merchantId') merchantId: string,
