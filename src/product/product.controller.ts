@@ -183,7 +183,6 @@ export class ProductController {
   ) {
     try {
       const schoolId = req.user?.school?.id;
-
       const products = await this.productService.findByUser(
         merchantId,
         search,
