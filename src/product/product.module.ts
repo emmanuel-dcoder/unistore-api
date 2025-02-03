@@ -10,7 +10,7 @@ import { VerifyTokenMiddleware } from 'src/core/common/middlewares';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Product, Category]), // Register the Product entity
+    TypeOrmModule.forFeature([Product, Category]),
   ],
   controllers: [ProductController],
   providers: [ProductService, CategoryService, CloudinaryService],

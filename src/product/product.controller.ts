@@ -163,10 +163,59 @@ export class ProductController {
     }
   }
 
+  @Get('by-merchant-id/:merchantId')
+  @ApiOperation({
+    summary: 'Get merchants products  by id, with optional search',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Merchant products retrieved successfully',
+  })
+  async getProductByMerchantId(
+    @Req() req: any,
+    @Param('merchantId') merchantId: string,
+    @Query('search') search?: string,
+  ) {
+    try {
+      const schoolId = req.user?.school?.id;
+
+      const products = await this.productService.findByUser(
+        merchantId,
+        search,
+        schoolId,
+      );
+
+      return successResponse({
+        message: 'Merchant products retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: products,
+      });
+    } catch (error) {
+      this.logger.error('Error fetching products for user', {
+        error: error.message,
+        userId: req.user?.id,
+        search,
+      });
+
+      throw error;
+    }
+  }
+
   @Get('merchant-products')
   @ApiOperation({
     summary:
       'Get products that belong to the logged-in merchant, with optional search',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
   })
   @ApiResponse({ status: 200, description: 'Products retrieved successfully' })
   @UseGuards(MerchantGuard)
@@ -209,10 +258,7 @@ export class ProductController {
   })
   @ApiResponse({ status: 200, description: 'Products retrieved successfully' })
   @UseGuards(UserGuard)
-  async getProducts(
-    @Req() req: any,
-    @Query('search') search?: string, 
-  ) {
+  async getProducts(@Req() req: any, @Query('search') search?: string) {
     try {
       const schoolId = req.user.school.id;
       const products = await this.productService.findAll(schoolId, search);
