@@ -104,4 +104,85 @@ export class FlutterwaveService {
       );
     }
   }
+
+  async verifyBankAccount(
+    accountNumber: string,
+    bankCode: string,
+  ): Promise<any> {
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/accounts/resolve`,
+        {
+          account_number: accountNumber,
+          account_bank: bankCode,
+        },
+        {
+          headers: this.headers,
+        },
+      );
+      return response.data;
+    } catch (error) {
+      this.logger.error(
+        'Error verifying bank account:',
+        error.response?.data || error.message,
+      );
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
+  /**
+   * Initiate Bank Transfer
+   */
+  async initiateBankTransfer(payload: {
+    account_bank: string;
+    account_number: string;
+    amount: number;
+    currency: string;
+    narration: string;
+    reference: string;
+    debit_currency: string;
+  }): Promise<any> {
+    try {
+      const response = await axios.post(`${this.baseUrl}/transfers`, payload, {
+        headers: this.headers,
+      });
+      return response.data;
+    } catch (error) {
+      this.logger.error(
+        'Error initiating bank transfer:',
+        error.response?.data || error.message,
+      );
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
+  /**
+   * Verify a Transfer
+   */
+  async verifyTransfer(transactionId: string): Promise<any> {
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/transfers/${transactionId}`,
+        {
+          headers: this.headers,
+        },
+      );
+      return response.data;
+    } catch (error) {
+      this.logger.error(
+        'Error verifying transfer:',
+        error.response?.data || error.message,
+      );
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
 }
