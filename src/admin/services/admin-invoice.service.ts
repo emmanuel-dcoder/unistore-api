@@ -57,10 +57,7 @@ export class AdminInvoiceService {
       const invoice = await queryBuilder.getMany();
       return invoice;
     } catch (error) {
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+      throw Error(error);
     }
   }
 }

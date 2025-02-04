@@ -98,10 +98,7 @@ export class FlutterwaveService {
         'Error fetching banks:',
         error.response?.data || error.message,
       );
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+      throw new Error(error?.response?.message ?? error?.message);
     }
   }
 
@@ -121,19 +118,13 @@ export class FlutterwaveService {
         },
       );
 
-      if (response.data.status !== 'success')
-        throw new BadRequestException('Possible invalid bank details');
-
       return response.data;
     } catch (error) {
       this.logger.error(
-        'Error verifying bank account:',
+        'Error verifying transfer:',
         error.response?.data || error.message,
       );
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+      throw new Error(error?.response?.message ?? error?.message);
     }
   }
 
@@ -159,10 +150,7 @@ export class FlutterwaveService {
         'Error initiating bank transfer:',
         error.response?.data || error.message,
       );
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+      throw new Error(error?.response?.message ?? error?.message);
     }
   }
 
@@ -183,10 +171,8 @@ export class FlutterwaveService {
         'Error verifying transfer:',
         error.response?.data || error.message,
       );
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+
+      throw new Error(error?.response?.message ?? error?.message);
     }
   }
 }

@@ -30,10 +30,7 @@ export class CategoryService {
       if (!result) throw new BadRequestException('Unable to create category');
       return result;
     } catch (error) {
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+      throw Error(error);
     }
   }
 
@@ -47,10 +44,7 @@ export class CategoryService {
       }
       return await queryBuilder.getMany();
     } catch (error) {
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+      throw Error(error);
     }
   }
 
@@ -61,10 +55,7 @@ export class CategoryService {
         throw new NotFoundException(`Category with id ${id} not found`);
       return category;
     } catch (error) {
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+      throw Error(error);
     }
   }
 
@@ -75,10 +66,7 @@ export class CategoryService {
         throw new NotFoundException(`Category with name: ${name} not found`);
       return category;
     } catch (error) {
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+      throw Error(error);
     }
   }
 
@@ -91,10 +79,7 @@ export class CategoryService {
       Object.assign(category, updateCategoryDto);
       return await this.categoryRepo.save(category);
     } catch (error) {
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+      throw Error(error);
     }
   }
 
@@ -106,10 +91,7 @@ export class CategoryService {
       }
       await this.categoryRepo.delete(id);
     } catch (error) {
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+      throw Error(error);
     }
   }
 }

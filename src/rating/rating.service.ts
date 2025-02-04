@@ -78,10 +78,7 @@ export class RatingService {
 
       return result;
     } catch (error) {
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+      throw Error(error);
     }
   }
 
@@ -106,10 +103,7 @@ export class RatingService {
 
       return ratings;
     } catch (error) {
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
+      throw Error(error);
     }
   }
 }
