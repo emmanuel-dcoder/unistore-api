@@ -65,7 +65,10 @@ export class AdminProductService {
 
       return saveProduct;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -111,7 +114,10 @@ export class AdminProductService {
 
       return updatedProduct;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -138,7 +144,10 @@ export class AdminProductService {
 
       return updatedProduct;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -194,7 +203,10 @@ export class AdminProductService {
 
       return { products, total };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -216,7 +228,10 @@ export class AdminProductService {
 
       return { message: 'Product deleted successfully' };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -236,7 +251,10 @@ export class AdminProductService {
 
       return uploadedFiles.map((uploadResult) => uploadResult.url);
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 }

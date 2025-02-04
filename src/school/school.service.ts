@@ -46,7 +46,10 @@ export class SchoolService {
       if (!result) throw new BadRequestException('Unable to create school');
       return result;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -70,7 +73,10 @@ export class SchoolService {
       if (!result) throw new BadRequestException('Unable to update school');
       return result;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -85,7 +91,10 @@ export class SchoolService {
       const schools = await queryBuilder.getMany();
       return schools;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
   async findAllByPagination(
@@ -118,7 +127,10 @@ export class SchoolService {
         limit,
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -130,7 +142,10 @@ export class SchoolService {
       }
       return school;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -145,7 +160,10 @@ export class SchoolService {
       );
       return uploadedFile.url;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 }

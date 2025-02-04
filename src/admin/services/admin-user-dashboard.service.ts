@@ -56,7 +56,10 @@ export class AdminUserDashboardService {
 
       return { ...savedUser };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -140,7 +143,10 @@ export class AdminUserDashboardService {
         userPercentageChange,
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -154,7 +160,10 @@ export class AdminUserDashboardService {
       }
       return ((currentCount - previousCount) / previousCount) * 100;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -165,7 +174,10 @@ export class AdminUserDashboardService {
         take: 5,
       });
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -183,7 +195,10 @@ export class AdminUserDashboardService {
         order: { created_at: 'DESC' },
       });
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -230,7 +245,10 @@ export class AdminUserDashboardService {
         totalPages: Math.ceil(totalInvoice / limit),
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -284,7 +302,10 @@ export class AdminUserDashboardService {
         totalSchools,
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -298,7 +319,10 @@ export class AdminUserDashboardService {
         order: { created_at: 'DESC' },
       });
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -324,7 +348,10 @@ export class AdminUserDashboardService {
         userCount,
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -374,7 +401,10 @@ export class AdminUserDashboardService {
         throw new BadRequestException('Unable to fetch users');
       }
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -450,7 +480,10 @@ export class AdminUserDashboardService {
         totalPages: Math.ceil(totalMerchants / limit),
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -502,7 +535,10 @@ export class AdminUserDashboardService {
         totalPages: Math.ceil(totalUsers / limit),
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -573,7 +609,10 @@ export class AdminUserDashboardService {
         totalPages: Math.ceil(totalMerchants / limit),
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -647,7 +686,10 @@ export class AdminUserDashboardService {
         },
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -658,7 +700,10 @@ export class AdminUserDashboardService {
         throw new BadRequestException('Unable to fetch categories');
       return category;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -672,7 +717,10 @@ export class AdminUserDashboardService {
         order: { created_at: 'DESC' },
       });
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 }

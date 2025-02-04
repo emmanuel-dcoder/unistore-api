@@ -23,7 +23,10 @@ export class InvoiceService {
     try {
       return this.invoiceRepo.findOne({ where: { invoice_id: invoiceId } });
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -63,7 +66,10 @@ export class InvoiceService {
         pendingPayment,
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -117,7 +123,10 @@ export class InvoiceService {
 
       return await this.invoiceRepo.save(invoice);
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -168,7 +177,10 @@ export class InvoiceService {
 
       return queryBuilder.getMany();
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 

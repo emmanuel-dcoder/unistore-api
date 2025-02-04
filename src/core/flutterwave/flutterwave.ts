@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
-
 dotenv.config();
 
 @Injectable()
@@ -76,10 +75,6 @@ export class FlutterwaveService {
         }
       }
     } catch (error) {
-      this.logger.error(
-        'Error fetching banks:',
-        error.response?.data || error.message,
-      );
       throw new HttpException(
         error?.response?.message ?? error?.message,
         error?.status ?? error?.statusCode ?? 500,
@@ -94,11 +89,10 @@ export class FlutterwaveService {
       });
       return response.data;
     } catch (error) {
-      this.logger.error(
-        'Error fetching banks:',
-        error.response?.data || error.message,
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
-      throw new Error(error?.response?.message ?? error?.message);
     }
   }
 
@@ -120,11 +114,10 @@ export class FlutterwaveService {
 
       return response.data;
     } catch (error) {
-      this.logger.error(
-        'Error verifying transfer:',
-        error.response?.data || error.message,
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
-      throw new Error(error?.response?.message ?? error?.message);
     }
   }
 
@@ -146,11 +139,10 @@ export class FlutterwaveService {
       });
       return response.data;
     } catch (error) {
-      this.logger.error(
-        'Error initiating bank transfer:',
-        error.response?.data || error.message,
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
-      throw new Error(error?.response?.message ?? error?.message);
     }
   }
 
@@ -167,12 +159,10 @@ export class FlutterwaveService {
       );
       return response.data;
     } catch (error) {
-      this.logger.error(
-        'Error verifying transfer:',
-        error.response?.data || error.message,
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
       );
-
-      throw new Error(error?.response?.message ?? error?.message);
     }
   }
 }

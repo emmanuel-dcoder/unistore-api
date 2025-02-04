@@ -26,7 +26,10 @@ export class NotificationService {
       }
       return result;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -38,7 +41,10 @@ export class NotificationService {
       });
       return notification;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -50,7 +56,10 @@ export class NotificationService {
 
       return notification;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 }

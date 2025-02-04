@@ -83,7 +83,7 @@ export class UserModule implements NestModule {
         method: RequestMethod.GET,
       },
       {
-        path: 'api/v1/user/bank',
+        path: 'api/v1/user/bank/update',
         method: RequestMethod.PUT,
       },
     );

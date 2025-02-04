@@ -13,7 +13,7 @@ import { isArray } from 'class-validator';
 dotenv.config();
 
 @Catch(HttpException)
-export class AllExceptionsFilter implements ExceptionFilter {
+export class ExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();

@@ -68,7 +68,10 @@ export class ProductService {
 
       return saveProduct;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -117,7 +120,10 @@ export class ProductService {
 
       return updatedProduct;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -136,7 +142,10 @@ export class ProductService {
       Object.assign(product, updateData);
       return this.productRepo.save(product);
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -167,7 +176,10 @@ export class ProductService {
 
       return products;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -201,7 +213,10 @@ export class ProductService {
 
       return product;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
   async findAll(schoolId: string, productName?: string): Promise<Product[]> {
@@ -229,7 +244,10 @@ export class ProductService {
       const products = await queryBuilder.getMany();
       return products;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -282,7 +300,10 @@ export class ProductService {
 
       return products;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -296,7 +317,10 @@ export class ProductService {
       }
       await this.productRepo.delete(productId);
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -310,7 +334,10 @@ export class ProductService {
         message: 'All products have been deleted successfully.',
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -330,7 +357,10 @@ export class ProductService {
 
       return uploadedFiles.map((uploadResult) => uploadResult.url);
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 }

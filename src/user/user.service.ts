@@ -2,6 +2,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -75,7 +76,10 @@ export class UserService {
         ],
       });
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -86,7 +90,10 @@ export class UserService {
         where: { featured: true, school: { id: schoolId } },
       });
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -97,7 +104,10 @@ export class UserService {
         where: { school: { id: schoolId } },
       });
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -108,7 +118,10 @@ export class UserService {
         order: { created_at: 'DESC' },
       });
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
   /**end of user dashboard analysis */
@@ -162,7 +175,10 @@ export class UserService {
       delete result.password;
       return result;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -243,7 +259,10 @@ export class UserService {
         },
       };
     } catch (error) {
-      throw error;
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -265,7 +284,10 @@ export class UserService {
         ],
       });
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -308,7 +330,10 @@ export class UserService {
 
       return merchants;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
   async verifyOtp(payload: { email: string; otp: string }) {
@@ -372,7 +397,10 @@ export class UserService {
 
       return { message: 'OTP verified successfully' };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -419,7 +447,10 @@ export class UserService {
 
       return { message: 'OTP has been resent successfully' };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -449,7 +480,10 @@ export class UserService {
 
       return await this.userRepo.save(updatedUser);
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -490,7 +524,10 @@ export class UserService {
 
       return await this.userRepo.save(user);
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -526,7 +563,10 @@ export class UserService {
         profile_picture: uploadedFile,
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -562,7 +602,10 @@ export class UserService {
         identification: uploadedFile,
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -591,7 +634,10 @@ export class UserService {
 
       return { message: 'Password reset link sent to email' };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -624,7 +670,10 @@ export class UserService {
 
       return { message: 'Otp verification successful' };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -649,7 +698,10 @@ export class UserService {
 
       return { message: 'Password successfully reset' };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -681,7 +733,10 @@ export class UserService {
 
       return { message: 'Password successfully updated' };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -720,7 +775,10 @@ export class UserService {
 
       return { message: 'Password updated successfully' };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -745,7 +803,10 @@ export class UserService {
 
       return user;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -772,7 +833,10 @@ export class UserService {
 
       return user;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -787,7 +851,10 @@ export class UserService {
       );
       return uploadedFile.url;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -803,7 +870,10 @@ export class UserService {
         message: `User with email ${email} has been deleted successfully.`,
       };
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -813,7 +883,10 @@ export class UserService {
       const banks = await this.flutterwaveService.getAllBanks();
       return banks;
     } catch (error) {
-      throw Error(error);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 
@@ -844,7 +917,10 @@ export class UserService {
 
       return await this.userRepo.save(user);
     } catch (error) {
-      throw new Error(error?.response?.message ?? error?.message);
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
     }
   }
 }
