@@ -621,6 +621,7 @@ export class UserController {
   @ApiOperation({ summary: 'Get List of banks' })
   @ApiResponse({ status: 200, description: 'List of bank retrieved' })
   @ApiResponse({ status: 401, description: 'Unable to fetch bank list' })
+  @UseGuards(MerchantGuard)
   async bankList() {
     const data = await this.userService.getBankAccount();
     return successResponse({
@@ -640,10 +641,12 @@ export class UserController {
   })
   @ApiBody({ type: UpdateBankDto })
   @ApiResponse({ status: 404, description: 'Unable to update bank details' })
+  @UseGuards(MerchantGuard)
   async updateBankDetails(
-    @Param('id') id: string,
+    @Req() req: any,
     @Body() updateBankDto: UpdateBankDto,
   ) {
+    const id = req.user.id;
     const data = await this.userService.updateBankDetails(id, updateBankDto);
     return successResponse({
       message: 'Bank details updated successfully',
