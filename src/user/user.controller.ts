@@ -18,6 +18,7 @@ import {
 import { UserService } from './user.service';
 import {
   CreateUserDto,
+  UpdateBankDto,
   UpdateUserRoleDto,
   UpdateUserSchoolDto,
 } from './dto/create-user.dto';
@@ -601,23 +602,58 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'Users fetched.' })
   @ApiResponse({ status: 401, description: 'Unable to fetch users' })
   async find() {
-    try {
-      const data = await this.userService.find();
-      return successResponse({
-        message: 'Users fetched.',
-        code: HttpStatus.OK,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw error;
-    }
+    const data = await this.userService.find();
+    return successResponse({
+      message: 'Users fetched.',
+      code: HttpStatus.OK,
+      status: 'success',
+      data,
+    });
   }
 
   @Delete()
   async deleteUserByEmail(@Body() deleteUserDto: { email: string }) {
     const { email } = deleteUserDto;
     return await this.userService.deleteUserByEmail(email);
+  }
+
+  @Get('bank-list')
+  @ApiOperation({ summary: 'Get List of banks' })
+  @ApiResponse({ status: 200, description: 'List of bank retrieved' })
+  @ApiResponse({ status: 401, description: 'Unable to fetch bank list' })
+  async bankList() {
+    const data = await this.userService.getBankAccount();
+    return successResponse({
+      message: 'List of banks retrieved',
+      code: HttpStatus.OK,
+      status: 'success',
+      data: data.data,
+    });
+  }
+
+  //update banks details
+  @Put('/bank/:id')
+  @ApiOperation({ summary: 'Update user bank details' })
+  @ApiResponse({
+    status: 200,
+    description: 'Bank details updated successfully',
+  })
+  @ApiBody({ type: UpdateBankDto })
+  @ApiResponse({ status: 404, description: 'Unable to update bank details' })
+  async updateBankDetails(
+    @Param('id') id: string,
+    @Body() updateBankDto: UpdateBankDto,
+  ) {
+    const data = await this.userService.updateBankDetails(id, updateBankDto);
+    return successResponse({
+      message: 'Bank details updated successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+      data: {
+        bank_account_name: data.bank_account_name,
+        bank_name: data.bank_name,
+        bank_account_number: data.bank_account_number,
+      },
+    });
   }
 }

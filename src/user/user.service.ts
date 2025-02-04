@@ -9,7 +9,11 @@ import {
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDto, UpdateUserSchoolDto } from './dto/create-user.dto';
+import {
+  CreateUserDto,
+  UpdateBankDto,
+  UpdateUserSchoolDto,
+} from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import {
   BadRequestErrorException,
@@ -36,6 +40,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { Product } from 'src/product/entities/product.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { Role } from 'src/core/enums/role.enum';
+import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
 
 @Injectable()
 export class UserService {
@@ -48,6 +53,7 @@ export class UserService {
     private readonly productRepo: Repository<Product>,
     private readonly mailService: MailService,
     private readonly notificationService: NotificationService,
+    private readonly flutterwaveService: FlutterwaveService,
   ) {}
 
   /**user dashboard and analysis */
@@ -865,6 +871,52 @@ export class UserService {
         message: `User with email ${email} has been deleted successfully.`,
       };
     } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
+  // get all bank account
+  async getBankAccount(): Promise<any> {
+    try {
+      const banks = await this.flutterwaveService.getAllBanks();
+      return banks;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
+  //update banks details
+  async updateBankDetails(id: string, updateBankDto: UpdateBankDto) {
+    try {
+      const user = await this.userRepo.findOne({
+        where: { id },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // confirm bank details
+      const verifyBank = await this.flutterwaveService.verifyBankAccount(
+        updateBankDto.bank_account_number,
+        updateBankDto.bank_code,
+      );
+
+      Object.assign(user, {
+        bank_account_number: verifyBank.data.account_number,
+        bank_name: updateBankDto.bank_name,
+        bank_account_name: verifyBank.data.account_name,
+      });
+
+      return await this.userRepo.save(user);
+    } catch (error) {
+      console.log('error', error);
       throw new HttpException(
         error?.response?.message ?? error?.message,
         error?.status ?? error?.statusCode ?? 500,

@@ -59,6 +59,15 @@ export class User {
   user_status: string;
 
   @Column({ nullable: true })
+  bank_name: string;
+
+  @Column({ nullable: true })
+  bank_account_number: string;
+
+  @Column({ nullable: true })
+  bank_account_name: string;
+
+  @Column({ nullable: true })
   verification_otp: string;
 
   @ManyToOne(() => School, (school) => school.id)

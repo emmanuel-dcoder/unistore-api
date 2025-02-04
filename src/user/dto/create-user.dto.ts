@@ -74,3 +74,19 @@ export class UpdateUserSchoolDto {
   @IsNotEmpty()
   school: string;
 }
+export class UpdateBankDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  bank_code: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  bank_account_number;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  bank_name;
+}

@@ -17,6 +17,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { Product } from 'src/product/entities/product.entity';
+import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { Product } from 'src/product/entities/product.entity';
     UserService,
     MailService,
     NotificationService,
+    FlutterwaveService,
   ],
 })
 export class ChatModule {}

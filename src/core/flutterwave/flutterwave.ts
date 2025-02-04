@@ -120,6 +120,10 @@ export class FlutterwaveService {
           headers: this.headers,
         },
       );
+
+      if (response.data.status !== 'success')
+        throw new BadRequestException('Possible invalid bank details');
+
       return response.data;
     } catch (error) {
       this.logger.error(
