@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
 import { Invoice } from '../entities/invoice.entity';
 import { User } from 'src/user/entities/user.entity';
-import axios from 'axios';
 import { RandomSevenDigits } from 'src/core/common';
 import { InvoicePayloadDto } from '../dto/create-invoice.dto';
 import { Product } from 'src/product/entities/product.entity';
+import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
 
 @Injectable()
 export class InvoiceService {
@@ -16,6 +16,7 @@ export class InvoiceService {
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
+    private readonly flutterwaveService: FlutterwaveService,
   ) {}
 
   async getInvoiceById(invoiceId: string): Promise<Invoice | null> {
@@ -97,13 +98,14 @@ export class InvoiceService {
         });
       } while (validateInvoiceId);
 
-      const paymentResponse = await this.createPaymentRequest(
-        validateUser.email,
-        invoicePayloadDto.total_price,
-        tx_ref,
-        validateUser.first_name + ' ' + validateUser.last_name,
-        validateUser.phone,
-      );
+      const paymentResponse =
+        await this.flutterwaveService.createPaymentRequest(
+          validateUser.email,
+          invoicePayloadDto.total_price,
+          tx_ref,
+          validateUser.first_name + ' ' + validateUser.last_name,
+          validateUser.phone,
+        );
 
       if (!paymentResponse || paymentResponse.status !== 'success') {
         throw new BadRequestException('Failed to create payment request');
@@ -182,67 +184,7 @@ export class InvoiceService {
     }
   }
 
-  // Delete all invoices
   async deleteAllInvoices(): Promise<void> {
     await this.invoiceRepo.clear();
-  }
-  private async createPaymentRequest(
-    email: string,
-    amount: number,
-    tx_ref: string,
-    fullname: string,
-    phone_number: string,
-  ): Promise<any> {
-    try {
-      const data = {
-        amount,
-        email,
-        currency: 'NGN',
-        tx_ref,
-        fullname,
-        phone_number,
-        meta: {
-          sideNote: 'This is a side note to track this payment request',
-        },
-        is_permanent: false, // Set to true for a static account number
-      };
-
-      const options = {
-        method: 'POST',
-        url: 'https://api.flutterwave.com/v3/charges?type=bank_transfer',
-        headers: {
-          accept: 'application/json',
-          Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        data,
-      };
-
-      try {
-        const response = await axios.request(options);
-        return response.data;
-      } catch (error) {
-        if (error.response) {
-          throw new BadRequestException(
-            'Error creating payment request',
-            error.response.data.message || error.message,
-          );
-        } else if (error.request) {
-          throw new BadRequestException(
-            'No response received from payment API',
-          );
-        } else {
-          throw new BadRequestException(
-            'Error creating payment request',
-            error.message,
-          );
-        }
-      }
-    } catch (error) {
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
-    }
   }
 }

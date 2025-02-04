@@ -11,11 +11,18 @@ import { Product } from 'src/product/entities/product.entity';
 import { MailService } from 'src/core/mail/email';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationService } from 'src/notification/notification.service';
+import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Invoice, User, Product, Notification])],
   controllers: [OrderInvoiceController, WebhookController],
-  providers: [InvoiceService, WebhookService, NotificationService, MailService],
+  providers: [
+    InvoiceService,
+    WebhookService,
+    NotificationService,
+    MailService,
+    FlutterwaveService,
+  ],
 })
 export class InvoiceModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
