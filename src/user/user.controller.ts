@@ -633,7 +633,7 @@ export class UserController {
   }
 
   //update banks details
-  @Put('/bank/:id')
+  @Put('/bank')
   @ApiOperation({ summary: 'Update user bank details' })
   @ApiResponse({
     status: 200,
