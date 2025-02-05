@@ -17,7 +17,10 @@ import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(dbconfig.getTypeOrmConfig()),
+    TypeOrmModule.forRoot({
+      ...dbconfig.getTypeOrmConfig(),
+      autoLoadEntities: true,
+    }),
     UserModule,
     EventEmitterModule.forRoot(),
     CloudinaryModule,

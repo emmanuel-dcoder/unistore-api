@@ -86,6 +86,10 @@ export class UserModule implements NestModule {
         path: 'api/v1/user/bank/update',
         method: RequestMethod.PUT,
       },
+      {
+        path: 'api/v1/user/account',
+        method: RequestMethod.DELETE,
+      },
     );
   }
 }

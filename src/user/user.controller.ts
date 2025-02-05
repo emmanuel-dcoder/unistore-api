@@ -659,4 +659,22 @@ export class UserController {
       },
     });
   }
+
+  @Delete('account')
+  @ApiOperation({ summary: `Delete user account` })
+  @ApiResponse({
+    status: 200,
+    description: 'User account successfully deleted',
+  })
+  @ApiResponse({ status: 404, description: 'User account not found' })
+  @ApiResponse({ status: 401, description: 'Unable to delete user account' })
+  async deleteUserAccount(@Req() req: any) {
+    const id = req.user.id;
+    await this.userService.deleteUserAccount(id);
+    return successResponse({
+      message: 'User account successfully deleted',
+      code: HttpStatus.OK,
+      status: 'success',
+    });
+  }
 }

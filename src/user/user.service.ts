@@ -877,6 +877,24 @@ export class UserService {
     }
   }
 
+  async deleteUserAccount(id: string): Promise<{ message: string }> {
+    try {
+      const result = await this.userRepo.delete({ id });
+
+      if (result.affected === 0) {
+        throw new NotFoundException(`User account not found`);
+      }
+
+      return {
+        message: `User account successfully deleted`,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
   // get all bank account
   async getBankAccount(): Promise<any> {
     try {
