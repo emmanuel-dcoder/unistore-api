@@ -6,10 +6,11 @@ import {
   Logger,
   Param,
   Post,
+  Req,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { successResponse } from 'src/core/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller('api/v1/chat')
 @ApiTags('Real-time Socket Description (Merchants/Users and Merchants/Admin)')
@@ -17,6 +18,26 @@ export class ChatController {
   private readonly logger = new Logger(ChatController.name);
 
   constructor(private readonly chatService: ChatService) {}
+
+  @Get('participant')
+  @ApiOperation({ summary: 'Get all participant chats' })
+  @ApiResponse({ status: 200, description: 'Participant chats fetched' })
+  @ApiResponse({ status: 401, description: 'Unable to fetch participant chat' })
+  @ApiResponse({ status: 404, description: 'No chat currently' })
+  async handleGetChats(@Req() req: any) {
+    const participant = req.user.id;
+    const chats = await this.chatService.getChatsByParticipant(participant);
+
+    return successResponse({
+      message:
+        chats.length !== 0
+          ? `Participant chats fetched`
+          : `No active chats currently`,
+      code: HttpStatus.OK,
+      status: 'success',
+      data: chats,
+    });
+  }
 
   @ApiOperation({
     summary: 'Send a message between merchant and user (via WebSocket)',

@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -18,6 +23,7 @@ import { Notification } from 'src/notification/entities/notification.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
+import { VerifyTokenMiddleware } from 'src/core/common/middlewares';
 
 @Module({
   imports: [
@@ -45,4 +51,11 @@ import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
     FlutterwaveService,
   ],
 })
-export class ChatModule {}
+export class ChatModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(VerifyTokenMiddleware).forRoutes({
+      path: 'api/v1/chat/participant',
+      method: RequestMethod.GET,
+    });
+  }
+}
