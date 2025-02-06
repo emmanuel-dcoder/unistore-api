@@ -6,5 +6,6 @@ export const origins = [
   'https://bhustore.ng',
   'https://www.bhustore.ng',
   'http://localhost:8081',
-  'https://unistore-admin.vercel.app/login',
+  'https://unistore-admin.vercel.app/',
+  'https://unistore-admin.vercel.app',
 ];

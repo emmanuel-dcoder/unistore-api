@@ -7,6 +7,7 @@ import {
   Query,
   Get,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -26,7 +27,7 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Reset password with the token provided' })
+  @ApiOperation({ summary: 'Create a new category' })
   @ApiBody({ type: CreateCategoryDto })
   @ApiResponse({ status: 200, description: `Category created successfully` })
   @ApiResponse({ status: 401, description: 'Unable to create category.' })
@@ -83,6 +84,24 @@ export class CategoryController {
         code: HttpStatus.OK,
         status: 'success',
         data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a category by ID' })
+  @ApiResponse({ status: 200, description: `Category deleted successfully` })
+  @ApiResponse({ status: 404, description: `Category not found` })
+  async delete(@Param('id') id: string) {
+    try {
+      await this.categoryService.delete(id);
+      return successResponse({
+        message: `Category deleted successfully`,
+        code: HttpStatus.OK,
+        status: 'success',
       });
     } catch (error) {
       this.logger.error('Error', error.message);
