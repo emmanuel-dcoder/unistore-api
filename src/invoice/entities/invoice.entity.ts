@@ -31,6 +31,15 @@ export class Invoice {
   @Column({ default: 'pending' })
   status: string;
 
+  @Column({ type: Boolean, default: false, nullable: true })
+  is_withdrawn: boolean;
+
+  @Column({ type: Boolean, default: false, nullable: true })
+  withdrawal_approved: boolean;
+
+  @Column({ type: Boolean, default: false, nullable: true })
+  withdrawal_request: boolean;
+
   @Column({ type: 'json', nullable: true })
   payment_details: Record<string, any>;
 

@@ -9,6 +9,8 @@ import {
   NotFoundException,
   Query,
   UseGuards,
+  Param,
+  Put,
 } from '@nestjs/common';
 
 import {
@@ -149,6 +151,86 @@ export class OrderInvoiceController {
           search,
         );
 
+      return successResponse({
+        message:
+          invoices.length === 0
+            ? 'Currently no invoice'
+            : 'Invoices retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: invoices,
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving invoices', error.message);
+      throw error;
+    }
+  }
+
+  @Put('withdrawal-request/:id')
+  @ApiOperation({
+    summary: 'Request withdrawal for paid invoice with invoice id in params',
+  })
+  @ApiResponse({ status: 200, description: 'Invoice withdrawal successful' })
+  @ApiResponse({ status: 401, description: 'Unable to request for withdrawal' })
+  @UseGuards(MerchantGuard)
+  async requestWithdrawal(
+    @Req() req: any,
+    @Param('id') id: string,
+  ): Promise<any> {
+    try {
+      const merchantId = req.user.id;
+      await this.invoiceService.invoiceWithdrawal(id, merchantId);
+
+      return successResponse({
+        message: 'Invoice withdrawal successful',
+        code: HttpStatus.OK,
+        status: 'success',
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving invoices', error.message);
+      throw error;
+    }
+  }
+
+  @Get('withdrawal-request')
+  @ApiOperation({
+    summary:
+      'Get List of invoice withdrawal request by merchant with optional search',
+  })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search is optional',
+  })
+  @ApiQuery({
+    name: 'status',
+    type: String,
+    required: false,
+    description: 'Status is optional',
+  })
+  @ApiResponse({ status: 200, description: 'Invoice withdrawal request fetch' })
+  @ApiResponse({
+    status: 401,
+    description: 'unable to fetch withdrawal request',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No invoice withdrawal request currently',
+  })
+  @UseGuards(MerchantGuard)
+  async getInvoicesWithdrawalWithSearch(
+    @Req() req: any,
+    @Query('search') search?: string,
+    @Query('status') status: string = 'awaiting_payment',
+  ): Promise<any> {
+    try {
+      const userId = req.user.id;
+      const invoices = await this.invoiceService.getWithdrawalRequestList(
+        userId,
+        status,
+        search,
+      );
       return successResponse({
         message:
           invoices.length === 0
