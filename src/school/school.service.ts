@@ -2,7 +2,6 @@ import {
   BadRequestException,
   HttpException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { School } from './entities/school.entity';

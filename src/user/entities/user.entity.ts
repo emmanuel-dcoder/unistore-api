@@ -70,7 +70,7 @@ export class User {
   @Column({ nullable: true })
   verification_otp: string;
 
-  @ManyToOne(() => School, (school) => school.id)
+  @ManyToOne(() => School, (school) => school.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'school_id' })
   school: School;
 
