@@ -156,6 +156,7 @@ export class ProductService {
       queryBuilder
         .where('product.user = :userId', { userId })
         .andWhere('product.school = :schoolId', { schoolId })
+        .andWhere('product.is_approved = :isApproved', { isApproved: true })
         .leftJoinAndSelect('product.user', 'user')
         .addSelect([
           'user.id',
@@ -186,7 +187,7 @@ export class ProductService {
   async findById(productId: string) {
     try {
       const product = await this.productRepo.findOne({
-        where: { id: productId },
+        where: { id: productId, is_approved: true },
         relations: ['user', 'school'],
         select: {
           user: {
@@ -219,6 +220,7 @@ export class ProductService {
       );
     }
   }
+
   async findAll(schoolId: string, productName?: string): Promise<Product[]> {
     try {
       const queryBuilder = this.productRepo.createQueryBuilder('product');
@@ -232,14 +234,15 @@ export class ProductService {
 
       queryBuilder
         .where('product.school = :schoolId', { schoolId })
-        .leftJoinAndSelect('product.user', 'user') // Join the user relationship
+        .andWhere('product.is_approved = :isApproved', { isApproved: true })
+        .leftJoinAndSelect('product.user', 'user')
         .addSelect([
-          'user.id', // Include the specific fields from the user
+          'user.id',
           'user.first_name',
           'user.last_name',
           'user.profile_picture',
         ])
-        .leftJoinAndSelect('product.school', 'school'); // Join the school relationship
+        .leftJoinAndSelect('product.school', 'school');
 
       const products = await queryBuilder.getMany();
       return products;
@@ -267,9 +270,9 @@ export class ProductService {
       const query: any = {
         categoryName,
         school: schoolId ? schoolId : null,
+        is_approved: true,
       };
 
-      // Add price range filters if provided
       if (minPrice !== undefined || maxPrice !== undefined) {
         query.price = {};
         if (minPrice !== undefined) {
@@ -280,7 +283,6 @@ export class ProductService {
         }
       }
 
-      // Add rating range filters if provided
       if (minRating !== undefined || maxRating !== undefined) {
         query.avgRating = {};
         if (minRating !== undefined) {
