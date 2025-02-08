@@ -26,11 +26,14 @@ export class Product {
   @Column({ nullable: true })
   product_id: string;
 
-  @ManyToOne(
-    () => Category,
-    (category) => category.products,
-    { eager: true, nullable: true, onDelete: 'CASCADE' },
-  )
+  @Column({ nullable: true, default: false })
+  is_approved: boolean;
+
+  @ManyToOne(() => Category, (category) => category.products, {
+    eager: true,
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   category: Category;
 
   @Column('text', { array: true, nullable: true })

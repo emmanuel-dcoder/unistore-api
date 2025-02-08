@@ -235,6 +235,24 @@ export class AdminProductService {
     }
   }
 
+  async approveProduct(id: string): Promise<Product> {
+    try {
+      const product = await this.productRepo.findOne({ where: { id } });
+
+      if (!product) {
+        throw new BadRequestException('Product not found');
+      }
+
+      product.is_approved = true;
+      return await this.productRepo.save(product);
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
   private async uploadProductImages(
     files: Array<Express.Multer.File> | undefined,
   ): Promise<string[]> {

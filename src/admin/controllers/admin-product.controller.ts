@@ -86,6 +86,25 @@ export class AdminProductController {
     }
   }
 
+  @Put(':id/approve')
+  @ApiOperation({ summary: 'Approve a product by ID' })
+  @ApiResponse({ status: 200, description: 'Product approved successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid product ID or not found' })
+  async approveProduct(@Param('id') id: string) {
+    try {
+      const approvedProduct = await this.adminProductService.approveProduct(id);
+      return successResponse({
+        message: 'Product approved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: approvedProduct,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw new BadRequestException(error.message);
+    }
+  }
+
   @Put(':id')
   @ApiOperation({
     summary:
