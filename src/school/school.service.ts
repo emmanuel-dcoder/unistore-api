@@ -1,4 +1,9 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { School } from './entities/school.entity';
 import { Repository } from 'typeorm';
@@ -141,6 +146,23 @@ export class SchoolService {
         throw new BadRequestException(`School with id ${id} not found`);
       }
       return school;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
+  async delete(id: string): Promise<void> {
+    try {
+      const school = await this.schoolRepo.findOne({
+        where: { id },
+      });
+      if (!school) {
+        throw new BadRequestException('School not found');
+      }
+      await this.schoolRepo.delete(id);
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,

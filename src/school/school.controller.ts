@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Put,
+  Delete,
 } from '@nestjs/common';
 import { SchoolService } from './school.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
@@ -222,6 +223,31 @@ export class SchoolController {
       });
     } catch (error) {
       this.logger.error(`Error fetching school with ID ${id}`, error.message);
+      throw error;
+    }
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a school by ID' })
+  @ApiParam({ name: 'id', description: 'ID of the school to delete' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'School deleted successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'School not found',
+  })
+  async delete(@Param('id') id: string) {
+    try {
+      await this.schoolService.delete(id);
+      return successResponse({
+        message: 'School deleted successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+      });
+    } catch (error) {
+      this.logger.error(`Error deleting school with ID ${id}`, error.message);
       throw error;
     }
   }

@@ -27,10 +27,10 @@ export class CreateUserDto {
   @ApiProperty()
   @IsString()
   @MinLength(6, { message: 'New password must be at least 6 characters long' })
-  @Matches(/^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{6,})/, {
-    message:
-      'New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-  })
+  // @Matches(/^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{6,})/, {
+  //   message:
+  //     'New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+  // })
   password: string;
 
   @ApiProperty()
