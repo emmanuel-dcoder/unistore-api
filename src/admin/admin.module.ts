@@ -22,10 +22,21 @@ import { AdminUserDashboardService } from './services/admin-user-dashboard.servi
 import { AdminUserDashboardController } from './controllers/admin-user-dashboard.controller';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
 import { School } from 'src/school/entities/school.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { MailService } from 'src/core/mail/email';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Admin, Product, Invoice, Category, User, School]),
+    TypeOrmModule.forFeature([
+      Admin,
+      Product,
+      Invoice,
+      Category,
+      User,
+      School,
+      Notification,
+    ]),
   ],
   controllers: [
     AdminController,
@@ -40,6 +51,8 @@ import { School } from 'src/school/entities/school.entity';
     AdminProductService,
     CategoryService,
     AdminUserDashboardService,
+    MailService,
+    NotificationService,
   ],
 })
 export class AdminModule implements NestModule {

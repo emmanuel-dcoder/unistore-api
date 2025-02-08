@@ -8,6 +8,7 @@ import {
   BadRequestException,
   Body,
   Post,
+  Put,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -725,6 +726,24 @@ export class AdminUserDashboardController {
     } catch (error) {
       this.logger.error('Error retrieving inactive users', error.message);
       throw error;
+    }
+  }
+
+  @Put(':id/verify-merchant')
+  @ApiOperation({ summary: 'Verify merchant by ID' })
+  @ApiResponse({ status: 200, description: 'Merchant verification successful' })
+  @ApiResponse({ status: 400, description: 'Unable to verify merchant' })
+  async approveProduct(@Param('id') id: string) {
+    try {
+      await this.adminUserDashboardService.verifyMerchant(id);
+      return successResponse({
+        message: 'Merchant verification successful',
+        code: HttpStatus.OK,
+        status: 'success',
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw new BadRequestException(error.message);
     }
   }
 }

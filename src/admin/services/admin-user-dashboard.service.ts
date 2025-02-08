@@ -16,6 +16,8 @@ import { PaginationDto } from '../dto/invoice-admin.dto';
 import { MerchantPaginationDto } from '../dto/update-admin.dto';
 import { randomBytes } from 'crypto';
 import { hashPassword } from 'src/core/common';
+import { NotificationService } from 'src/notification/notification.service';
+import { MailService } from 'src/core/mail/email';
 
 @Injectable()
 export class AdminUserDashboardService {
@@ -29,6 +31,8 @@ export class AdminUserDashboardService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     @InjectRepository(School) private readonly schoolRepo: Repository<School>,
+    private readonly mailService: MailService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async createUser(payload: {
@@ -716,6 +720,44 @@ export class AdminUserDashboardService {
         take: limit,
         order: { created_at: 'DESC' },
       });
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
+  async verifyMerchant(id: string): Promise<User> {
+    try {
+      const user = await this.userRepo.findOne({ where: { id } });
+
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      user.is_merchant_verified = true;
+
+      try {
+        await this.mailService.sendMailNotification(
+          user.email,
+          'Congratulation... Account Verified',
+          { name: user.first_name },
+          'verified',
+        );
+
+        await this.notificationService.create(
+          {
+            title: 'Congratulation... Account Verified',
+            message:
+              'Congratulations, you merchant account is now verified on Unistore',
+          },
+          user.id,
+        );
+      } catch (error) {
+        console.log('error:', error);
+      }
+      return await this.userRepo.save(user);
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,
