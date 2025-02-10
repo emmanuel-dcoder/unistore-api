@@ -244,6 +244,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       file,
       'profile_pictures',
     );
-    return uploadedFile.url;
+    return uploadedFile.secure_url;
   }
 }
