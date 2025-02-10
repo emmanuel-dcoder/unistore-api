@@ -284,7 +284,7 @@ export class AdminProductService {
         ),
       );
 
-      return uploadedFiles.map((uploadResult) => uploadResult.url);
+      return uploadedFiles.map((uploadResult) => uploadResult.secure_url);
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,

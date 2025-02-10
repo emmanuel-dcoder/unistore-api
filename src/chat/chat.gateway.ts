@@ -97,7 +97,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let imageString;
     if (attachment) {
       const image = await this.uploadAttachment(attachment);
-      imageString = image.url as string;
+      imageString = image.secure_url as string;
     }
 
     const savedMessage = await this.chatService.saveMessage(
@@ -165,7 +165,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let senderType = user_type === 'merchant' ? 'User' : 'Admin';
     if (attachment) {
       const image = await this.uploadAttachment(attachment);
-      imageString = image.url as string;
+      imageString = image.secure_url as string;
     }
 
     const savedMessage = await this.chatService.saveAdminMessage(
