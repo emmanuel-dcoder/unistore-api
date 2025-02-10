@@ -86,6 +86,29 @@ export class AdminProductController {
     }
   }
 
+  @Get('product/:id')
+  @ApiOperation({ summary: 'Get a product by ID' })
+  @ApiParam({ name: 'id', type: 'string', description: 'Product ID' })
+  @ApiResponse({ status: 200, description: 'Product retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Product not found' })
+  async getProductById(@Param('id') id: string) {
+    try {
+      const product = await this.adminProductService.getProductById(id);
+      if (!product) {
+        throw new BadRequestException('Product not found');
+      }
+      return successResponse({
+        message: 'Product retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: product,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw new BadRequestException(error.message);
+    }
+  }
+
   @Put(':id/approve')
   @ApiOperation({ summary: 'Approve a product by ID' })
   @ApiResponse({ status: 200, description: 'Product approved successfully' })
@@ -157,6 +180,14 @@ export class AdminProductController {
   }
 
   @Put(':id/status')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['verified', 'not-verified'] },
+      },
+    },
+  })
   @ApiOperation({
     summary: 'Update the product status (verified or not-verified)',
   })

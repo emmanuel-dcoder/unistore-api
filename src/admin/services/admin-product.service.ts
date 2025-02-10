@@ -72,6 +72,23 @@ export class AdminProductService {
     }
   }
 
+  async getProductById(id: string): Promise<Product> {
+    try {
+      const product = await this.productRepo.findOne({
+        where: { id },
+      });
+      if (!product) {
+        throw new BadRequestException('Product not found');
+      }
+      return product;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
   async update(
     productId: string,
     adminProductDto: Partial<AdminProductDto>,
