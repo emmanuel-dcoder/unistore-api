@@ -849,7 +849,8 @@ export class UserService {
         file,
         'profile_pictures',
       );
-      return uploadedFile.url;
+
+      return uploadedFile.secure_url;
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,

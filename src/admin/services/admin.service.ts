@@ -106,13 +106,13 @@ export class AdminService {
       }
 
       const uploadedFile = await this.uploadImage(file);
-      admin.profile_picture = uploadedFile.url;
+      admin.profile_picture = uploadedFile.secure_url;
 
       await this.adminRepo.save(admin);
 
       return {
         message: 'Profile picture uploaded successfully',
-        profile_picture: uploadedFile.url,
+        profile_picture: uploadedFile.secure_url,
       };
     } catch (error) {
       throw new HttpException(
