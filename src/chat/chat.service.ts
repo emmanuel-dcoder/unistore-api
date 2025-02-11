@@ -270,33 +270,31 @@ export class ChatService {
   }
 
   async getChatsByParticipant(participantId: string): Promise<Chat[]> {
-    const chats = await this.chatRepo.find({
-      relations: ['user', 'merchant'],
-      where: [
-        { user: { id: participantId } },
-        { merchant: { id: participantId } },
-      ],
-      order: {
-        updated_at: 'DESC',
-      },
-      select: {
-        user: {
-          id: true,
-          first_name: true,
-          last_name: true,
-          profile_picture: true,
-        },
-        merchant: {
-          id: true,
-          first_name: true,
-          last_name: true,
-          profile_picture: true,
-        },
-      },
-    });
+    const chats = await this.chatRepo
+      .createQueryBuilder('chat')
+      .leftJoinAndSelect('chat.user', 'user')
+      .leftJoinAndSelect('chat.merchant', 'merchant')
+      .where('user.id = :participantId OR merchant.id = :participantId', {
+        participantId,
+      })
+      .orderBy('chat.updated_at', 'DESC')
+      .select([
+        'chat.id', // Ensure chat ID is included
+        'chat.updated_at',
+        'user.id',
+        'user.first_name',
+        'user.last_name',
+        'user.profile_picture',
+        'merchant.id',
+        'merchant.first_name',
+        'merchant.last_name',
+        'merchant.profile_picture',
+      ])
+      .getMany();
 
     return chats;
   }
+
   async getAdminChatsByParticipant(
     participantId: string,
   ): Promise<AdminChat[]> {
