@@ -218,6 +218,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('getChats')
   async handleGetChats(client: Socket, participantId: string) {
     try {
+      if (!participantId) {
+        client.emit('chatList', 'Invalid participant id or no participant id');
+      }
       const chats = await this.chatService.getChatsByParticipant(participantId);
       client.emit('chatList', chats);
     } catch (error) {
