@@ -124,6 +124,7 @@ export class ChatService {
     });
     return chatMessage;
   }
+
   async saveAdminMessage(
     chat: string,
     sender: string,
@@ -321,7 +322,9 @@ export class ChatService {
   }
 
   async getAllChats() {
-    const chats = await this.chatRepo.find();
+    const chats = await this.messageRepo.find({
+      relations: ['chat', 'chat.merchant', 'chat.user', 'sender'],
+    });
     return chats;
   }
 }

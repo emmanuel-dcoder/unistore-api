@@ -11,11 +11,7 @@ import { ChatService } from './chat.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Chat } from './entities/chat.entity';
-import {
-  GetAdminMessagesDto,
-  GetMessagesDto,
-  SendMessageDto,
-} from './dto/create-chat.dto';
+import { GetAdminMessagesDto, SendMessageDto } from './dto/create-chat.dto';
 import { CloudinaryService } from 'src/core/cloudinary/cloudinary.service';
 import { AdminChat } from './entities/admin-chat.entity';
 
