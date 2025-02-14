@@ -68,6 +68,7 @@ export class ProductService {
 
       return saveProduct;
     } catch (error) {
+      console.log('error for creating product:', error);
       throw new HttpException(
         error?.response?.message ?? error?.message,
         error?.status ?? error?.statusCode ?? 500,

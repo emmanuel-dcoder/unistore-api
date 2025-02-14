@@ -143,18 +143,11 @@ export class ChatService {
     return chatMessage;
   }
 
-  async getMessages(user: string, merchant: string): Promise<Message[]> {
+  async getMessages(chatId: string): Promise<Message[]> {
     const messages = await this.messageRepo.find({
-      where: [
-        {
-          sender: { id: user },
-          chat: { merchant: { id: merchant } },
-        },
-        {
-          sender: { id: merchant },
-          chat: { user: { id: user } },
-        },
-      ],
+      where: {
+        chat: { id: chatId },
+      },
       relations: ['chat', 'chat.merchant', 'chat.user', 'sender'],
       select: {
         id: true,
@@ -194,6 +187,8 @@ export class ChatService {
 
     return messages;
   }
+
+
   async getAdminMessages(
     admin: string,
     merchant: string,

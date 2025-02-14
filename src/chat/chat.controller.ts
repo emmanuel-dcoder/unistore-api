@@ -57,8 +57,7 @@ export class ChatController {
 2. **Chat History**:
    - **Emit**: \`getMessages\`
    - **Payload**:
-     - \`user\`: User ID
-     - \`merchant\`: Merchant ID
+     - \`chat Id\`: id of chat
    - **Listen**: \`messageHistory\` for historical chats.
 
 3. **Chat Participation**:
@@ -182,16 +181,14 @@ export class ChatController {
 **Fetch Chat Messages**:
 - **Endpoint**: \`GET /message\`
 - **Payload**:
-  - \`user\`: User ID
-  - \`merchant\`: Merchant ID
+  - \`chatID\`: id of the chat
 - **Returns**: Messages exchanged between the specified user and merchant.
 `,
   })
   @Get('message')
-  async getChatMessage(@Body() payload: { user: string; merchant: string }) {
+  async getChatMessage(@Body() chatId: string) {
     try {
-      const { user, merchant } = payload;
-      const data = await this.chatService.getMessages(user, merchant);
+      const data = await this.chatService.getMessages(chatId);
 
       return successResponse({
         message: `Chat Message fetched`,

@@ -183,11 +183,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('getMessages')
-  async handleGetMessages(client: Socket, payload: GetMessagesDto) {
-    const messages = await this.chatService.getMessages(
-      payload.user,
-      payload.merchant,
-    );
+  async handleGetMessages(client: Socket, chatId: string) {
+    const messages = await this.chatService.getMessages(chatId);
     client.emit('messageHistory', messages);
   }
 
