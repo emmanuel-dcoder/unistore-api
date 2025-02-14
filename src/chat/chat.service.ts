@@ -188,7 +188,6 @@ export class ChatService {
     return messages;
   }
 
-
   async getAdminMessages(
     admin: string,
     merchant: string,
@@ -318,6 +317,11 @@ export class ChatService {
       },
     });
 
+    return chats;
+  }
+
+  async getAllChats() {
+    const chats = await this.chatRepo.find();
     return chats;
   }
 }

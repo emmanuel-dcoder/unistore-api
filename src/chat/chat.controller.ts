@@ -201,4 +201,25 @@ export class ChatController {
       throw error;
     }
   }
+
+  //fetch all chats
+  @ApiOperation({
+    summary: 'Fetch all chats',
+  })
+  @Get('all')
+  async getAllChats() {
+    try {
+      const data = await this.chatService.getAllChats();
+
+      return successResponse({
+        message: `Chat Message fetched`,
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
 }
