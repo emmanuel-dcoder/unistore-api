@@ -39,7 +39,7 @@ export class Product {
   @Column('text', { array: true, nullable: true })
   product_image: string[];
 
-  @Column()
+  @Column({ nullable: true })
   product_description: string;
 
   @Column({ nullable: true })
