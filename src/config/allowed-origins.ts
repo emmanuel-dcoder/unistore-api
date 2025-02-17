@@ -8,4 +8,5 @@ export const origins = [
   'http://localhost:8081',
   'https://unistore-admin.vercel.app/',
   'https://unistore-admin.vercel.app',
+  'https://unistoreapp.netlify.app',
 ];
