@@ -12,9 +12,18 @@ import { MailService } from 'src/core/mail/email';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationService } from 'src/notification/notification.service';
 import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
+import { Withdrawal } from './entities/withdrawal.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Invoice, User, Product, Notification])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Invoice,
+      User,
+      Product,
+      Notification,
+      Withdrawal,
+    ]),
+  ],
   controllers: [OrderInvoiceController, WebhookController],
   providers: [
     InvoiceService,

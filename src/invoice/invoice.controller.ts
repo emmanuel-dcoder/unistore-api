@@ -190,6 +190,25 @@ export class OrderInvoiceController {
     }
   }
 
+  @Get('withdrawal-request')
+  @ApiOperation({
+    summary: 'Get all withdrawals request for the merchant',
+  })
+  @ApiResponse({ status: 200, description: 'List of withdrawal Request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @UseGuards(MerchantGuard)
+  async getWithdrawals(@Req() req: any): Promise<any> {
+    const merchantId = req.user.id;
+    const withdrawals =
+      await this.invoiceService.getMerchantWithdrawals(merchantId);
+    return {
+      message: 'Withdrawals retrieved successfully',
+      data: withdrawals,
+      code: HttpStatus.OK,
+      status: 'success',
+    };
+  }
+
   // @Delete('all')
   // @ApiOperation({ summary: 'Delete all invoices' })
   // @ApiResponse({

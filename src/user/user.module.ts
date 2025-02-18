@@ -20,6 +20,7 @@ import { Product } from 'src/product/entities/product.entity';
 import { InvoiceService } from 'src/invoice/service/invoice.service';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
 import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
+import { Withdrawal } from 'src/invoice/entities/withdrawal.entity';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
       Category,
       Product,
       Invoice,
+      Withdrawal,
     ]),
   ],
   controllers: [UserController],

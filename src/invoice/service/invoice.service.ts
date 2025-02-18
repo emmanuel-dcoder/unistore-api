@@ -9,12 +9,15 @@ import { Product } from 'src/product/entities/product.entity';
 import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
 import { MailService } from 'src/core/mail/email';
 import { NotificationService } from 'src/notification/notification.service';
+import { Withdrawal } from '../entities/withdrawal.entity';
 
 @Injectable()
 export class InvoiceService {
   constructor(
     @InjectRepository(Invoice)
     private readonly invoiceRepo: Repository<Invoice>,
+    @InjectRepository(Withdrawal)
+    private readonly withdrawalRepo: Repository<Withdrawal>,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
@@ -202,16 +205,16 @@ export class InvoiceService {
       const invoices = await this.invoiceRepo.find({
         where: {
           product_owner: { id: merchantId },
-          status: 'awaiting_payment',
+          status: 'paid',
           is_withdrawn: false,
           withdrawal_approved: false,
           withdrawal_request: false,
         },
       });
 
-      if (!invoices.length) {
+      if (invoices.length === 0) {
         throw new BadRequestException(
-          'No eligible invoices found for withdrawal request.',
+          'No eligible invoices found for withdrawal request or still awaiting payment.',
         );
       }
 
@@ -252,7 +255,26 @@ export class InvoiceService {
         console.log('error:', error);
       }
 
+      await this.withdrawalRepo.save({
+        merchant: { id: merchantId } as any,
+        amount: totalAmount,
+      });
+
       return totalAmount;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
+  async getMerchantWithdrawals(merchantId: string): Promise<Withdrawal[]> {
+    try {
+      return this.withdrawalRepo.find({
+        where: { merchant: { id: merchantId } },
+        order: { created_at: 'DESC' },
+      });
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,
