@@ -42,4 +42,23 @@ export class AdminInvoiceController {
       data: invoice,
     });
   }
+
+  @Get('withdrawal-request')
+  @ApiOperation({
+    summary: 'Get all withdrawals request for the merchant',
+  })
+  @ApiResponse({ status: 200, description: 'List of withdrawal Request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getWithdrawals(): Promise<any> {
+    const withdrawals = await this.adminInvoiceService.getWithdrawalList();
+    return {
+      message:
+        withdrawals.length === 0
+          ? `No withdrawal request found`
+          : `Withdrawal request retrieved successfully`,
+      data: withdrawals,
+      code: HttpStatus.OK,
+      status: 'success',
+    };
+  }
 }

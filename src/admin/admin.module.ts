@@ -25,6 +25,7 @@ import { School } from 'src/school/entities/school.entity';
 import { NotificationService } from 'src/notification/notification.service';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { MailService } from 'src/core/mail/email';
+import { Withdrawal } from 'src/invoice/entities/withdrawal.entity';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { MailService } from 'src/core/mail/email';
       User,
       School,
       Notification,
+      Withdrawal,
     ]),
   ],
   controllers: [

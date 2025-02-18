@@ -1,6 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
+import { Withdrawal } from 'src/invoice/entities/withdrawal.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -8,6 +9,8 @@ export class AdminInvoiceService {
   constructor(
     @InjectRepository(Invoice)
     private readonly invoiceRepo: Repository<Invoice>,
+    @InjectRepository(Withdrawal)
+    private readonly withdrawalRepo: Repository<Withdrawal>,
   ) {}
 
   async getAllOrdersByUser(
@@ -56,6 +59,19 @@ export class AdminInvoiceService {
 
       const invoice = await queryBuilder.getMany();
       return invoice;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
+  async getWithdrawalList(): Promise<Withdrawal[]> {
+    try {
+      return this.withdrawalRepo.find({
+        order: { created_at: 'DESC' },
+      });
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,
