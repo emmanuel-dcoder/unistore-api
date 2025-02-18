@@ -268,6 +268,9 @@ export class ProductService {
     try {
       const { minPrice, maxPrice, minRating, maxRating } = filters;
 
+      if (categoryName && !schoolId)
+        throw new BadRequestException('school id cannot be null');
+
       const query: any = {
         categoryName,
         school: schoolId ? schoolId : null,
