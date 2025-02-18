@@ -202,7 +202,10 @@ export class OrderInvoiceController {
     const withdrawals =
       await this.invoiceService.getMerchantWithdrawals(merchantId);
     return {
-      message: 'Withdrawals retrieved successfully',
+      message:
+        withdrawals.length === 0
+          ? `No withdrawal request found`
+          : `Withdrawal request retrieved successfully`,
       data: withdrawals,
       code: HttpStatus.OK,
       status: 'success',
