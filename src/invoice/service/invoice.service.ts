@@ -184,79 +184,41 @@ export class InvoiceService {
     }
   }
 
-  async invoiceWithdrawal(
-    id: string,
-    merchantId: string,
-  ): Promise<Invoice | null> {
+  async invoiceWithdrawal(merchantId: string): Promise<number> {
     try {
-      const invoice = await this.invoiceRepo.findOne({
+      const invoices = await this.invoiceRepo.find({
         where: {
           product_owner: { id: merchantId },
-          id,
-          status: 'paid',
+          status: 'awaiting_payment',
           is_withdrawn: false,
           withdrawal_approved: false,
           withdrawal_request: false,
         },
       });
 
-      if (!invoice) {
-        throw new BadRequestException('Invalid Invoice or awaiting payment');
-      }
-
-      invoice.withdrawal_request = true;
-
-      return await this.invoiceRepo.save(invoice);
-    } catch (error) {
-      throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
-      );
-    }
-  }
-
-  async getWithdrawalRequestList(
-    productOwnerId: string,
-    status: string = 'awaiting_payment',
-    search?: string,
-    limit?: number,
-  ): Promise<Invoice[]> {
-    try {
-      const queryBuilder = this.invoiceRepo.createQueryBuilder('invoice');
-
-      queryBuilder
-        .leftJoinAndSelect('invoice.product_owner', 'product_owner')
-        .where('invoice.product_owner.id = :productOwnerId', { productOwnerId })
-        .andWhere('invoice.status = :status', { status })
-        .andWhere('invoice.withdrawal_request = :withdrawalRequest', {
-          withdrawalRequest: true,
-        });
-
-      if (search) {
-        queryBuilder.andWhere(
-          new Brackets((qb) => {
-            qb.where('invoice.invoice_id LIKE :search', {
-              search: `%${search}%`,
-            }).orWhere('invoice.customer_name LIKE :search', {
-              search: `%${search}%`,
-            });
-          }),
+      if (!invoices.length) {
+        throw new BadRequestException(
+          'No eligible invoices found for withdrawal request.',
         );
       }
 
-      queryBuilder.select([
-        'invoice',
-        'product_owner.first_name',
-        'product_owner.last_name',
-      ]);
+      const totalAmount = invoices.reduce(
+        (sum, invoice) => sum + Number(invoice.total_price),
+        0,
+      );
 
-      queryBuilder.orderBy('invoice.created_at', 'DESC');
+      await this.invoiceRepo
+        .createQueryBuilder()
+        .update(Invoice)
+        .set({ withdrawal_request: true })
+        .where('product_owner_id = :merchantId', { merchantId })
+        .andWhere('status = :paidStatus', { paidStatus: 'paid' })
+        .andWhere('is_withdrawn = :withdrawn', { withdrawn: false })
+        .andWhere('withdrawal_approved = :approved', { approved: false })
+        .andWhere('withdrawal_request = :request', { request: false })
+        .execute();
 
-      if (limit) {
-        queryBuilder.take(limit);
-      }
-
-      return queryBuilder.getMany();
+      return totalAmount;
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,
