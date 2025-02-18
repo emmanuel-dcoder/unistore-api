@@ -288,13 +288,13 @@ export class ProductController {
   })
   @ApiQuery({
     name: 'minPrice',
-    type: Number,
+    type: String,
     required: false,
     description: 'Minimum price of the products to filter by',
   })
   @ApiQuery({
     name: 'maxPrice',
-    type: Number,
+    type: String,
     required: false,
     description: 'Maximum price of the products to filter by',
   })
@@ -319,8 +319,8 @@ export class ProductController {
   async getByCategoryAndPrice(
     @Req() req: any,
     @Query('categoryName') categoryName: string,
-    @Query('minPrice') minPrice?: number,
-    @Query('maxPrice') maxPrice?: number,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
     @Query('minRating') minRating?: number,
     @Query('maxRating') maxRating?: number,
   ) {

@@ -258,49 +258,58 @@ export class ProductService {
   async findByCategoryAndPrice(
     categoryName: string,
     filters: {
-      minPrice?: number;
-      maxPrice?: number;
+      minPrice?: string;
+      maxPrice?: string;
       minRating?: number;
       maxRating?: number;
     },
     schoolId?: string,
   ) {
     try {
+      if (categoryName && !schoolId) {
+        throw new BadRequestException(
+          'Category name and school ID are required.',
+        );
+      }
+
       const { minPrice, maxPrice, minRating, maxRating } = filters;
 
-      if (categoryName && !schoolId)
-        throw new BadRequestException('school id cannot be null');
+      const queryBuilder = this.productRepo
+        .createQueryBuilder('product')
+        .innerJoinAndSelect('product.category', 'category')
+        .where('product.is_approved = :isApproved', { isApproved: true })
+        .andWhere('category.name = :categoryName', { categoryName });
 
-      const query: any = {
-        categoryName,
-        school: schoolId ? schoolId : null,
-        is_approved: true,
-      };
-
-      if (minPrice !== undefined || maxPrice !== undefined) {
-        query.price = {};
-        if (minPrice !== undefined) {
-          query.price.$gte = minPrice;
-        }
-        if (maxPrice !== undefined) {
-          query.price.$lte = maxPrice;
-        }
+      if (schoolId) {
+        queryBuilder.andWhere('product.school_id = :schoolId', { schoolId });
       }
 
-      if (minRating !== undefined || maxRating !== undefined) {
-        query.avgRating = {};
-        if (minRating !== undefined) {
-          query.avgRating.$gte = minRating;
-        }
-        if (maxRating !== undefined) {
-          query.avgRating.$lte = maxRating;
-        }
+      if (minPrice) {
+        queryBuilder.andWhere('price_range ILIKE :minPrice', {
+          minPrice: `%${minPrice}%`,
+        });
+      }
+      if (maxPrice) {
+        queryBuilder.andWhere('price_range ILIKE :maxPrice', {
+          maxPrice: `%${maxPrice}%`,
+        });
       }
 
-      // Fetch products based on the query
-      const products = await this.productRepo.find(query);
+      if (minRating) {
+        queryBuilder.andWhere('product.avg_rating >= :minRating', {
+          minRating,
+        });
+      }
 
-      if (!products || products.length === 0) {
+      if (maxRating) {
+        queryBuilder.andWhere('product.avg_rating <= :maxRating', {
+          maxRating,
+        });
+      }
+
+      const products = await queryBuilder.getMany();
+
+      if (!products.length) {
         throw new NotFoundException('No products found matching the criteria');
       }
 
