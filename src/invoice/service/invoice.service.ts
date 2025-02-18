@@ -51,6 +51,7 @@ export class InvoiceService {
         where: {
           product_owner: { id: userId },
           status: 'paid',
+          is_withdrawn: false,
         },
       });
 
