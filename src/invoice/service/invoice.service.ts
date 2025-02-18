@@ -7,6 +7,8 @@ import { RandomSevenDigits } from 'src/core/common';
 import { InvoicePayloadDto } from '../dto/create-invoice.dto';
 import { Product } from 'src/product/entities/product.entity';
 import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
+import { MailService } from 'src/core/mail/email';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class InvoiceService {
@@ -17,6 +19,8 @@ export class InvoiceService {
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
     private readonly flutterwaveService: FlutterwaveService,
+    private readonly mailService: MailService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async getInvoiceById(invoiceId: string): Promise<Invoice | null> {
@@ -186,6 +190,15 @@ export class InvoiceService {
 
   async invoiceWithdrawal(merchantId: string): Promise<number> {
     try {
+      //confirm merchant
+      const merchant = await this.userRepo.findOne({
+        where: {
+          id: merchantId,
+        },
+      });
+
+      if (!merchant) throw new BadRequestException('Invalid merchant id.');
+
       const invoices = await this.invoiceRepo.find({
         where: {
           product_owner: { id: merchantId },
@@ -217,6 +230,27 @@ export class InvoiceService {
         .andWhere('withdrawal_approved = :approved', { approved: false })
         .andWhere('withdrawal_request = :request', { request: false })
         .execute();
+
+      try {
+        await this.mailService.sendMailNotification(
+          merchant.email,
+          `Withdrawal Request`,
+          {
+            message: `Hi, ${merchant.first_name}, you withdrawal of ${totalAmount} is been reviewed and processed`,
+          },
+          'withdrawal',
+        );
+
+        await this.notificationService.create(
+          {
+            title: `Withdrawal Request`,
+            message: `Hi, ${merchant.first_name}, you withdrawal of ${totalAmount} is been reviewed and processed`,
+          },
+          merchant.id,
+        );
+      } catch (error) {
+        console.log('error:', error);
+      }
 
       return totalAmount;
     } catch (error) {

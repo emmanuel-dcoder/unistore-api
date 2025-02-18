@@ -157,7 +157,7 @@ export class UserService {
       try {
         await this.mailService.sendMailNotification(
           result.email,
-          'Welcome to UniStore',
+          'Withdrawal Request',
           { name: result.first_name, otp },
           'welcome',
         );
