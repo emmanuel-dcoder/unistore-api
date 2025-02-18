@@ -278,7 +278,9 @@ export class ProductService {
         .createQueryBuilder('product')
         .innerJoinAndSelect('product.category', 'category')
         .where('product.is_approved = :isApproved', { isApproved: true })
-        .andWhere('category.name = :categoryName', { categoryName });
+        .andWhere('category.name ILIKE :categoryName', {
+          categoryName: `%${categoryName}%`,
+        });
 
       if (schoolId) {
         queryBuilder.andWhere('product.school_id = :schoolId', { schoolId });
