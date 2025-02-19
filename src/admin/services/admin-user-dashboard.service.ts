@@ -1,4 +1,9 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Between,
@@ -758,6 +763,25 @@ export class AdminUserDashboardService {
         console.log('error:', error);
       }
       return await this.userRepo.save(user);
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
+  async deleteUserAccount(email: string): Promise<{ message: string }> {
+    try {
+      const result = await this.userRepo.delete({ email });
+
+      if (result.affected === 0) {
+        throw new NotFoundException(`User account not found`);
+      }
+
+      return {
+        message: `User account successfully deleted`,
+      };
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,

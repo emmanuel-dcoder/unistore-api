@@ -9,6 +9,7 @@ import {
   Body,
   Post,
   Put,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -745,5 +746,33 @@ export class AdminUserDashboardController {
       this.logger.error('Error', error.message);
       throw new BadRequestException(error.message);
     }
+  }
+
+  @Delete('delete/user')
+  @ApiOperation({ summary: `Delete user account with email` })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        email: {
+          type: 'string',
+          description: 'email of user',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User account successfully deleted',
+  })
+  @ApiResponse({ status: 404, description: 'User account not found' })
+  @ApiResponse({ status: 401, description: 'Unable to delete user account' })
+  async deleteUserAccount(@Body() email: string) {
+    await this.adminUserDashboardService.deleteUserAccount(email);
+    return successResponse({
+      message: 'User account successfully deleted',
+      code: HttpStatus.OK,
+      status: 'success',
+    });
   }
 }
