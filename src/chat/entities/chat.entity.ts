@@ -22,7 +22,7 @@ export class Chat {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'merchant_id' })
   merchant: User;
 

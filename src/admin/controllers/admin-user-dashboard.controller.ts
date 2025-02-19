@@ -767,8 +767,8 @@ export class AdminUserDashboardController {
   })
   @ApiResponse({ status: 404, description: 'User account not found' })
   @ApiResponse({ status: 401, description: 'Unable to delete user account' })
-  async deleteUserAccount(@Body() email: string) {
-    await this.adminUserDashboardService.deleteUserAccount(email);
+  async deleteUserAccount(@Body() body: { email: string }) {
+    await this.adminUserDashboardService.deleteUserAccount(body.email);
     return successResponse({
       message: 'User account successfully deleted',
       code: HttpStatus.OK,

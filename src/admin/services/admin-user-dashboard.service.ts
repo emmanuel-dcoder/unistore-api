@@ -773,15 +773,22 @@ export class AdminUserDashboardService {
 
   async deleteUserAccount(email: string): Promise<{ message: string }> {
     try {
-      const result = await this.userRepo.delete({ email });
+      if (typeof email !== 'string') {
+        throw new BadRequestException('Invalid email format');
+      }
 
+      // Check if the user exists first
+      const user = await this.userRepo.findOne({ where: { email } });
+      if (!user) {
+        throw new NotFoundException(`User not found`);
+      }
+
+      const result = await this.userRepo.delete({ email });
       if (result.affected === 0) {
         throw new NotFoundException(`User account not found`);
       }
 
-      return {
-        message: `User account successfully deleted`,
-      };
+      return { message: `User account successfully deleted` };
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,
