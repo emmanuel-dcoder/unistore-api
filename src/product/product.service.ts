@@ -311,10 +311,6 @@ export class ProductService {
 
       const products = await queryBuilder.getMany();
 
-      if (!products.length) {
-        throw new NotFoundException('No products found matching the criteria');
-      }
-
       return products;
     } catch (error) {
       throw new HttpException(

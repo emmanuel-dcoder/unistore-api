@@ -339,7 +339,10 @@ export class ProductController {
       );
 
       return successResponse({
-        message: 'Products retrieved successfully',
+        message:
+          data.length === 0
+            ? 'No product found'
+            : 'Products retrieved successfully',
         code: HttpStatus.OK,
         status: 'success',
         data,
