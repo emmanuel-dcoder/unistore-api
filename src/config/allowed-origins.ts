@@ -10,4 +10,5 @@ export const origins = [
   'https://unistore-admin.vercel.app',
   'https://unistoreapp.netlify.app',
   'http://localhost:5173',
+  'http://unistore.ng',
 ];
