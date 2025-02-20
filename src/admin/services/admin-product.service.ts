@@ -29,7 +29,7 @@ export class AdminProductService {
 
       await this.categoryService.findOne(category);
       const existingProduct = await this.productRepo.findOne({
-        where: { product_name, id: merchantId },
+        where: { product_name, user: { id: merchantId } },
       });
       if (existingProduct) {
         throw new BadRequestException(
