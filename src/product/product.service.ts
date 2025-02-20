@@ -31,7 +31,7 @@ export class ProductService {
       const { product_name, category, ...rest } = createProductDto;
       await this.categoryService.findOne(category);
       const existingProduct = await this.productRepo.findOne({
-        where: { product_name },
+        where: { product_name, id: user },
       });
       if (existingProduct) {
         throw new BadRequestException(
