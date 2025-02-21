@@ -221,7 +221,7 @@ export class ProductService {
   async findById(productId: string) {
     try {
       const product = await this.productRepo.findOne({
-        where: { id: productId, is_approved: true },
+        where: { id: productId },
         relations: ['user', 'school'],
         select: {
           user: {
