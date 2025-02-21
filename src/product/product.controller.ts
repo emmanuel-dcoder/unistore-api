@@ -29,6 +29,7 @@ import {
 import { successResponse } from 'src/core/common';
 import { UserGuard } from 'src/core/guards/user.guard';
 import { MerchantGuard } from 'src/core/guards/merchant.guard';
+import { Merchant } from 'src/core/decorators/merchant.decorator';
 
 @Controller('api/v1/product')
 @ApiTags('Product')
@@ -93,6 +94,7 @@ export class ProductController {
   @ApiOperation({ summary: 'Get product by ID' })
   @ApiResponse({ status: 200, description: 'Product retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Product not found' })
+  @UseGuards(Merchant)
   async getProductById(@Param('id') productId: string) {
     try {
       const product = await this.productService.findById(productId);
