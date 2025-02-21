@@ -94,7 +94,7 @@ export class ProductController {
   @ApiOperation({ summary: 'Get product by ID' })
   @ApiResponse({ status: 200, description: 'Product retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Product not found' })
-  @UseGuards(Merchant)
+  @UseGuards(MerchantGuard)
   async getProductById(@Param('id') productId: string) {
     try {
       const product = await this.productService.findById(productId);
