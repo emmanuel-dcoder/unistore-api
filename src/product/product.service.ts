@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoryService } from 'src/category/category.service';
 import { NotFoundErrorException, RandomSevenDigits } from 'src/core/common';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class ProductService {
@@ -19,6 +20,7 @@ export class ProductService {
     private readonly productRepo: Repository<Product>,
     private readonly cloudinaryService: CloudinaryService,
     private readonly categoryService: CategoryService,
+    private readonly userService: UserService,
   ) {}
 
   async create(
@@ -180,12 +182,15 @@ export class ProductService {
 
   async findByUser(userId: string, search: string, schoolId: string) {
     try {
+      const confirmUser = await this.userService.getCurrentUser(userId);
+      const isApproved = confirmUser?.user_type === 'merchant' ? false : true;
+
       const queryBuilder = this.productRepo.createQueryBuilder('product');
 
       queryBuilder
         .where('product.user = :userId', { userId })
         .andWhere('product.school = :schoolId', { schoolId })
-        .andWhere('product.is_approved = :isApproved', { isApproved: true })
+        .andWhere('product.is_approved = :isApproved', { isApproved })
         .leftJoinAndSelect('product.user', 'user')
         .addSelect([
           'user.id',

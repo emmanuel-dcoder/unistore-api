@@ -12,10 +12,13 @@ import { Category } from 'src/category/entities/category.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationService } from 'src/notification/notification.service';
 import { MailService } from 'src/core/mail/email';
+import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
+import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Rating, Product, Category, Notification]),
+    TypeOrmModule.forFeature([Rating, Product, Category, Notification, User]),
   ],
   controllers: [RatingController],
   providers: [
@@ -25,6 +28,8 @@ import { MailService } from 'src/core/mail/email';
     CategoryService,
     NotificationService,
     MailService,
+    UserService,
+    FlutterwaveService,
   ],
 })
 export class RatingModule implements NestModule {

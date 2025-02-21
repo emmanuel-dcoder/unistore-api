@@ -797,6 +797,7 @@ export class UserService {
           'email',
           'identification',
           'user_status',
+          'user_type',
         ],
       });
       if (!user) throw new NotFoundErrorException('User not found');
