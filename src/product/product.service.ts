@@ -108,7 +108,10 @@ export class ProductService {
       if (files && files.length > 0) {
         const imageUrls = await this.uploadProductImages(files);
 
-        product.product_image = [...imageUrls];
+        product.product_image = [
+          ...(product.product_image || []),
+          ...imageUrls,
+        ];
       }
 
       Object.assign(product, rest);
@@ -118,6 +121,31 @@ export class ProductService {
       if (!updatedProduct) {
         throw new BadRequestException('Unable to update product');
       }
+
+      return updatedProduct;
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
+  async removeProductImage(productId: string, imageUrl: string) {
+    try {
+      const product = await this.productRepo.findOne({
+        where: { id: productId },
+      });
+
+      if (!product) {
+        throw new BadRequestException('Product not found');
+      }
+
+      product.product_image = product.product_image.filter(
+        (img) => img !== imageUrl,
+      );
+
+      const updatedProduct = await this.productRepo.save(product);
 
       return updatedProduct;
     } catch (error) {

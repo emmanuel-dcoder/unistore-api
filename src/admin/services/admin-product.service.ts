@@ -118,7 +118,10 @@ export class AdminProductService {
       if (files && files.length > 0) {
         const imageUrls = await this.uploadProductImages(files);
 
-        product.product_image = [...imageUrls];
+        product.product_image = [
+          ...(product.product_image || []),
+          ...imageUrls,
+        ];
       }
 
       Object.assign(product, rest);

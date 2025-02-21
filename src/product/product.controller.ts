@@ -163,6 +163,32 @@ export class ProductController {
     }
   }
 
+  @Delete('image/:id')
+  @ApiOperation({
+    summary: 'Remove an image from a product without deleting the product',
+  })
+  @ApiResponse({ status: 200, description: 'Image removed successfully' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid payload or product not found',
+  })
+  @UseGuards(MerchantGuard)
+  async removeProductImage(
+    @Param('id') id: string,
+    @Query('imageUrl') imageUrl: string,
+  ) {
+    const updatedProduct = await this.productService.removeProductImage(
+      id,
+      imageUrl,
+    );
+    return successResponse({
+      message: 'Image removed successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+      data: updatedProduct,
+    });
+  }
+
   @Get('by-merchant-id/:merchantId')
   @ApiOperation({
     summary: 'Get merchants products  by id, with optional search',
