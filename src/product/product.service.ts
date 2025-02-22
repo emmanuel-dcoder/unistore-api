@@ -186,12 +186,15 @@ export class ProductService {
 
       const queryBuilder = this.productRepo.createQueryBuilder('product');
 
+      if (confirmUser.user_type === 'user') {
+        queryBuilder.where('product.is_approved = :isApproved', {
+          isApproved: true,
+        });
+      }
+
       queryBuilder
         .where('product.user = :userId', { userId })
         .andWhere('product.school = :schoolId', { schoolId })
-        .andWhere('product.is_approved = :isApproved', {
-          isApproved: confirmUser?.user_type === 'merchant' ? false : true,
-        })
         .leftJoinAndSelect('product.user', 'user')
         .addSelect([
           'user.id',
