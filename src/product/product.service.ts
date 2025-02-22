@@ -183,14 +183,15 @@ export class ProductService {
   async findByUser(userId: string, search: string, schoolId: string) {
     try {
       const confirmUser = await this.userService.getCurrentUser(userId);
-      const isApproved = confirmUser?.user_type === 'merchant' ? false : true;
 
       const queryBuilder = this.productRepo.createQueryBuilder('product');
 
       queryBuilder
         .where('product.user = :userId', { userId })
         .andWhere('product.school = :schoolId', { schoolId })
-        .andWhere('product.is_approved = :isApproved', { isApproved })
+        .andWhere('product.is_approved = :isApproved', {
+          isApproved: confirmUser?.user_type === 'merchant' ? false : true,
+        })
         .leftJoinAndSelect('product.user', 'user')
         .addSelect([
           'user.id',
