@@ -89,11 +89,13 @@ export class AdminInvoiceService {
   async approveMerchantWithdrawal(payload: string): Promise<any> {
     try {
       const confirmWithdrawal = await this.withdrawalRepo.findOne({
-        where: { id: payload },
+        where: { id: payload, withdrawal_approved: true },
       });
 
       if (!confirmWithdrawal)
-        throw new BadRequestException('Invalid withdrawal id');
+        throw new BadRequestException(
+          'Invalid withdrawal id or already approved',
+        );
 
       console.log('this is getting here');
       const reference = `TXN_${Date.now()}_${Math.floor(Math.random() * 1000)}`;

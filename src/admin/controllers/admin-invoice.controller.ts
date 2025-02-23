@@ -84,8 +84,7 @@ export class AdminInvoiceController {
   async approveWithdrawal(
     @Query('withdrawalId') withdrawalId: string,
   ): Promise<any> {
-    const data =
-      await this.adminInvoiceService.approveMerchantWithdrawal(withdrawalId);
+    await this.adminInvoiceService.approveMerchantWithdrawal(withdrawalId);
 
     return successResponse({
       message: `Merchant withdrawal approved/processed successfully`,
