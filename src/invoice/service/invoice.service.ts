@@ -194,7 +194,6 @@ export class InvoiceService {
 
   async invoiceWithdrawal(merchantId: string): Promise<number> {
     try {
-      //confirm merchant
       const merchant = await this.userRepo.findOne({
         where: {
           id: merchantId,
@@ -258,6 +257,7 @@ export class InvoiceService {
 
       await this.withdrawalRepo.save({
         merchant: { id: merchantId } as any,
+        withdrawal_request: true,
         amount: totalAmount,
       });
 

@@ -65,18 +65,13 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Login successful', type: Object })
   @ApiResponse({ status: 401, description: 'Invalid email or password' })
   async login(@Body() loginDto: LoginDto) {
-    try {
-      const data = await this.adminService.login(loginDto);
-      return successResponse({
-        message: 'Login successful',
-        code: HttpStatus.OK,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw error;
-    }
+    const data = await this.adminService.login(loginDto);
+    return successResponse({
+      message: 'Login successful',
+      code: HttpStatus.OK,
+      status: 'success',
+      data,
+    });
   }
 
   @Put(':id/profile-picture')

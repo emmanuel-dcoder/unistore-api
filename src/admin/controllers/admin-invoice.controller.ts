@@ -5,8 +5,9 @@ import {
   HttpStatus,
   Logger,
   UseGuards,
+  Put,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
 import { AdminInvoiceService } from '../services/admin-invoice.service';
 import { AdminGuard } from 'src/core/guards/admin.guard';
@@ -60,5 +61,36 @@ export class AdminInvoiceController {
       code: HttpStatus.OK,
       status: 'success',
     };
+  }
+
+  @Put('approve-withdrawal')
+  @ApiOperation({
+    summary: 'Approve/process merchant withdrawal',
+  })
+  @ApiQuery({
+    name: 'withdrawalId',
+    required: true,
+    type: String,
+    description: 'Number of products per page (for pagination)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Merchant withdrawal approved/processed successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unable to approve or process merchant withdrawal',
+  })
+  async approveWithdrawal(
+    @Query('withdrawalId') withdrawalId: string,
+  ): Promise<any> {
+    const data =
+      await this.adminInvoiceService.approveMerchantWithdrawal(withdrawalId);
+
+    return successResponse({
+      message: `Merchant withdrawal approved/processed successfully`,
+      code: HttpStatus.OK,
+      status: 'success',
+    });
   }
 }

@@ -26,6 +26,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { MailService } from 'src/core/mail/email';
 import { Withdrawal } from 'src/invoice/entities/withdrawal.entity';
+import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { Withdrawal } from 'src/invoice/entities/withdrawal.entity';
     AdminUserDashboardService,
     MailService,
     NotificationService,
+    FlutterwaveService,
   ],
 })
 export class AdminModule implements NestModule {

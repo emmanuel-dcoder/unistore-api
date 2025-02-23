@@ -128,7 +128,7 @@ export class FlutterwaveService {
     account_bank: string;
     account_number: string;
     amount: number;
-    currency: string;
+    currency: 'NGN';
     narration: string;
     reference: string;
     debit_currency: string;
@@ -137,11 +137,15 @@ export class FlutterwaveService {
       const response = await axios.post(`${this.baseUrl}/transfers`, payload, {
         headers: this.headers,
       });
+      console.log('Transfer response:', response.data);
       return response.data;
     } catch (error) {
+      if (error.response) {
+        console.error('Flutterwave error response:', error.response.data);
+      }
       throw new HttpException(
-        error?.response?.message ?? error?.message,
-        error?.status ?? error?.statusCode ?? 500,
+        error?.response?.data ?? error?.message,
+        error?.response?.status ?? 500,
       );
     }
   }
