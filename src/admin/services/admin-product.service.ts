@@ -9,6 +9,7 @@ import {
 } from 'src/product/dto/create-product.dto';
 import { CategoryService } from 'src/category/category.service';
 import { RandomSevenDigits } from 'src/core/common';
+import { MailService } from 'src/core/mail/email';
 
 @Injectable()
 export class AdminProductService {
@@ -17,6 +18,7 @@ export class AdminProductService {
     private readonly productRepo: Repository<Product>,
     private readonly cloudinaryService: CloudinaryService,
     private readonly categoryService: CategoryService,
+    private readonly mailService: MailService,
   ) {}
 
   async create(
@@ -257,14 +259,37 @@ export class AdminProductService {
 
   async approveProduct(id: string): Promise<Product> {
     try {
-      const product = await this.productRepo.findOne({ where: { id } });
+      const product = await this.productRepo.findOne({
+        where: { id },
+        relations: ['user'], // Ensure the user relation is loaded
+      });
 
       if (!product) {
         throw new BadRequestException('Product not found');
       }
 
+      if (!product.user) {
+        throw new BadRequestException('User not found for this product');
+      }
+
       product.is_approved = true;
-      return await this.productRepo.save(product);
+
+      const saveProduct = await this.productRepo.save(product);
+
+      try {
+        await this.mailService.sendMailNotification(
+          product.user.email,
+          'Product Status',
+          { name: product.user.first_name, productName: product.product_name },
+          'approval',
+        );
+
+        return saveProduct;
+      } catch (error) {
+        console.log('Error sending mail/notification:', error);
+      }
+
+      return saveProduct;
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,
