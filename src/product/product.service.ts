@@ -222,11 +222,11 @@ export class ProductService {
     }
   }
 
-  async findById(productId: string) {
+  async findById(productId: string, userId?: string) {
     try {
       const product = await this.productRepo.findOne({
         where: { id: productId },
-        relations: ['user', 'school'],
+        relations: ['user', 'school', 'product_views'], // Ensure product_views relation is loaded
         select: {
           user: {
             id: true,
@@ -248,6 +248,23 @@ export class ProductService {
 
       if (!product) {
         throw new NotFoundException('Product not found');
+      }
+
+      if (userId) {
+        const user = await this.userService.findById(userId);
+
+        if (!user) {
+          throw new NotFoundException('User not found');
+        }
+
+        const isUserViewed = product.product_views.some(
+          (viewedUser) => viewedUser.id === userId,
+        );
+
+        if (!isUserViewed) {
+          product.product_views.push(user);
+          await this.productRepo.save(product);
+        }
       }
 
       return product;

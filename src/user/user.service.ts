@@ -83,6 +83,20 @@ export class UserService {
     }
   }
 
+  // find user by id
+  async findById(userId: string): Promise<any> {
+    try {
+      return await this.userRepo.findOne({
+        where: { id: userId },
+      });
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
   // Fetch all products where 'featured' is true
   async findFeaturedProducts(schoolId: string): Promise<Product[]> {
     try {

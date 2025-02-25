@@ -9,8 +9,10 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  JoinTable,
 } from 'typeorm';
 import { ProductStatus } from '../dto/create-product.dto';
 
@@ -97,6 +99,14 @@ export class Product {
   @OneToMany(() => Rating, (rating) => rating.id, { nullable: true })
   @JoinColumn({ name: 'rating_id' })
   rating: Rating[];
+
+  @ManyToMany(() => User, { cascade: true })
+  @JoinTable({
+    name: 'product_views',
+    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'user_id', referencedColumnName: 'id' },
+  })
+  product_views: User[];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

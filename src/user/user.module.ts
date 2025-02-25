@@ -21,6 +21,8 @@ import { InvoiceService } from 'src/invoice/service/invoice.service';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
 import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
 import { Withdrawal } from 'src/invoice/entities/withdrawal.entity';
+import { ProductService } from 'src/product/product.service';
+import { CategoryService } from 'src/category/category.service';
 
 @Module({
   imports: [
@@ -37,12 +39,14 @@ import { Withdrawal } from 'src/invoice/entities/withdrawal.entity';
   controllers: [UserController],
   providers: [
     UserService,
+    CategoryService,
     CloudinaryService,
     MailService,
     SchoolService,
     NotificationService,
     InvoiceService,
     FlutterwaveService,
+    ProductService,
   ],
 })
 export class UserModule implements NestModule {
