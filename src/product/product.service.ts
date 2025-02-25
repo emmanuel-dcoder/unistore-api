@@ -222,58 +222,31 @@ export class ProductService {
     }
   }
 
-  async findById(productId: string, userId?: string) {
+  async findAll(schoolId: string, productName?: string): Promise<Product[]> {
     try {
-      const product = await this.productRepo.findOne({
-        where: { id: productId },
-        relations: ['user', 'school', 'product_views'], // Ensure product_views relation is loaded
-        select: {
-          user: {
-            id: true,
-            first_name: true,
-            last_name: true,
-            email: true,
-            phone: true,
-            profile_picture: true,
-          },
-          school: {
-            id: true,
-            name: true,
-            image: true,
-            abbreviation: true,
-            school_id: true,
-          },
-          product_views: {
-            id: true,
-            first_name: true,
-            last_name: true,
-            profile_picture: true,
-          },
-        },
-      });
+      const queryBuilder = this.productRepo.createQueryBuilder('product');
 
-      if (!product) {
-        throw new NotFoundException('Product not found');
+      // Add search filter if productName is provided
+      if (productName) {
+        queryBuilder.where('product.product_name ILIKE :search', {
+          search: `%${productName}%`,
+        });
       }
 
-      if (userId) {
-        const user = await this.userService.findById(userId);
+      queryBuilder
+        .where('product.school = :schoolId', { schoolId })
+        .andWhere('product.is_approved = :isApproved', { isApproved: true })
+        .leftJoinAndSelect('product.user', 'user')
+        .addSelect([
+          'user.id',
+          'user.first_name',
+          'user.last_name',
+          'user.profile_picture',
+        ])
+        .leftJoinAndSelect('product.school', 'school');
 
-        if (!user) {
-          throw new NotFoundException('User not found');
-        }
-
-        const isUserViewed = product.product_views.some(
-          (viewedUser) => viewedUser.id === userId,
-        );
-
-        if (!isUserViewed) {
-          product.product_views.push(user);
-          await this.productRepo.save(product);
-        }
-      }
-
-      return product;
+      const products = await queryBuilder.getMany();
+      return products;
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,
