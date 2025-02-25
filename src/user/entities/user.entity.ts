@@ -34,6 +34,9 @@ export class User {
   @Column({ type: 'boolean', default: false, nullable: true })
   featured: boolean;
 
+  @Column({ type: Number, default: 0, nullable: true })
+  contact_count: number;
+
   @Column()
   password: string;
 

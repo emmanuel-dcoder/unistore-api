@@ -100,7 +100,7 @@ export class Product {
   @JoinColumn({ name: 'rating_id' })
   rating: Rating[];
 
-  @ManyToMany(() => User, { cascade: true })
+  @ManyToMany(() => User, { cascade: true, nullable: true })
   @JoinTable({
     name: 'product_views',
     joinColumn: { name: 'product_id', referencedColumnName: 'id' },

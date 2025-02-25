@@ -243,6 +243,12 @@ export class ProductService {
             abbreviation: true,
             school_id: true,
           },
+          product_views: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            profile_picture: true,
+          },
         },
       });
 

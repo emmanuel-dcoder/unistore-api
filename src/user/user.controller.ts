@@ -30,6 +30,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiQuery,
+  ApiParam,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -608,6 +609,30 @@ export class UserController {
       code: HttpStatus.OK,
       status: 'success',
       data,
+    });
+  }
+
+  @Put('increment-contact/:id')
+  @ApiOperation({ summary: 'Increment contact count for a user' })
+  @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully incremented contact count',
+    schema: {
+      example: {
+        id: '64ffab1234567890abcd',
+        email: 'john@example.com',
+        contact_count: 1,
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async incrementContact(@Param('id') id: string) {
+    await this.userService.incrementContactCount(id);
+    return successResponse({
+      message: 'Successfully incremented contact count',
+      code: HttpStatus.OK,
+      status: 'success',
     });
   }
 

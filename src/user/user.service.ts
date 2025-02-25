@@ -73,6 +73,7 @@ export class UserService {
           'email',
           'identification',
           'user_status',
+          'contact_count',
         ],
       });
     } catch (error) {
@@ -155,6 +156,7 @@ export class UserService {
           'email',
           'identification',
           'user_status',
+          'contact_count',
         ],
       });
 
@@ -295,6 +297,7 @@ export class UserService {
           'email',
           'identification',
           'user_status',
+          'contact_count',
         ],
       });
     } catch (error) {
@@ -365,6 +368,7 @@ export class UserService {
           'is_merchant_verified',
           'email',
           'identification',
+          'contact_count',
           'user_status',
           'verification_otp',
           'created_at',
@@ -428,6 +432,7 @@ export class UserService {
           'last_name',
           'phone',
           'id',
+          'contact_count',
           'profile_picture',
           'is_active',
           'is_merchant_verified',
@@ -479,6 +484,7 @@ export class UserService {
           'id',
           'profile_picture',
           'is_active',
+          'contact_count',
           'is_merchant_verified',
           'email',
           'identification',
@@ -522,6 +528,7 @@ export class UserService {
           'id',
           'profile_picture',
           'is_active',
+          'contact_count',
           'is_merchant_verified',
           'email',
           'identification',
@@ -557,6 +564,7 @@ export class UserService {
           'profile_picture',
           'is_active',
           'is_merchant_verified',
+          'contact_count',
           'email',
           'identification',
           'user_status',
@@ -809,6 +817,7 @@ export class UserService {
           'is_active',
           'is_merchant_verified',
           'email',
+          'contact_count',
           'identification',
           'user_status',
           'user_type',
@@ -835,6 +844,7 @@ export class UserService {
           'id',
           'profile_picture',
           'is_active',
+          'contact_count',
           'is_merchant_verified',
           'email',
           'identification',
@@ -893,6 +903,24 @@ export class UserService {
     }
   }
 
+  async incrementContactCount(userId: string): Promise<void> {
+    try {
+      const userContact = await this.userRepo.increment(
+        { id: userId },
+        'contact_count',
+        1,
+      );
+
+      if (!userContact)
+        throw new BadRequestException('Unable to increment contact');
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
+
   async deleteUserAccount(id: string): Promise<{ message: string }> {
     try {
       const result = await this.userRepo.delete({ id });
@@ -940,8 +968,6 @@ export class UserService {
         updateBankDto.bank_account_number,
         updateBankDto.bank_code,
       );
-
-      console.log('verifyBank', verifyBank);
 
       Object.assign(user, {
         bank_account_number: verifyBank.data.account_number,
