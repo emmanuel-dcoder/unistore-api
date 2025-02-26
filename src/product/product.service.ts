@@ -222,31 +222,69 @@ export class ProductService {
     }
   }
 
-  async findAll(schoolId: string, productName?: string): Promise<Product[]> {
+  async findById(productId: string, userId?: string) {
     try {
-      const queryBuilder = this.productRepo.createQueryBuilder('product');
+      const product = await this.productRepo.findOne({
+        where: { id: productId },
+        relations: ['user', 'school', 'product_views'], // Load relations
+      });
 
-      // Add search filter if productName is provided
-      if (productName) {
-        queryBuilder.where('product.product_name ILIKE :search', {
-          search: `%${productName}%`,
-        });
+      if (!product) {
+        throw new NotFoundException('Product not found');
       }
 
-      queryBuilder
-        .where('product.school = :schoolId', { schoolId })
-        .andWhere('product.is_approved = :isApproved', { isApproved: true })
-        .leftJoinAndSelect('product.user', 'user')
-        .addSelect([
-          'user.id',
-          'user.first_name',
-          'user.last_name',
-          'user.profile_picture',
-        ])
-        .leftJoinAndSelect('product.school', 'school');
+      // Select only necessary fields manually
+      const filteredProduct = {
+        ...product,
+        user: product.user
+          ? {
+              id: product.user.id,
+              first_name: product.user.first_name,
+              last_name: product.user.last_name,
+              email: product.user.email,
+              phone: product.user.phone,
+              profile_picture: product.user.profile_picture,
+            }
+          : null,
+        school: product.school
+          ? {
+              id: product.school.id,
+              name: product.school.name,
+              image: product.school.image,
+              abbreviation: product.school.abbreviation,
+              school_id: product.school.school_id,
+            }
+          : null,
+        product_views: product.product_views.map((viewedUser) => ({
+          id: viewedUser.id,
+          first_name: viewedUser.first_name,
+          last_name: viewedUser.last_name,
+          profile_picture: viewedUser.profile_picture,
+        })),
+      };
 
-      const products = await queryBuilder.getMany();
-      return products;
+      // Handle product view tracking
+      if (userId) {
+        const user = await this.userService.findById(userId);
+
+        if (!user) {
+          throw new NotFoundException('User not found');
+        }
+
+        const isUserViewed = product.product_views.some(
+          (viewedUser) => viewedUser.id === userId,
+        );
+
+        if (!isUserViewed) {
+          await this.productRepo
+            .createQueryBuilder()
+            .relation('product', 'product_views')
+            .of(productId)
+            .add(userId);
+        }
+      }
+
+      return filteredProduct;
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,
