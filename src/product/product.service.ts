@@ -298,7 +298,7 @@ export class ProductService {
       const queryBuilder = this.productRepo.createQueryBuilder('product');
 
       queryBuilder
-        .where('product.school_id = :schoolId', { schoolId }) // Use `school_id` as per your entity
+        .where('product.school_id = :schoolId', { schoolId })
         .andWhere('product.is_approved = :isApproved', { isApproved: true });
 
       if (productName) {
