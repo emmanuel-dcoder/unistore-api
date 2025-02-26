@@ -297,16 +297,17 @@ export class ProductService {
     try {
       const queryBuilder = this.productRepo.createQueryBuilder('product');
 
-      // Add search filter if productName is provided
+      queryBuilder
+        .where('product.school_id = :schoolId', { schoolId }) // Use `school_id` as per your entity
+        .andWhere('product.is_approved = :isApproved', { isApproved: true });
+
       if (productName) {
-        queryBuilder.where('product.product_name ILIKE :search', {
+        queryBuilder.andWhere('product.product_name ILIKE :search', {
           search: `%${productName}%`,
         });
       }
 
       queryBuilder
-        .where('product.school = :schoolId', { schoolId })
-        .andWhere('product.is_approved = :isApproved', { isApproved: true })
         .leftJoinAndSelect('product.user', 'user')
         .addSelect([
           'user.id',
