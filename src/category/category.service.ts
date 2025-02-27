@@ -45,6 +45,8 @@ export class CategoryService {
           search: `%${search.toLowerCase()}%`,
         });
       }
+
+      queryBuilder.orderBy('category.created_at', 'ASC');
       return await queryBuilder.getMany();
     } catch (error) {
       throw new HttpException(
@@ -73,7 +75,10 @@ export class CategoryService {
 
   async findOneByName(name: string) {
     try {
-      const category = await this.categoryRepo.findOne({ where: { name } });
+      const category = await this.categoryRepo.findOne({
+        where: { name },
+        order: { created_at: 'ASC' },
+      });
       if (!category)
         throw new NotFoundException(`Category with name: ${name} not found`);
       return category;
