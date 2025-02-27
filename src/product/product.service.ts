@@ -344,6 +344,7 @@ export class ProductService {
       const products = await queryBuilder.getMany();
       return products;
     } catch (error) {
+      console.log('error');
       throw new HttpException(
         error?.response?.message ?? error?.message,
         error?.status ?? error?.statusCode ?? 500,
