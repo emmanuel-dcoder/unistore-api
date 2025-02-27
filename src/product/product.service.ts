@@ -202,7 +202,16 @@ export class ProductService {
           'user.last_name',
           'user.profile_picture',
         ])
-        .leftJoinAndSelect('product.school', 'school');
+        .leftJoinAndSelect('product.school', 'school')
+        .leftJoinAndSelect('product.product_views', 'product_views')
+        .addSelect([
+          'product_views.first_name',
+          'product_views.last_name',
+          'product_views.email',
+          'product_views.profile_picture',
+          'product_views.is_merchant_verified',
+          'product_views.is_active',
+        ]);
 
       if (search) {
         queryBuilder.andWhere(
@@ -244,6 +253,8 @@ export class ProductService {
               email: product.user.email,
               phone: product.user.phone,
               profile_picture: product.user.profile_picture,
+              is_merchant_verified: product.user.is_merchant_verified,
+              is_active: product.user.is_active,
             }
           : null,
         school: product.school
@@ -259,7 +270,11 @@ export class ProductService {
           id: viewedUser.id,
           first_name: viewedUser.first_name,
           last_name: viewedUser.last_name,
+          email: viewedUser.email,
+          phone: viewedUser.phone,
           profile_picture: viewedUser.profile_picture,
+          is_active: viewedUser.is_active,
+          is_merchant_verified: viewedUser.is_merchant_verified,
         })),
       };
 
@@ -315,7 +330,16 @@ export class ProductService {
           'user.last_name',
           'user.profile_picture',
         ])
-        .leftJoinAndSelect('product.school', 'school');
+        .leftJoinAndSelect('product.school', 'school')
+        .leftJoinAndSelect('product.product_views', 'product_views')
+        .addSelect([
+          'product_views.first_name',
+          'product_views.last_name',
+          'product_views.email',
+          'product_views.profile_picture',
+          'product_views.is_merchant_verified',
+          'product_views.is_active',
+        ]);
 
       const products = await queryBuilder.getMany();
       return products;
@@ -352,7 +376,16 @@ export class ProductService {
         .where('product.is_approved = :isApproved', { isApproved: true })
         .andWhere('category.name ILIKE :categoryName', {
           categoryName: `%${categoryName}%`,
-        });
+        })
+        .leftJoinAndSelect('product.product_views', 'product_views')
+        .addSelect([
+          'product_views.first_name',
+          'product_views.last_name',
+          'product_views.email',
+          'product_views.profile_picture',
+          'product_views.is_merchant_verified',
+          'product_views.is_active',
+        ]);
 
       if (schoolId) {
         queryBuilder.andWhere('product.school_id = :schoolId', { schoolId });

@@ -29,7 +29,6 @@ import {
 import { successResponse } from 'src/core/common';
 import { UserGuard } from 'src/core/guards/user.guard';
 import { MerchantGuard } from 'src/core/guards/merchant.guard';
-import { Merchant } from 'src/core/decorators/merchant.decorator';
 
 @Controller('api/v1/product')
 @ApiTags('Product')
