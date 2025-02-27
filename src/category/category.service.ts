@@ -56,7 +56,10 @@ export class CategoryService {
 
   async findOne(id: string) {
     try {
-      const category = await this.categoryRepo.findOne({ where: { id } });
+      const category = await this.categoryRepo.findOne({
+        where: { id },
+        order: { created_at: 'ASC' },
+      });
       if (!category)
         throw new NotFoundException(`Category with id ${id} not found`);
       return category;

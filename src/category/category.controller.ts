@@ -8,6 +8,7 @@ import {
   Get,
   Param,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -19,6 +20,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { successResponse } from 'src/core/common';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Controller('api/v1/category')
 @ApiTags('Category')
@@ -107,5 +109,21 @@ export class CategoryController {
       this.logger.error('Error', error.message);
       throw error;
     }
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update or edit category' })
+  @ApiResponse({ status: 200, description: 'Category updated successfully' })
+  @ApiResponse({ status: 404, description: 'category not found' })
+  async update(
+    @Param('id') id: string,
+    @Body() updateCategoryDto: UpdateCategoryDto,
+  ) {
+    await this.categoryService.update(id, updateCategoryDto);
+    return successResponse({
+      message: 'Category updated successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+    });
   }
 }
