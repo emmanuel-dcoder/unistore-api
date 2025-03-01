@@ -141,6 +141,7 @@ export class UserController {
     }
   }
 
+  //create merchant or user
   @Post('')
   @ApiOperation({ summary: 'Create User' })
   @ApiBody({ type: CreateUserDto })
