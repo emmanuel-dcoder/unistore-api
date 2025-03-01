@@ -94,7 +94,7 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a category by ID' })
+  @ApiOperation({ summary: 'Delete the category by ID' })
   @ApiResponse({ status: 200, description: `Category deleted successfully` })
   @ApiResponse({ status: 404, description: `Category not found` })
   async delete(@Param('id') id: string) {
