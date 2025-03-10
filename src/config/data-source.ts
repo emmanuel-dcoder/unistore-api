@@ -21,6 +21,10 @@ const AppDataSource = new DataSource({
   migrations: ['dist/migration/*.js'],
   migrationsTableName: 'migrations',
   ssl: { rejectUnauthorized: false },
+  extra: {
+    PGAUTH: 'trust',
+    SUPABASE_AUTH_MODE: 'none',
+  },
 });
 
 module.exports = { AppDataSource };

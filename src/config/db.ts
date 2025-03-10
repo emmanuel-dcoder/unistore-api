@@ -26,6 +26,10 @@ class DbConfig {
       migrations: ['dist/migration/*.js'],
       migrationsRun: true, // Run migrations automatically on startup
       ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+      extra: {
+        PGAUTH: 'trust',
+        SUPABASE_AUTH_MODE: 'none',
+      },
     };
   }
 }
