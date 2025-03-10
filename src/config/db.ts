@@ -20,16 +20,12 @@ class DbConfig {
       username: POSTGRES_USER,
       password: POSTGRES_PASSWORD,
       database: POSTGRES_DATABASE,
-      synchronize: false,
+      synchronize: process.env.NODE_ENV === 'development' ? true : false,
       entities: ['dist/**/*.entity.js'],
       migrationsTableName: 'migration',
       migrations: ['dist/migration/*.js'],
       migrationsRun: true, // Run migrations automatically on startup
       ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
-      extra: {
-        PGAUTH: 'trust',
-        SUPABASE_AUTH_MODE: 'none',
-      },
     };
   }
 }

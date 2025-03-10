@@ -12,20 +12,11 @@ export class MailService {
   private readonly mailTransport;
 
   constructor() {
-    // Validate environment variables
-    const requiredVars = ['MAIL_HOST', 'MAIL_USER'];
-    requiredVars.forEach((variable) => {
-      if (!process.env[variable]) {
-        this.logger.error(`Missing environment variable: ${variable}`);
-        throw new Error('Email service configuration is incomplete.');
-      }
-    });
-
     // Set up mail transport
     this.mailTransport = nodemailer.createTransport({
       host: process.env.MAIL_HOST,
-      port: parseInt(process.env.SMS_PORT, 10),
-      secure: true, // Use STARTTLS
+      port: parseInt(process.env.MAIL_PORT, 10),
+      secure: true,
       requireTLS: true,
       auth: {
         user: process.env.MAIL_USER,
