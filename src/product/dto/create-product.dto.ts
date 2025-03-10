@@ -77,14 +77,6 @@ export class CreateProductDto {
   @ApiPropertyOptional()
   @IsString()
   custom_range: string;
-
-  @ApiPropertyOptional()
-  @IsString()
-  old_price: boolean;
-
-  @ApiPropertyOptional()
-  @IsString()
-  price_details: PriceDetails;
 }
 
 export class AdminProductDto {
@@ -150,11 +142,4 @@ export class AdminProductDto {
 export enum ProductStatus {
   VERIFIED = 'verified',
   NOT_VERIFIED = 'not-verified',
-}
-
-export interface PriceDetails {
-  custom_range?: string;
-  price_range?: string;
-  fixed_price?: string;
-  price?: string;
 }

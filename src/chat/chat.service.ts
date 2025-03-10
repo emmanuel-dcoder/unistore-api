@@ -189,11 +189,23 @@ export class ChatService {
     return messages;
   }
 
-  async getAdminMessages(chatId: string): Promise<AdminMessage[]> {
+  async getAdminMessages(
+    admin: string,
+    merchant: string,
+    senderType: string,
+  ): Promise<AdminMessage[]> {
     const messages = await this.adminMessageRepo.find({
-      where: {
-        chat: { id: chatId },
-      },
+      where: [
+        {
+          sender: merchant,
+          senderType,
+          chat: { admin: { id: admin } },
+        },
+        {
+          senderType: 'Admin',
+          chat: { merchant: { id: merchant } },
+        },
+      ],
       relations: ['chat', 'chat.merchant', 'chat.admin'], // Exclude 'sender' from relations
       select: {
         id: true,

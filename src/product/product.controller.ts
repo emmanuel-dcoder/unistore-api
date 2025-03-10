@@ -67,21 +67,26 @@ export class ProductController {
     @Body() createProductDto: Partial<CreateProductDto>,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
-    const user = req.user.id;
-    const school = req.user.school.id;
+    try {
+      const user = req.user.id;
+      const school = req.user.school.id;
 
-    const data = await this.productService.create(
-      createProductDto,
-      files,
-      user,
-      school,
-    );
-    return successResponse({
-      message: 'Product created successfully',
-      code: HttpStatus.OK,
-      status: 'success',
-      data,
-    });
+      const data = await this.productService.create(
+        createProductDto,
+        files,
+        user,
+        school,
+      );
+      return successResponse({
+        message: 'Product created successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
   }
 
   @Get('product/:id')

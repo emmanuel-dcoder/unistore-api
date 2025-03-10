@@ -65,12 +65,6 @@ export class Product {
   @Column({ nullable: true })
   price_range: string;
 
-  @Column({ type: 'boolean', default: true })
-  old_price: boolean;
-
-  @Column({ type: 'json', nullable: true })
-  price_details: Record<string, any>;
-
   @Column({ nullable: true })
   custom_range: string;
 

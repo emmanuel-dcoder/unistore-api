@@ -39,22 +39,27 @@ export class OrderInvoiceController {
   @ApiResponse({ status: 404, description: 'Invoice not found' })
   @UseGuards(MerchantGuard)
   async getInvoiceById(@Query('invoice_id') invoiceId: string) {
-    if (!invoiceId) {
-      throw new NotFoundException('Invoice ID is required');
+    try {
+      if (!invoiceId) {
+        throw new NotFoundException('Invoice ID is required');
+      }
+
+      const invoice = await this.invoiceService.getInvoiceById(invoiceId);
+
+      if (!invoice) {
+        throw new NotFoundException('Invoice not found');
+      }
+
+      return successResponse({
+        message: 'Invoice retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: invoice,
+      });
+    } catch (error) {
+      this.logger.error(`Error retrieving invoice: ${invoiceId}`, error.stack);
+      throw error;
     }
-
-    const invoice = await this.invoiceService.getInvoiceById(invoiceId);
-
-    if (!invoice) {
-      throw new NotFoundException('Invoice not found');
-    }
-
-    return successResponse({
-      message: 'Invoice retrieved successfully',
-      code: HttpStatus.OK,
-      status: 'success',
-      data: invoice,
-    });
   }
 
   @Get('merchant-dashboard-analysis')
@@ -69,18 +74,25 @@ export class OrderInvoiceController {
   @ApiResponse({ status: 404, description: 'No Analysis found for this owner' })
   @UseGuards(MerchantGuard)
   async getInvoiceCounts(@Req() req: any): Promise<any> {
-    const userId = req.user.id;
-    const counts = await this.invoiceService.getMerchantAnalysis(userId);
-    if (!counts) {
-      throw new NotFoundException('No Analysis found for this owner');
-    }
+    try {
+      const userId = req.user.id;
 
-    return successResponse({
-      message: 'Analysis counts retrieved successfully',
-      code: HttpStatus.OK,
-      status: 'success',
-      data: counts,
-    });
+      const counts = await this.invoiceService.getMerchantAnalysis(userId);
+
+      if (!counts) {
+        throw new NotFoundException('No Analysis found for this owner');
+      }
+
+      return successResponse({
+        message: 'Analysis counts retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: counts,
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving Analysis counts', error.message);
+      throw error;
+    }
   }
 
   @Post()
@@ -92,14 +104,24 @@ export class OrderInvoiceController {
   @ApiResponse({ status: 401, description: 'Unable to create invoice.' })
   @UseGuards(MerchantGuard)
   async create(@Req() req: any, @Body() createOrderDto: InvoicePayloadDto) {
-    const user = req.user.id;
-    const data = await this.invoiceService.createInvoice(createOrderDto, user);
-    return successResponse({
-      message: `Invoice created successfully`,
-      code: HttpStatus.OK,
-      status: 'success',
-      data,
-    });
+    try {
+      const user = req.user.id;
+
+      const data = await this.invoiceService.createInvoice(
+        createOrderDto,
+        user,
+      );
+
+      return successResponse({
+        message: `Invoice created successfully`,
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
   }
 
   @Get('merchant')
@@ -120,23 +142,28 @@ export class OrderInvoiceController {
     @Req() req: any,
     @Query('search') search?: string,
   ): Promise<any> {
-    const userId = req.user.id;
+    try {
+      const userId = req.user.id;
 
-    const invoices =
-      await this.invoiceService.getInvoicesByProductOwnerWithSearch(
-        userId,
-        search,
-      );
+      const invoices =
+        await this.invoiceService.getInvoicesByProductOwnerWithSearch(
+          userId,
+          search,
+        );
 
-    return successResponse({
-      message:
-        invoices.length === 0
-          ? 'Currently no invoice'
-          : 'Invoices retrieved successfully',
-      code: HttpStatus.OK,
-      status: 'success',
-      data: invoices,
-    });
+      return successResponse({
+        message:
+          invoices.length === 0
+            ? 'Currently no invoice'
+            : 'Invoices retrieved successfully',
+        code: HttpStatus.OK,
+        status: 'success',
+        data: invoices,
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving invoices', error.message);
+      throw error;
+    }
   }
 
   @Put('withdrawal-request')
@@ -147,14 +174,20 @@ export class OrderInvoiceController {
   @ApiResponse({ status: 401, description: 'Unable to request withdrawal' })
   @UseGuards(MerchantGuard)
   async requestWithdrawal(@Req() req: any): Promise<any> {
-    const merchantId = req.user.id;
-    const totalAmount = await this.invoiceService.invoiceWithdrawal(merchantId);
+    try {
+      const merchantId = req.user.id;
+      const totalAmount =
+        await this.invoiceService.invoiceWithdrawal(merchantId);
 
-    return successResponse({
-      message: `Invoice withdrawal for ${totalAmount}  successful`,
-      code: HttpStatus.OK,
-      status: 'success',
-    });
+      return successResponse({
+        message: `Invoice withdrawal for ${totalAmount}  successful`,
+        code: HttpStatus.OK,
+        status: 'success',
+      });
+    } catch (error) {
+      this.logger.error('Error retrieving invoices', error.message);
+      throw error;
+    }
   }
 
   @Get('withdrawal-request')
@@ -189,6 +222,7 @@ export class OrderInvoiceController {
   // @ApiResponse({ status: 500, description: 'Internal server error' })
   // @UseGuards(MerchantGuard) // Optional: Protect the endpoint with a guard
   // async deleteAll(): Promise<any> {
+  //   try {
   //     await this.invoiceService.deleteAllInvoices();
 
   //     return successResponse({
@@ -197,5 +231,9 @@ export class OrderInvoiceController {
   //       status: 'success',
   //       data: null,
   //     });
+  //   } catch (error) {
+  //     this.logger.error('Error deleting invoices', error.message);
+  //     throw error;
+  //   }
   // }
 }
