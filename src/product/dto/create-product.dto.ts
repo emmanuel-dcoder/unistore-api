@@ -138,13 +138,8 @@ export class AdminProductDto {
   @IsString()
   avg_rating: number;
 }
-// export product status
+
 export enum ProductStatus {
   VERIFIED = 'verified',
   NOT_VERIFIED = 'not-verified',
 }
-
-// export enum ProductStatus {
-//   VERIFIED = 'verified',
-//   NOT_VERIFIED = 'not-verified',
-// }
