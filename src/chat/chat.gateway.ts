@@ -185,26 +185,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('getAdminMessages')
-  async handleAdminGetMessages(client: Socket, payload: GetAdminMessagesDto) {
-    const { senderType } = payload;
-
-    if (!senderType) {
-      client.emit('messageHistory', 'sender type cannot be null');
-    }
-
-    if (
-      (senderType && senderType !== 'Admin') ||
-      (senderType && senderType !== 'User')
-    ) {
-      client.emit('messageHistory', 'sender type must be either Admin or User');
-    }
-
-    const messages = await this.chatService.getAdminMessages(
-      payload.admin,
-      payload.merchant,
-      payload.senderType,
-    );
-
+  async handleAdminGetMessages(client: Socket, chatId: string) {
+    client.emit('messageHistory', 'sender type cannot be null');
+    const messages = await this.chatService.getAdminMessages(chatId);
     client.emit('messageHistory', messages);
   }
 

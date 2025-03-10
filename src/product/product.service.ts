@@ -30,7 +30,15 @@ export class ProductService {
     school: string,
   ) {
     try {
-      const { product_name, category, ...rest } = createProductDto;
+      const {
+        product_name,
+        category,
+        price_range,
+        price,
+        custom_range,
+        fixed_price,
+        ...rest
+      } = createProductDto;
       await this.categoryService.findOne(category);
       const existingProduct = await this.productRepo.findOne({
         where: { product_name, user: { id: user } },
@@ -51,7 +59,6 @@ export class ProductService {
           where: { product_id: productId },
         });
       } while (validateOrder);
-
       // Create the product with user and school
       const product = await this.productRepo.create({
         ...rest,
@@ -61,6 +68,12 @@ export class ProductService {
         user: { id: user } as any,
         school: { id: school } as any,
         product_id: productId,
+        price_details: {
+          custom_range: custom_range ? custom_range : null,
+          price_range: price_range ? fixed_price : null,
+          fixed_price: fixed_price ? fixed_price : null,
+          price: price ? price : null,
+        },
       });
 
       const saveProduct = await this.productRepo.save(product);
@@ -70,7 +83,6 @@ export class ProductService {
 
       return saveProduct;
     } catch (error) {
-      console.log('error for creating product:', error);
       throw new HttpException(
         error?.response?.message ?? error?.message,
         error?.status ?? error?.statusCode ?? 500,
@@ -87,7 +99,16 @@ export class ProductService {
     files: Array<Express.Multer.File> | undefined,
   ) {
     try {
-      const { category, school, user, ...rest } = updateProductDto;
+      const {
+        category,
+        school,
+        user,
+        price_range,
+        price,
+        custom_range,
+        fixed_price,
+        ...rest
+      } = updateProductDto;
 
       const product = await this.productRepo.findOne({
         where: { id: productId },
@@ -105,6 +126,27 @@ export class ProductService {
       }
       if (user) {
         product.user = { id: user } as any;
+      }
+
+      if (price_range) {
+        product.price_details = {
+          price_range,
+        };
+      }
+      if (custom_range) {
+        product.price_details = {
+          custom_range,
+        };
+      }
+      if (price) {
+        product.price_details = {
+          price,
+        };
+      }
+      if (fixed_price) {
+        product.price_details = {
+          fixed_price,
+        };
       }
 
       if (files && files.length > 0) {
@@ -344,7 +386,6 @@ export class ProductService {
       const products = await queryBuilder.getMany();
       return products;
     } catch (error) {
-      console.log('error');
       throw new HttpException(
         error?.response?.message ?? error?.message,
         error?.status ?? error?.statusCode ?? 500,
