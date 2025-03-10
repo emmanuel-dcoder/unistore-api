@@ -16,6 +16,7 @@ import {
 } from 'typeorm';
 import { ProductStatus } from '../dto/create-product.dto';
 
+//entity
 @Entity()
 export class Product {
   @PrimaryGeneratedColumn('uuid')
