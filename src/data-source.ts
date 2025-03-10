@@ -21,7 +21,7 @@ export const AppDataSource = new DataSource({
   migrationsTableName: 'migration',
   migrations: ['dist/migrations/*.js'],
   migrationsRun: false, // Run manually using CLI
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+  ssl: false,
 });
 
 // Initialize the data source (for CLI commands)
