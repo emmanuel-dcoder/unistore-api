@@ -434,7 +434,7 @@ export class UserService {
         console.log('error:', error);
       }
 
-      return { message: 'OTP verified successfully' };
+      return { message: 'OTP verified successfully', id: user.id };
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,

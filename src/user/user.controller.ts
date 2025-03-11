@@ -264,17 +264,13 @@ export class UserController {
   @ApiBody({ type: VerifyOtpDto })
   @ApiResponse({ status: 400, description: 'Invalid OTP or OTP expired' })
   async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
-    try {
-      await this.userService.verifyOtp(verifyOtpDto);
-      return successResponse({
-        message: 'OTP verified successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-      });
-    } catch (error) {
-      this.logger.error('OTP verification failed', error.message);
-      throw error;
-    }
+    const data = await this.userService.verifyOtp(verifyOtpDto);
+    return successResponse({
+      message: 'OTP verified successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+      data,
+    });
   }
 
   @Post('resend-otp')
