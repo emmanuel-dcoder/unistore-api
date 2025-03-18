@@ -870,6 +870,7 @@ export class UserService {
           'email',
           'identification',
           'user_status',
+          'school',
         ],
       });
 
