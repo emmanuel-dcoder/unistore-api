@@ -872,6 +872,7 @@ export class UserService {
           'user_status',
           'school',
         ],
+        relations: ['school'],
       });
 
       if (!user) {
