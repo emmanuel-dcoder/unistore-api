@@ -796,4 +796,51 @@ export class AdminUserDashboardService {
       );
     }
   }
+
+  async getMerchantDetails(merchantId: string) {
+    try {
+      const merchant = await this.userRepo.findOne({
+        where: { id: merchantId },
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+          'contact_count',
+          'created_at',
+        ],
+      });
+
+      if (!merchant) {
+        throw new HttpException('Merchant not found', 404);
+      }
+
+      const products = await this.productRepo.find({
+        where: { user: { id: merchantId } },
+        select: ['id', 'product_name'],
+        relations: ['product_views'],
+      });
+
+      const totalProductViews = products.reduce(
+        (total, product) => total + (product.product_views?.length || 0),
+        0,
+      );
+
+      return {
+        ...merchant,
+        totalProductViews, // Add total product views to the response
+      };
+    } catch (error) {
+      throw new HttpException(
+        error?.response?.message ?? error?.message,
+        error?.status ?? error?.statusCode ?? 500,
+      );
+    }
+  }
 }

@@ -775,4 +775,20 @@ export class AdminUserDashboardController {
       status: 'success',
     });
   }
+
+  @Get('/merchant/:merchantId')
+  @ApiOperation({ summary: 'Get merchant by ID' })
+  @ApiResponse({ status: 200, description: 'Merchant fetched successfully.' })
+  @ApiResponse({ status: 404, description: 'No merchant found.' })
+  @ApiResponse({ status: 401, description: 'Unable to fetch merchant.' })
+  async findMerchantById(@Param('merchantId') merchantId: string) {
+    const data =
+      await this.adminUserDashboardService.getMerchantDetails(merchantId);
+    return successResponse({
+      message: 'Merchants fetched successfully.',
+      code: HttpStatus.OK,
+      status: 'success',
+      data,
+    });
+  }
 }
