@@ -74,6 +74,7 @@ export class UserService {
           'identification',
           'user_status',
           'contact_count',
+          'school',
         ],
       });
     } catch (error) {
@@ -374,6 +375,7 @@ export class UserService {
       );
     }
   }
+
   async verifyOtp(payload: { email: string; otp: string }) {
     try {
       const { email, otp } = payload;
@@ -495,6 +497,8 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: Partial<UpdateUserDto>) {
+    const { email, school, ...restOfPayload } = updateUserDto;
+
     try {
       const user = await this.userRepo.findOne({
         where: { id },
@@ -517,7 +521,7 @@ export class UserService {
         throw new NotFoundException('User not found');
       }
 
-      const updatedUser = { ...user, ...updateUserDto };
+      const updatedUser = { ...user, ...restOfPayload };
 
       return await this.userRepo.save(updatedUser);
     } catch (error) {
@@ -870,7 +874,6 @@ export class UserService {
           'email',
           'identification',
           'user_status',
-          'school',
         ],
         relations: ['school'],
       });
