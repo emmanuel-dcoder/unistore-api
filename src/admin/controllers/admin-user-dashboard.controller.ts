@@ -67,18 +67,13 @@ export class AdminUserDashboardController {
       description?: string;
     },
   ) {
-    try {
-      const user = await this.adminUserDashboardService.createUser(payload);
-      return successResponse({
-        message: 'User successfully created',
-        code: HttpStatus.CREATED,
-        status: 'success',
-        data: user,
-      });
-    } catch (error) {
-      this.logger.error('Error creating user', error.message);
-      throw new BadRequestException('Unable to create user');
-    }
+    const user = await this.adminUserDashboardService.createUser(payload);
+    return successResponse({
+      message: 'User successfully created',
+      code: HttpStatus.CREATED,
+      status: 'success',
+      data: user,
+    });
   }
 
   @Get('user-merchant-invoice-counts')
@@ -92,22 +87,14 @@ export class AdminUserDashboardController {
       'User and invoice counts with percentage change for the last 7 days',
   })
   async getUserAndOInvoiceCounts() {
-    try {
-      const counts =
-        await this.adminUserDashboardService.getUserAndOInvoiceCounts();
-      return successResponse({
-        message: 'User and Invoice counts fetched successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: counts,
-      });
-    } catch (error) {
-      this.logger.error(
-        'Error retrieving user and order counts',
-        error.message,
-      );
-      throw error;
-    }
+    const counts =
+      await this.adminUserDashboardService.getUserAndOInvoiceCounts();
+    return successResponse({
+      message: 'User and Invoice counts fetched successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+      data: counts,
+    });
   }
 
   @Get('product/highest')
@@ -135,30 +122,34 @@ export class AdminUserDashboardController {
   @ApiOperation({
     summary: 'Get Users by user_type = "merchant" with pagination',
   })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number for pagination (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Number of users per page (default: 10)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Users fetched by user_type "merchant"',
   })
   async getMerchants(@Query('page') page = 1, @Query('limit') limit = 10) {
-    try {
-      const users = await this.adminUserDashboardService.getUsersByUserType(
-        'merchant',
-        page,
-        limit,
-      );
-      return successResponse({
-        message: 'Users fetched by user_type "merchant"',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: users,
-      });
-    } catch (error) {
-      this.logger.error(
-        'Error retrieving users by user_type "merchant"',
-        error.message,
-      );
-      throw error;
-    }
+    const users = await this.adminUserDashboardService.getUsersByUserType(
+      'merchant',
+      page,
+      limit,
+    );
+    return successResponse({
+      message: 'Users fetched by user_type "merchant"',
+      code: HttpStatus.OK,
+      status: 'success',
+      data: users,
+    });
   }
 
   @Get('new-users')

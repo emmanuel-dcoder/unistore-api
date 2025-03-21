@@ -199,6 +199,20 @@ export class AdminUserDashboardService {
       const skip = (page - 1) * limit;
       return await this.userRepo.find({
         where: { user_type: userType },
+        select: [
+          'first_name',
+          'last_name',
+          'phone',
+          'id',
+          'profile_picture',
+          'is_active',
+          'is_merchant_verified',
+          'email',
+          'identification',
+          'user_status',
+          'contact_count',
+          'created_at',
+        ],
         skip: skip,
         take: limit,
         order: { created_at: 'DESC' },
