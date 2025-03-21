@@ -47,6 +47,15 @@ export class User {
   identification: string;
 
   @Column({ nullable: true })
+  matric_no: string;
+
+  @Column({ nullable: true })
+  department: string;
+
+  @Column({ nullable: true })
+  level: string;
+
+  @Column({ nullable: true })
   description: string;
 
   @Column({ enum: Role, default: Role.BUYER, nullable: true })

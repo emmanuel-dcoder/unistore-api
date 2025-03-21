@@ -53,6 +53,7 @@ import { SchoolService } from 'src/school/school.service';
 import { InvoiceService } from 'src/invoice/service/invoice.service';
 import { MerchantGuard } from 'src/core/guards/merchant.guard';
 import { UserGuard } from 'src/core/guards/user.guard';
+import { IdentificationDto } from './dto/identification.dto.';
 
 @Controller('api/v1/user')
 @ApiTags('User')
@@ -406,7 +407,7 @@ export class UserController {
   @Put(':id/photo-identification')
   @ApiOperation({
     summary:
-      'Upload Photo-identification  picture for the user, use form data (Key: file)',
+      'Upload photo/student id identification, matric no, level and department for the user,  use form data (Key: file), only photo or passport is not optional',
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -420,33 +421,33 @@ export class UserController {
       },
     },
   })
+  @ApiBody({ type: IdentificationDto })
   @ApiResponse({
     status: 200,
-    description: 'Photo-identification uploaded successfully',
+    description: 'Verification uploaded successfully',
   })
   @ApiResponse({ status: 404, description: 'User not found' })
   @UseInterceptors(FileInterceptor('file'))
   async photoIdentification(
     @Param('id') userId: string,
     @UploadedFile() file: Express.Multer.File,
+    @Body() identificationDto: Partial<IdentificationDto>,
   ) {
-    try {
-      if (!file)
-        throw new BadRequestException(
-          'Image file not upload, format must be JPEG/JPG',
-        );
-
-      const data = await this.userService.photoIdentification(userId, file);
-      return successResponse({
-        message: 'Photo-identification uploaded successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Upload profile picture failed', error.message);
-      throw error;
-    }
+    if (!file)
+      throw new BadRequestException(
+        'Image file not upload, format must be JPEG/JPG',
+      );
+    const data = await this.userService.photoIdentification(
+      userId,
+      file,
+      identificationDto,
+    );
+    return successResponse({
+      message: 'Verification uploaded successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+      data,
+    });
   }
 
   @Post('forgot-password')

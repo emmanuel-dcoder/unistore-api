@@ -40,6 +40,7 @@ import { Product } from 'src/product/entities/product.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { Role } from 'src/core/enums/role.enum';
 import { FlutterwaveService } from 'src/core/flutterwave/flutterwave';
+import { IdentificationDto } from './dto/identification.dto.';
 
 @Injectable()
 export class UserService {
@@ -617,7 +618,11 @@ export class UserService {
     }
   }
 
-  async photoIdentification(userId: string, file: Express.Multer.File) {
+  async photoIdentification(
+    userId: string,
+    file: Express.Multer.File,
+    identificationDto: Partial<IdentificationDto>,
+  ) {
     try {
       const user = await this.userRepo.findOne({
         where: { id: userId },
@@ -642,10 +647,16 @@ export class UserService {
       const uploadedFile = await this.uploadUserImage(file);
       user.identification = uploadedFile;
 
+      Object.assign(user, identificationDto);
+
       await this.userRepo.save(user);
 
+      if (!user) {
+        throw new BadRequestException('Unable to update verification details');
+      }
+
       return {
-        message: 'Photo-identification uploaded successfully',
+        message: 'Verification uploaded successfully',
         identification: uploadedFile,
       };
     } catch (error) {
