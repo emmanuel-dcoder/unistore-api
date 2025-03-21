@@ -160,6 +160,18 @@ export class AdminUserDashboardController {
     status: 200,
     description: 'Users fetched by user_type "user"',
   })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number for pagination (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Number of users per page (default: 10)',
+  })
   async getUsersByUserType(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
@@ -250,6 +262,18 @@ export class AdminUserDashboardController {
     summary: 'Get Users with is_merchant_verified = false with pagination',
   })
   @ApiResponse({ status: 200, description: 'Unverified merchants fetched' })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number for pagination (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Number of users per page (default: 10)',
+  })
   async getUnverifiedMerchants(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
@@ -682,10 +706,25 @@ export class AdminUserDashboardController {
   @ApiOperation({
     summary: 'Get all Categories',
   })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'The page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'The number of schools to return per page',
+    type: Number,
+    example: 10,
+  })
   @ApiResponse({ status: 200, description: 'Categories fetched' })
-  async getCategory() {
+  async getCategory(@Query() paginationDto: PaginationDto) {
     try {
-      const category = await this.adminUserDashboardService.findCategory();
+      const category =
+        await this.adminUserDashboardService.findCategory(paginationDto);
       return successResponse({
         message: 'Categories fetched',
         code: HttpStatus.OK,
@@ -701,6 +740,18 @@ export class AdminUserDashboardController {
   @Get('inactive-users')
   @ApiOperation({
     summary: 'Get Users with is_active = false with pagination',
+  })
+  @ApiQuery({
+    name: 'page',
+    type: Number,
+    required: false,
+    description: 'Page number for pagination (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: Number,
+    required: false,
+    description: 'Number of users per page (default: 10)',
   })
   @ApiResponse({ status: 200, description: 'Inactive users fetched' })
   async getInactiveUsers(@Query('page') page = 1, @Query('limit') limit = 10) {

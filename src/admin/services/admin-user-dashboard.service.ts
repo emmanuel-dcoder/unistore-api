@@ -364,6 +364,7 @@ export class AdminUserDashboardService {
         .leftJoinAndSelect('user.school', 'school')
         .where('school.id = :schoolId', { schoolId })
         .andWhere('user.user_type = :userType', { userType: 'user' })
+
         .getCount();
 
       return {
@@ -716,9 +717,14 @@ export class AdminUserDashboardService {
     }
   }
 
-  async findCategory(): Promise<Category[]> {
+  async findCategory(paginationDto: PaginationDto): Promise<Category[]> {
     try {
-      const category = this.categoryRepo.find();
+      const { page, limit } = paginationDto;
+      const skip = (page - 1) * limit;
+      const category = this.categoryRepo.find({
+        skip: skip,
+        take: limit,
+      });
       if (!category)
         throw new BadRequestException('Unable to fetch categories');
       return category;

@@ -29,6 +29,7 @@ import {
 import { successResponse } from 'src/core/common';
 import { UserGuard } from 'src/core/guards/user.guard';
 import { MerchantGuard } from 'src/core/guards/merchant.guard';
+import { PaginationDto } from 'src/admin/dto/invoice-admin.dto';
 
 @Controller('api/v1/product')
 @ApiTags('Product')
@@ -195,6 +196,18 @@ export class ProductController {
     summary: 'Get merchants products  by id, with optional search',
   })
   @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination (default is 1)',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of records per page (default is 10)',
+    type: Number,
+  })
+  @ApiQuery({
     name: 'search',
     required: false,
     type: String,
@@ -207,12 +220,14 @@ export class ProductController {
   async getProductByMerchantId(
     @Req() req: any,
     @Param('merchantId') merchantId: string,
+    @Query() paginationDto: Partial<PaginationDto>,
     @Query('search') search?: string,
   ) {
     try {
       const schoolId = req.user?.school?.id;
       const products = await this.productService.findByUser(
         merchantId,
+        paginationDto,
         search,
         schoolId,
       );
@@ -240,18 +255,35 @@ export class ProductController {
       'Get products that belong to the logged-in merchant, with optional search',
   })
   @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination (default is 1)',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of records per page (default is 10)',
+    type: Number,
+  })
+  @ApiQuery({
     name: 'search',
     required: false,
     type: String,
   })
   @ApiResponse({ status: 200, description: 'Products retrieved successfully' })
   @UseGuards(MerchantGuard)
-  async getUserProducts(@Req() req: any, @Query('search') search?: string) {
+  async getUserProducts(
+    @Req() req: any,
+    @Query() paginationDto: PaginationDto,
+    @Query('search') search?: string,
+  ) {
     try {
       const userId = req.user?.id;
       const schoolId = req.user?.school?.id;
       const products = await this.productService.findByUser(
         userId,
+        paginationDto,
         search,
         schoolId,
       );
@@ -278,16 +310,36 @@ export class ProductController {
     summary: 'Get products with optional search by product name',
   })
   @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination (default is 1)',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of records per page (default is 10)',
+    type: Number,
+  })
+  @ApiQuery({
     name: 'search',
     required: false,
     description: 'Search term for filtering products',
   })
   @ApiResponse({ status: 200, description: 'Products retrieved successfully' })
   @UseGuards(UserGuard)
-  async getProducts(@Req() req: any, @Query('search') search?: string) {
+  async getProducts(
+    @Req() req: any,
+    @Query() pagination: PaginationDto,
+    @Query('search') search?: string,
+  ) {
     try {
       const schoolId = req.user.school.id;
-      const products = await this.productService.findAll(schoolId, search);
+      const products = await this.productService.findAll(
+        schoolId,
+        pagination,
+        search,
+      );
       return successResponse({
         message: 'Products retrieved successfully',
         code: HttpStatus.OK,
@@ -305,6 +357,18 @@ export class ProductController {
     summary: 'Find products by category, price, and rating ranges',
     description:
       'Fetches products that belong to a specific category and fall within specified price and rating ranges.',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination (default is 1)',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of records per page (default is 10)',
+    type: Number,
   })
   @ApiQuery({
     name: 'categoryName',
@@ -344,6 +408,7 @@ export class ProductController {
   @UseGuards(UserGuard)
   async getByCategoryAndPrice(
     @Req() req: any,
+    @Query() paginationDto: PaginationDto,
     @Query('categoryName') categoryName: string,
     @Query('minPrice') minPrice?: string,
     @Query('maxPrice') maxPrice?: string,
@@ -354,6 +419,7 @@ export class ProductController {
       const schoolId = req.user?.school?.id;
 
       const data = await this.productService.findByCategoryAndPrice(
+        paginationDto,
         categoryName,
         {
           minPrice,

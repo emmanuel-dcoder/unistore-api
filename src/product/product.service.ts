@@ -12,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CategoryService } from 'src/category/category.service';
 import { NotFoundErrorException, RandomSevenDigits } from 'src/core/common';
 import { UserService } from 'src/user/user.service';
+import { PaginationDto } from 'src/admin/dto/invoice-admin.dto';
 
 @Injectable()
 export class ProductService {
@@ -180,8 +181,17 @@ export class ProductService {
     }
   }
 
-  async findByUser(userId: string, search: string, schoolId: string) {
+  async findByUser(
+    userId: string,
+    paginationDto: Partial<PaginationDto>,
+    search: string,
+    schoolId: string,
+  ) {
     try {
+      const { page = 1, limit = 10 } = paginationDto;
+
+      const skip = (page - 1) * limit;
+
       const confirmUser = await this.userService.getCurrentUser(userId);
 
       const queryBuilder = this.productRepo.createQueryBuilder('product');
@@ -220,7 +230,7 @@ export class ProductService {
         );
       }
 
-      const products = await queryBuilder.getMany();
+      const products = await queryBuilder.skip(skip).take(limit).getMany();
 
       return products;
     } catch (error) {
@@ -308,8 +318,14 @@ export class ProductService {
     }
   }
 
-  async findAll(schoolId: string, productName?: string): Promise<Product[]> {
+  async findAll(
+    schoolId: string,
+    paginationDto: PaginationDto,
+    productName?: string,
+  ): Promise<Product[]> {
     try {
+      const { page = 1, limit = 10 } = paginationDto;
+      const skip = (page - 1) * limit;
       const queryBuilder = this.productRepo.createQueryBuilder('product');
 
       queryBuilder
@@ -341,7 +357,7 @@ export class ProductService {
           'product_views.is_active',
         ]);
 
-      const products = await queryBuilder.getMany();
+      const products = await queryBuilder.skip(skip).take(limit).getMany();
       return products;
     } catch (error) {
       console.log('error');
@@ -353,6 +369,7 @@ export class ProductService {
   }
 
   async findByCategoryAndPrice(
+    paginationDto: PaginationDto,
     categoryName: string,
     filters: {
       minPrice?: string;
@@ -363,6 +380,8 @@ export class ProductService {
     schoolId?: string,
   ) {
     try {
+      const { page = 1, limit = 10 } = paginationDto;
+      const skip = (page - 1) * limit;
       if (categoryName && !schoolId) {
         throw new BadRequestException(
           'Category name and school ID are required.',
@@ -415,7 +434,7 @@ export class ProductService {
         });
       }
 
-      const products = await queryBuilder.getMany();
+      const products = await queryBuilder.skip(skip).take(limit).getMany();
 
       return products;
     } catch (error) {
