@@ -77,6 +77,7 @@ export class UserService {
           'contact_count',
           'school',
         ],
+        relations: ['school'],
       });
     } catch (error) {
       throw new HttpException(

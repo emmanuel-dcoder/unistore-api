@@ -407,7 +407,7 @@ export class UserController {
   @Put(':id/photo-identification')
   @ApiOperation({
     summary:
-      'Upload photo/student id identification, matric no, level and department for the user,  use form data (Key: file), only photo or passport is not optional',
+      'Upload photo/student ID identification, matric number, level, and department for the user. Use form data (Key: file). Only photo or passport is not optional.',
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -418,10 +418,12 @@ export class UserController {
           type: 'string',
           format: 'binary',
         },
+        matric_no: { type: 'string' },
+        level: { type: 'string' },
+        department: { type: 'string' },
       },
     },
   })
-  @ApiBody({ type: IdentificationDto })
   @ApiResponse({
     status: 200,
     description: 'Verification uploaded successfully',
@@ -431,17 +433,19 @@ export class UserController {
   async photoIdentification(
     @Param('id') userId: string,
     @UploadedFile() file: Express.Multer.File,
-    @Body() identificationDto: Partial<IdentificationDto>,
+    @Body() identificationDto: IdentificationDto,
   ) {
     if (!file)
       throw new BadRequestException(
-        'Image file not upload, format must be JPEG/JPG',
+        'Image file not uploaded, format must be JPEG/JPG',
       );
+
     const data = await this.userService.photoIdentification(
       userId,
       file,
       identificationDto,
     );
+
     return successResponse({
       message: 'Verification uploaded successfully',
       code: HttpStatus.OK,
