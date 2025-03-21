@@ -120,7 +120,7 @@ export class AdminUserDashboardController {
 
   @Get('new-merchants')
   @ApiOperation({
-    summary: 'Get Users by user_type = "merchant" with pagination',
+    summary: 'Get all merchants',
   })
   @ApiQuery({
     name: 'page',
