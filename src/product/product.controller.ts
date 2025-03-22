@@ -95,22 +95,17 @@ export class ProductController {
   @ApiResponse({ status: 200, description: 'Product retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Product not found' })
   async getProductById(@Param('id') productId: string, @Req() req: any) {
-    try {
-      const userId = req.user?.id;
-      const product = await this.productService.findById(productId, userId);
-      if (!product) {
-        throw new BadRequestException('Product not found');
-      }
-      return successResponse({
-        message: 'Product retrieved successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: product,
-      });
-    } catch (error) {
-      this.logger.error('Error fetching product', error.message);
-      throw error;
+    const userId = req.user?.id;
+    const product = await this.productService.findById(productId, userId);
+    if (!product) {
+      throw new BadRequestException('Product not found');
     }
+    return successResponse({
+      message: 'Product retrieved successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+      data: product,
+    });
   }
 
   @Put(':id')
@@ -147,22 +142,17 @@ export class ProductController {
     },
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
-    try {
-      const updatedProduct = await this.productService.update(
-        id,
-        updateProductDto,
-        files,
-      );
-      return successResponse({
-        message: 'Product updated successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: updatedProduct,
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw error;
-    }
+    const updatedProduct = await this.productService.update(
+      id,
+      updateProductDto,
+      files,
+    );
+    return successResponse({
+      message: 'Product updated successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+      data: updatedProduct,
+    });
   }
 
   @Delete('image/:id')

@@ -76,6 +76,9 @@ export class UserService {
           'user_status',
           'contact_count',
           'school',
+          'matric_no',
+          'level',
+          'department',
         ],
         relations: ['school'],
       });
@@ -160,6 +163,9 @@ export class UserService {
           'identification',
           'user_status',
           'contact_count',
+          'matric_no',
+          'level',
+          'department',
         ],
       });
 
@@ -221,6 +227,9 @@ export class UserService {
           'user_status',
           'password',
           'user_type',
+          'matric_no',
+          'level',
+          'department',
         ],
       });
 
@@ -301,6 +310,9 @@ export class UserService {
           'identification',
           'user_status',
           'contact_count',
+          'matric_no',
+          'level',
+          'department',
           'created_at',
         ],
       });
@@ -396,6 +408,9 @@ export class UserService {
           'contact_count',
           'user_status',
           'verification_otp',
+          'matric_no',
+          'level',
+          'department',
           'created_at',
         ],
       });
@@ -464,6 +479,9 @@ export class UserService {
           'email',
           'identification',
           'user_status',
+          'matric_no',
+          'level',
+          'department',
         ],
       });
 
@@ -516,6 +534,9 @@ export class UserService {
           'email',
           'identification',
           'user_status',
+          'matric_no',
+          'level',
+          'department',
         ],
       });
 
@@ -560,6 +581,9 @@ export class UserService {
           'email',
           'identification',
           'user_status',
+          'matric_no',
+          'level',
+          'department',
         ],
         relations: ['school'],
       });
@@ -595,6 +619,9 @@ export class UserService {
           'email',
           'identification',
           'user_status',
+          'matric_no',
+          'level',
+          'department',
         ],
       });
 
@@ -638,6 +665,9 @@ export class UserService {
           'email',
           'identification',
           'user_status',
+          'matric_no',
+          'level',
+          'department',
         ],
       });
 
@@ -858,6 +888,9 @@ export class UserService {
           'identification',
           'user_status',
           'user_type',
+          'matric_no',
+          'level',
+          'department',
         ],
       });
       if (!user) throw new NotFoundErrorException('User not found');
@@ -886,6 +919,9 @@ export class UserService {
           'email',
           'identification',
           'user_status',
+          'matric_no',
+          'level',
+          'department',
         ],
         relations: ['school'],
       });

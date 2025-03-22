@@ -265,6 +265,10 @@ export class ProductService {
               profile_picture: product.user.profile_picture,
               is_merchant_verified: product.user.is_merchant_verified,
               is_active: product.user.is_active,
+              identification: product.user.identification,
+              level: product.user.level,
+              matric_no: product.user.matric_no,
+              department: product.user.department,
             }
           : null,
         school: product.school
