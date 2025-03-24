@@ -176,25 +176,17 @@ export class AdminUserDashboardController {
     @Query('page') page = 1,
     @Query('limit') limit = 10,
   ) {
-    try {
-      const users = await this.adminUserDashboardService.getUsersByUserType(
-        'user',
-        page,
-        limit,
-      );
-      return successResponse({
-        message: 'Users fetched by user_type "user"',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: users,
-      });
-    } catch (error) {
-      this.logger.error(
-        'Error retrieving users by user_type "user"',
-        error.message,
-      );
-      throw error;
-    }
+    const users = await this.adminUserDashboardService.getUsersByUserType(
+      'user',
+      page,
+      limit,
+    );
+    return successResponse({
+      message: 'Users fetched by user_type "user"',
+      code: HttpStatus.OK,
+      status: 'success',
+      data: users,
+    });
   }
 
   @Get('recent-invoice')
@@ -307,7 +299,7 @@ export class AdminUserDashboardController {
   @ApiQuery({
     name: 'limit',
     required: false,
-    description: 'The number of schools to return per page',
+    description: 'The number of schools to return per page, default is 10',
     type: Number,
     example: 10,
   })
@@ -330,7 +322,7 @@ export class AdminUserDashboardController {
           paginationDto,
         );
       return successResponse({
-        message: 'Invoice fetched successfully',
+        message: 'Successfully fetched schools with user and merchant counts',
         code: HttpStatus.OK,
         status: 'success',
         data,
@@ -488,23 +480,17 @@ export class AdminUserDashboardController {
     if (!schoolId) {
       throw new BadRequestException('school_id is required');
     }
-
-    try {
-      const data =
-        await this.adminUserDashboardService.getAllSchoolMerchantsWithCounts(
-          merchantPaginationDto,
-          schoolId,
-        );
-      return successResponse({
-        message: 'Merchants fetched successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw error;
-    }
+    const data =
+      await this.adminUserDashboardService.getAllSchoolMerchantsWithCounts(
+        merchantPaginationDto,
+        schoolId,
+      );
+    return successResponse({
+      message: 'Merchants fetched successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+      data,
+    });
   }
 
   @Get('school/users')
