@@ -213,30 +213,20 @@ export class ProductController {
     @Query() paginationDto: Partial<PaginationDto>,
     @Query('search') search?: string,
   ) {
-    try {
-      const schoolId = req.user?.school?.id;
-      const products = await this.productService.findByUser(
-        merchantId,
-        paginationDto,
-        search,
-        schoolId,
-      );
+    const schoolId = req.user?.school?.id;
+    const products = await this.productService.findByUser(
+      merchantId,
+      paginationDto,
+      search,
+      schoolId,
+    );
 
-      return successResponse({
-        message: 'Merchant products retrieved successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: products,
-      });
-    } catch (error) {
-      this.logger.error('Error fetching products for user', {
-        error: error.message,
-        userId: req.user?.id,
-        search,
-      });
-
-      throw error;
-    }
+    return successResponse({
+      message: 'Merchant products retrieved successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+      data: products,
+    });
   }
 
   @Get('merchant-products')
@@ -405,42 +395,29 @@ export class ProductController {
     @Query('minRating') minRating?: number,
     @Query('maxRating') maxRating?: number,
   ) {
-    try {
-      const schoolId = req.user?.school?.id;
+    const schoolId = req.user?.school?.id;
 
-      const data = await this.productService.findByCategoryAndPrice(
-        paginationDto,
-        categoryName,
-        {
-          minPrice,
-          maxPrice,
-          minRating,
-          maxRating,
-        },
-        schoolId,
-      );
-
-      return successResponse({
-        message:
-          data.length === 0
-            ? 'No product found'
-            : 'Products retrieved successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error fetching products by category and price', {
-        error: error.message,
-        categoryName,
+    const data = await this.productService.findByCategoryAndPrice(
+      paginationDto,
+      categoryName,
+      {
         minPrice,
         maxPrice,
         minRating,
         maxRating,
-      });
+      },
+      schoolId,
+    );
 
-      throw error;
-    }
+    return successResponse({
+      message:
+        data.data.length === 0
+          ? 'No product found'
+          : 'Products retrieved successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+      data,
+    });
   }
 
   @Delete(':id')

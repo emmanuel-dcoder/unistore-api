@@ -189,7 +189,6 @@ export class ProductService {
   ) {
     try {
       const { page = 1, limit = 10 } = paginationDto;
-
       const skip = (page - 1) * limit;
 
       const confirmUser = await this.userService.getCurrentUser(userId);
@@ -230,9 +229,17 @@ export class ProductService {
         );
       }
 
-      const products = await queryBuilder.skip(skip).take(limit).getMany();
+      const [products, total] = await queryBuilder
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
 
-      return products;
+      return {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        data: products,
+      };
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,
@@ -326,7 +333,7 @@ export class ProductService {
     schoolId: string,
     paginationDto: PaginationDto,
     productName?: string,
-  ): Promise<Product[]> {
+  ) {
     try {
       const { page = 1, limit = 10 } = paginationDto;
       const skip = (page - 1) * limit;
@@ -361,8 +368,17 @@ export class ProductService {
           'product_views.is_active',
         ]);
 
-      const products = await queryBuilder.skip(skip).take(limit).getMany();
-      return products;
+      const [products, total] = await queryBuilder
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
+
+      return {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        data: products,
+      };
     } catch (error) {
       console.log('error');
       throw new HttpException(
@@ -386,6 +402,7 @@ export class ProductService {
     try {
       const { page = 1, limit = 10 } = paginationDto;
       const skip = (page - 1) * limit;
+
       if (categoryName && !schoolId) {
         throw new BadRequestException(
           'Category name and school ID are required.',
@@ -438,9 +455,17 @@ export class ProductService {
         });
       }
 
-      const products = await queryBuilder.skip(skip).take(limit).getMany();
+      const [products, total] = await queryBuilder
+        .skip(skip)
+        .take(limit)
+        .getManyAndCount();
 
-      return products;
+      return {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        data: products,
+      };
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,

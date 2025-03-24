@@ -190,14 +190,11 @@ export class AdminUserDashboardService {
     }
   }
 
-  async getUsersByUserType(
-    userType: string,
-    page: number,
-    limit: number,
-  ): Promise<User[]> {
+  async getUsersByUserType(userType: string, page: number, limit: number) {
     try {
       const skip = (page - 1) * limit;
-      return await this.userRepo.find({
+
+      const [users, total] = await this.userRepo.findAndCount({
         where: { user_type: userType },
         select: [
           'first_name',
@@ -222,6 +219,13 @@ export class AdminUserDashboardService {
         take: limit,
         order: { created_at: 'DESC' },
       });
+
+      return {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        data: users,
+      };
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,

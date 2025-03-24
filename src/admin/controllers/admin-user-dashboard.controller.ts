@@ -228,25 +228,20 @@ export class AdminUserDashboardController {
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
   ) {
-    try {
-      const orders =
-        await this.adminUserDashboardService.getInvoiceWithPagination(
-          page,
-          limit,
-          startDate,
-          endDate,
-        );
+    const orders =
+      await this.adminUserDashboardService.getInvoiceWithPagination(
+        page,
+        limit,
+        startDate,
+        endDate,
+      );
 
-      return successResponse({
-        message: 'Invoice fetched successfully',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: orders,
-      });
-    } catch (error) {
-      this.logger.error('Error retrieving Invoice', error.message);
-      throw error;
-    }
+    return successResponse({
+      message: 'Invoice fetched successfully',
+      code: HttpStatus.OK,
+      status: 'success',
+      data: orders,
+    });
   }
 
   @Get('unverified-merchants')
@@ -763,17 +758,12 @@ export class AdminUserDashboardController {
   @ApiResponse({ status: 200, description: 'Merchant verification successful' })
   @ApiResponse({ status: 400, description: 'Unable to verify merchant' })
   async approveProduct(@Param('id') id: string) {
-    try {
-      await this.adminUserDashboardService.verifyMerchant(id);
-      return successResponse({
-        message: 'Merchant verification successful',
-        code: HttpStatus.OK,
-        status: 'success',
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw new BadRequestException(error.message);
-    }
+    await this.adminUserDashboardService.verifyMerchant(id);
+    return successResponse({
+      message: 'Merchant verification successful',
+      code: HttpStatus.OK,
+      status: 'success',
+    });
   }
 
   @Delete('delete/user')
