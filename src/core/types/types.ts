@@ -2,7 +2,7 @@ export type ObjectLiteral = { [key: string]: any };
 
 export enum UserType {
   ADMIN = 'admin',
-  BUYER = 'buyer',
+  BUYER = 'user',
   MERCHANT = 'merchant',
 }
 

@@ -58,7 +58,7 @@ export class UserService {
 
   /**user dashboard and analysis */
   // Fetch all users with 'merchant' user_type
-  async findUsersByType(userType: string): Promise<User[]> {
+  async findUsersByType(userType: Role): Promise<User[]> {
     try {
       return await this.userRepo.find({
         where: { user_type: userType },

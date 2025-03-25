@@ -72,7 +72,7 @@ export class AdminModule implements NestModule {
       },
       AdminInvoiceController,
       AdminProductController,
-      AdminUserDashboardController,
+      // AdminUserDashboardController,
     );
   }
 }

@@ -59,7 +59,7 @@ export class User {
   description: string;
 
   @Column({ enum: Role, default: Role.BUYER, nullable: true })
-  user_type: string;
+  user_type: Role;
 
   @Column({ type: 'boolean', default: false })
   is_active: boolean;

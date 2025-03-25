@@ -7,6 +7,7 @@ import { CustomRequest, ForbiddenErrorException } from '../common';
 import { User } from 'src/user/entities/user.entity';
 import { UserType } from '../types/types';
 import { ROLES_KEY } from '../decorators/roles.decorators';
+import { Role } from '../enums/role.enum';
 
 @Injectable()
 export class MerchantRolesGuard implements CanActivate {
@@ -17,10 +18,10 @@ export class MerchantRolesGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Retrieve roles metadata
-    const requiredRoles = this.reflector.getAllAndOverride<UserType[]>(
-      ROLES_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     // If no roles are required, allow access
     if (!requiredRoles) {
@@ -41,7 +42,7 @@ export class MerchantRolesGuard implements CanActivate {
     }
 
     // Check if the user has the "merchant" role explicitly
-    if (user.user_type === UserType.MERCHANT) {
+    if (user.user_type === Role.MERCHANT) {
       return true;
     }
 

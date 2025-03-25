@@ -23,6 +23,7 @@ import { randomBytes } from 'crypto';
 import { hashPassword } from 'src/core/common';
 import { NotificationService } from 'src/notification/notification.service';
 import { MailService } from 'src/core/mail/email';
+import { Role } from 'src/core/enums/role.enum';
 
 @Injectable()
 export class AdminUserDashboardService {
@@ -57,6 +58,7 @@ export class AdminUserDashboardService {
         ...payload,
         password: hashedPassword,
         is_active: true,
+        user_type: payload.user_type as Role,
       });
 
       const savedUser = await this.userRepo.save(newUser);
@@ -101,28 +103,28 @@ export class AdminUserDashboardService {
 
       const currentMerchantUsers = await this.userRepo.count({
         where: {
-          user_type: 'merchant',
+          user_type: Role.MERCHANT,
           created_at: Between(sevenDaysAgo, currentDate),
         },
       });
 
       const previousMerchantUsers = await this.userRepo.count({
         where: {
-          user_type: 'merchant',
+          user_type: Role.MERCHANT,
           created_at: Between(fourteenDaysAgo, sevenDaysAgo),
         },
       });
 
       const currentUserUsers = await this.userRepo.count({
         where: {
-          user_type: 'user',
+          user_type: Role.BUYER,
           created_at: Between(sevenDaysAgo, currentDate),
         },
       });
 
       const previousUserUsers = await this.userRepo.count({
         where: {
-          user_type: 'user',
+          user_type: Role.BUYER,
           created_at: Between(fourteenDaysAgo, sevenDaysAgo),
         },
       });
@@ -190,7 +192,7 @@ export class AdminUserDashboardService {
     }
   }
 
-  async getUsersByUserType(userType: string, page: number, limit: number) {
+  async getUsersByUserType(userType: Role, page: number, limit: number) {
     try {
       const skip = (page - 1) * limit;
 
@@ -286,7 +288,8 @@ export class AdminUserDashboardService {
 
   async getAllSchoolsWithUserCounts(paginationDto: PaginationDto) {
     try {
-      const { page, limit, searchQuery } = paginationDto;
+      const { page = 1, limit = 10, searchQuery } = paginationDto;
+      const skip = (page - 1) * limit;
 
       const searchFilter = searchQuery
         ? {
@@ -299,39 +302,33 @@ export class AdminUserDashboardService {
 
       const [schools, totalSchools] = await this.schoolRepo.findAndCount({
         ...searchFilter,
-        skip: (page - 1) * limit,
+        skip,
         take: limit,
       });
 
-      const schoolsWithCounts = [];
+      const schoolsWithCounts = await Promise.all(
+        schools.map(async (school) => {
+          const [merchantCount, userCount] = await Promise.all([
+            this.userRepo.count({
+              where: { school: { id: school.id }, user_type: Role.MERCHANT },
+            }),
+            this.userRepo.count({
+              where: { school: { id: school.id }, user_type: Role.BUYER },
+            }),
+          ]);
 
-      for (const school of schools) {
-        const merchantCount = await this.userRepo.count({
-          where: {
-            school: { id: school.id },
-            user_type: 'merchant',
-          },
-        });
-
-        const userCount = await this.userRepo.count({
-          where: {
-            school: { id: school.id },
-            user_type: 'user',
-          },
-        });
-
-        schoolsWithCounts.push({
-          school,
-          userCounts: {
-            merchant: merchantCount,
-            user: userCount,
-          },
-        });
-      }
+          return {
+            school,
+            userCounts: { merchant: merchantCount, user: userCount },
+          };
+        }),
+      );
 
       return {
-        schools: schoolsWithCounts,
-        totalSchools,
+        currentPage: page,
+        totalPages: Math.ceil(totalSchools / limit),
+        totalItems: totalSchools,
+        data: schoolsWithCounts,
       };
     } catch (error) {
       throw new HttpException(
@@ -341,15 +338,23 @@ export class AdminUserDashboardService {
     }
   }
 
-  async getUnverifiedMerchants(page: number, limit: number): Promise<User[]> {
+  async getUnverifiedMerchants(page: number, limit: number) {
     try {
       const skip = (page - 1) * limit;
-      return await this.userRepo.find({
+
+      const [merchants, total] = await this.userRepo.findAndCount({
         where: { is_merchant_verified: false },
         skip: skip,
         take: limit,
         order: { created_at: 'DESC' },
       });
+
+      return {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        data: merchants,
+      };
     } catch (error) {
       throw new HttpException(
         error?.response?.message ?? error?.message,
@@ -466,7 +471,7 @@ export class AdminUserDashboardService {
       const [merchants, totalMerchants] = await this.userRepo.findAndCount({
         ...searchFilter,
         where: {
-          user_type: 'merchant',
+          user_type: Role.MERCHANT,
           ...schoolFilter,
         },
         skip: (page - 1) * limit,
@@ -545,7 +550,7 @@ export class AdminUserDashboardService {
       const [users, totalUsers] = await this.userRepo.findAndCount({
         ...searchFilter,
         where: {
-          user_type: 'merchant',
+          user_type: Role.MERCHANT,
           ...schoolFilter,
         },
         skip: (page - 1) * limit,
@@ -602,7 +607,7 @@ export class AdminUserDashboardService {
       const [merchants, totalMerchants] = await this.userRepo.findAndCount({
         ...searchFilter,
         where: {
-          user_type: 'merchant',
+          user_type: Role.MERCHANT,
         },
         skip: (page - 1) * limit,
         take: limit,

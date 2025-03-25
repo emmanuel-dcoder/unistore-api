@@ -54,6 +54,7 @@ import { InvoiceService } from 'src/invoice/service/invoice.service';
 import { MerchantGuard } from 'src/core/guards/merchant.guard';
 import { UserGuard } from 'src/core/guards/user.guard';
 import { IdentificationDto } from './dto/identification.dto.';
+import { Role } from 'src/core/enums/role.enum';
 
 @Controller('api/v1/user')
 @ApiTags('User')
@@ -75,33 +76,28 @@ export class UserController {
   async getMerchantDashboardData(
     @Req() req: any,
   ): Promise<SuccessResponseType> {
-    try {
-      const userId = req.user.id;
+    const userId = req.user.id;
 
-      const merchantAnalysis =
-        await this.invoiceService.getMerchantAnalysis(userId);
+    const merchantAnalysis =
+      await this.invoiceService.getMerchantAnalysis(userId);
 
-      let limit = 5;
-      const invoice =
-        await this.invoiceService.getInvoicesByProductOwnerWithSearch(
-          userId,
-          '',
-          limit,
-        );
+    let limit = 5;
+    const invoice =
+      await this.invoiceService.getInvoicesByProductOwnerWithSearch(
+        userId,
+        '',
+        limit,
+      );
 
-      return successResponse({
-        message: 'Dashboard data fetched successfully',
-        code: 200,
-        status: 'success',
-        data: {
-          merchantAnalysis,
-          invoice: invoice,
-        },
-      });
-    } catch (error) {
-      console.error('Error fetching dashboard data', error);
-      throw error;
-    }
+    return successResponse({
+      message: 'Dashboard data fetched successfully',
+      code: 200,
+      status: 'success',
+      data: {
+        merchantAnalysis,
+        invoice: invoice,
+      },
+    });
   }
 
   @UseGuards(UserGuard)
@@ -113,33 +109,23 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'Data fetched successfully' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   async getDashboardData(@Req() req: any): Promise<SuccessResponseType> {
-    try {
-      const schoolId = req.user?.school?.id;
-
-      const categories = await this.userService.findAllDesc();
-
-      const featuredProducts =
-        await this.userService.findFeaturedProducts(schoolId);
-
-      const allProducts = await this.userService.findAll(schoolId);
-
-      const merchantUsers = await this.userService.findUsersByType('merchant');
-
-      return successResponse({
-        message: 'Dashboard data fetched successfully',
-        code: 200,
-        status: 'success',
-        data: {
-          categories,
-          featuredProducts,
-          allProducts,
-          merchantUsers,
-        },
-      });
-    } catch (error) {
-      console.error('Error fetching dashboard data', error);
-      throw error;
-    }
+    const schoolId = req.user?.school?.id;
+    const categories = await this.userService.findAllDesc();
+    const featuredProducts =
+      await this.userService.findFeaturedProducts(schoolId);
+    const allProducts = await this.userService.findAll(schoolId);
+    const merchantUsers = await this.userService.findUsersByType(Role.MERCHANT);
+    return successResponse({
+      message: 'Dashboard data fetched successfully',
+      code: 200,
+      status: 'success',
+      data: {
+        categories,
+        featuredProducts,
+        allProducts,
+        merchantUsers,
+      },
+    });
   }
 
   //create merchant or user
@@ -153,18 +139,13 @@ export class UserController {
   })
   @ApiResponse({ status: 401, description: 'Unable to create user' })
   async create(@Body() createUserDto: CreateUserDto) {
-    try {
-      const data = await this.userService.create(createUserDto);
-      return successResponse({
-        message: 'User created successfully',
-        code: HttpStatus.CREATED,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error creating user', error.message);
-      throw error;
-    }
+    const data = await this.userService.create(createUserDto);
+    return successResponse({
+      message: 'User created successfully',
+      code: HttpStatus.CREATED,
+      status: 'success',
+      data,
+    });
   }
 
   @Post('login')
@@ -173,18 +154,13 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'Login successful', type: Object })
   @ApiResponse({ status: 401, description: 'Invalid email or password' })
   async login(@Body() loginDto: LoginDto) {
-    try {
-      const data = await this.userService.login(loginDto);
-      return successResponse({
-        message: 'Login successful',
-        code: HttpStatus.OK,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw error;
-    }
+    const data = await this.userService.login(loginDto);
+    return successResponse({
+      message: 'Login successful',
+      code: HttpStatus.OK,
+      status: 'success',
+      data,
+    });
   }
 
   @Get('logged-in')
@@ -197,21 +173,16 @@ export class UserController {
   })
   @ApiResponse({ status: 401, description: 'Unable to fetch user' })
   async getCurrentUser(@Req() req: any): Promise<SuccessResponseType> {
-    try {
-      if (!req.user.id)
-        throw new BadRequestErrorException('this route is authenticated');
-      const userId = req.user.id;
-      const data = await this.userService.getCurrentUser(userId);
-      return successResponse({
-        message: 'Login successful',
-        code: HttpStatus.OK,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw error;
-    }
+    if (!req.user.id)
+      throw new BadRequestErrorException('this route is authenticated');
+    const userId = req.user.id;
+    const data = await this.userService.getCurrentUser(userId);
+    return successResponse({
+      message: 'Login successful',
+      code: HttpStatus.OK,
+      status: 'success',
+      data,
+    });
   }
 
   @Get('/merchant/:merchantId')
@@ -243,20 +214,14 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'No merchants found.' })
   @ApiResponse({ status: 401, description: 'Unable to fetch merchants.' })
   async findMerchants(@Req() req: any, @Query('search') search?: string) {
-    try {
-      const schoolId = req.user.school.id;
-      const data = await this.userService.findMerchants(search, schoolId);
-
-      return successResponse({
-        message: 'Merchants fetched successfully.',
-        code: HttpStatus.OK,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw error;
-    }
+    const schoolId = req.user.school.id;
+    const data = await this.userService.findMerchants(search, schoolId);
+    return successResponse({
+      message: 'Merchants fetched successfully.',
+      code: HttpStatus.OK,
+      status: 'success',
+      data,
+    });
   }
 
   @Post('verify-otp')

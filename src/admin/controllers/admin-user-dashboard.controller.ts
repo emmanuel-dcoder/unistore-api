@@ -25,6 +25,7 @@ import { PaginationDto } from '../dto/invoice-admin.dto';
 import { School } from 'src/school/entities/school.entity';
 import { MerchantPaginationDto } from '../dto/update-admin.dto';
 import { User } from 'src/user/entities/user.entity';
+import { Role } from 'src/core/enums/role.enum';
 
 @ApiTags('Admin User & Dashboard')
 @Controller('api/v1/admin-user-dashboard')
@@ -50,8 +51,8 @@ export class AdminUserDashboardController {
         description: { type: 'string' },
         user_type: {
           type: 'string',
-          enum: ['buyer', 'merchant'],
-          default: 'buyer',
+          enum: ['user', 'merchant'],
+          default: 'user',
         },
       },
     },
@@ -140,7 +141,7 @@ export class AdminUserDashboardController {
   })
   async getMerchants(@Query('page') page = 1, @Query('limit') limit = 10) {
     const users = await this.adminUserDashboardService.getUsersByUserType(
-      'merchant',
+      Role.MERCHANT,
       page,
       limit,
     );
@@ -177,12 +178,12 @@ export class AdminUserDashboardController {
     @Query('limit') limit = 10,
   ) {
     const users = await this.adminUserDashboardService.getUsersByUserType(
-      'user',
+      Role.BUYER,
       page,
       limit,
     );
     return successResponse({
-      message: 'Users fetched by user_type "user"',
+      message: 'Users retrieved successfully',
       code: HttpStatus.OK,
       status: 'success',
       data: users,
@@ -265,21 +266,16 @@ export class AdminUserDashboardController {
     @Query('page') page = 1,
     @Query('limit') limit = 10,
   ) {
-    try {
-      const users = await this.adminUserDashboardService.getUnverifiedMerchants(
-        page,
-        limit,
-      );
-      return successResponse({
-        message: 'Unverified merchants fetched',
-        code: HttpStatus.OK,
-        status: 'success',
-        data: users,
-      });
-    } catch (error) {
-      this.logger.error('Error retrieving unverified merchants', error.message);
-      throw error;
-    }
+    const users = await this.adminUserDashboardService.getUnverifiedMerchants(
+      page,
+      limit,
+    );
+    return successResponse({
+      message: 'Unverified merchants fetched',
+      code: HttpStatus.OK,
+      status: 'success',
+      data: users,
+    });
   }
 
   @Get('schools')
@@ -311,21 +307,16 @@ export class AdminUserDashboardController {
     type: [School],
   })
   async getAllSchools(@Query() paginationDto: PaginationDto) {
-    try {
-      const data =
-        await this.adminUserDashboardService.getAllSchoolsWithUserCounts(
-          paginationDto,
-        );
-      return successResponse({
-        message: 'Successfully fetched schools with user and merchant counts',
-        code: HttpStatus.OK,
-        status: 'success',
-        data,
-      });
-    } catch (error) {
-      this.logger.error('Error', error.message);
-      throw error;
-    }
+    const data =
+      await this.adminUserDashboardService.getAllSchoolsWithUserCounts(
+        paginationDto,
+      );
+    return successResponse({
+      message: 'Successfully fetched schools with user and merchant counts',
+      code: HttpStatus.OK,
+      status: 'success',
+      data,
+    });
   }
 
   @Get('counts/school/:schoolId')
