@@ -39,6 +39,7 @@ export class ChatController {
     });
   }
 
+  @Post()
   @ApiOperation({
     summary: 'Send a message between merchant and user (via WebSocket)',
     description: `
@@ -67,7 +68,6 @@ export class ChatController {
    - **Listen**: \`chatList\` for the list of participated chats.
 `,
   })
-  @Post()
   async sendMessage(
     @Body() payload: { user: string; merchant: string; last_message: string },
   ) {
@@ -93,6 +93,7 @@ export class ChatController {
     }
   }
 
+  @Post('admin')
   @ApiOperation({
     summary: 'Send a message between merchant and admin (via WebSocket)',
     description: `
@@ -108,12 +109,11 @@ export class ChatController {
      - \`attachment\` (optional): File or attachment
    - **Listen**: \`receiver id\` for real-time updates.
 
+
 2. **Chat History**:
    - **Emit**: \`getAdminMessages\`
    - **Payload**:
-     - \`admin\`: Admin ID
-     - \`merchant\`: Merchant ID
-     - \`senderType\`: Can be \`Admin\` or \`User\`
+     - \`chat Id\`: id of chat
    - **Listen**: \`messageHistory\` for historical chats.
 
 3. **Chat Participation**:
@@ -123,7 +123,6 @@ export class ChatController {
    - **Listen**: \`chatList\` for the list of participated chats.
 `,
   })
-  @Post('admin')
   async sendAdminMessage(
     @Body() payload: { user: string; merchant: string; last_message: string },
   ) {
@@ -149,8 +148,9 @@ export class ChatController {
     }
   }
 
+  @Get('list/admin/:id')
   @ApiOperation({
-    summary: 'Get the list of chats participated in',
+    summary: 'Get the list of chats participated in between merchant and admin',
     description: `
 **Fetch Chat List**:
 - **Endpoint**: \`GET /list/:id\`
@@ -160,6 +160,32 @@ export class ChatController {
   })
   @Get('list/:id')
   async getChatList(@Param('id') participant: string) {
+    try {
+      const data =
+        await this.chatService.getAdminChatsByParticipant(participant);
+
+      return successResponse({
+        message: `Chat list fetched`,
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @ApiOperation({
+    summary: 'Get the list of chats participated in, between user and merchant',
+    description: `
+**Fetch Chat List**:
+- **Endpoint**: \`GET /list/:id\`
+- **Parameter**: \`participantId\` - ID of the participant.
+- **Returns**: List of chats the participant is involved in.
+`,
+  })
+  async getAdminChatList(@Param('id') participant: string) {
     try {
       const data = await this.chatService.getChatsByParticipant(participant);
 
@@ -175,6 +201,7 @@ export class ChatController {
     }
   }
 
+  @Get('message')
   @ApiOperation({
     summary: 'Fetch chat messages between a user and merchant',
     description: `
@@ -185,10 +212,36 @@ export class ChatController {
 - **Returns**: Messages exchanged between the specified user and merchant.
 `,
   })
-  @Get('message')
   async getChatMessage(@Body() chatId: string) {
     try {
       const data = await this.chatService.getMessages(chatId);
+
+      return successResponse({
+        message: `Chat Message fetched`,
+        code: HttpStatus.OK,
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      this.logger.error('Error', error.message);
+      throw error;
+    }
+  }
+
+  @Get('admin-message')
+  @ApiOperation({
+    summary: 'Fetch chat messages between a merchant and admin',
+    description: `
+**Fetch Chat Messages**:
+- **Endpoint**: \`GET /message\`
+- **Payload**:
+  - \`chatID\`: id of the chat
+- **Returns**: Messages exchanged between the specified user and merchant.
+`,
+  })
+  async getAdminChatMessage(@Body() chatId: string) {
+    try {
+      const data = await this.chatService.getAdminMessages(chatId);
 
       return successResponse({
         message: `Chat Message fetched`,

@@ -89,11 +89,11 @@ export class ChatService {
 
     if (existingChat) {
       existingChat.last_message = last_message;
-      await this.chatRepo.save(existingChat);
+      await this.adminChatRepo.save(existingChat);
       return existingChat;
     }
 
-    return this.chatRepo.save({
+    return this.adminChatRepo.save({
       admin: { id: admin } as any,
       merchant: { id: merchant } as any,
       last_message,
@@ -189,23 +189,11 @@ export class ChatService {
     return messages;
   }
 
-  async getAdminMessages(
-    admin: string,
-    merchant: string,
-    senderType: string,
-  ): Promise<AdminMessage[]> {
+  async getAdminMessages(chatId: string): Promise<AdminMessage[]> {
     const messages = await this.adminMessageRepo.find({
-      where: [
-        {
-          sender: merchant,
-          senderType,
-          chat: { admin: { id: admin } },
-        },
-        {
-          senderType: 'Admin',
-          chat: { merchant: { id: merchant } },
-        },
-      ],
+      where: {
+        chat: { id: chatId },
+      },
       relations: ['chat', 'chat.merchant', 'chat.admin'], // Exclude 'sender' from relations
       select: {
         id: true,
